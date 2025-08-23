@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Firebase SDK
 firebase.sdk.bk
+
+# Firebase CLI generated files
+.firebase/
