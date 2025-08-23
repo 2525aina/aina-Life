@@ -384,3 +384,109 @@ export default function Home() {
 ```
 
 </details>
+
+## 3. ビルド時のエラーと警告の修正
+
+Googleログイン機能の実装後、`npm run build` 実行時に以下のエラーと警告が発生する場合があります。
+
+### 3.1. ESLintエラー (`@typescript-eslint/no-explicit-any`) の修正
+
+`src/hooks/useAuth.ts` で発生する `Unexpected any. Specify a different type.`というエラーは、TypeScriptの型安全性を高めるためのESLintルールによるものです。
+`any`型の使用を避け、より具体的な型を指定するか、`unknown` 型を使用して型チェックを行うことで修正できます。
+
+**修正内容:**
+
+`catch (error: any)` の箇所を `catch (error: unknown)` に変更し、`error` が`Error`型のインスタンスであるかをチェックするロジックを追加します。
+
+**修正前:**
+
+```Typescript
+} catch (error: any) {
+  console.error("Googleログインエラー:", error.message);
+  alert(Googleログインに失敗しました: ${error.message});
+}
+```
+
+**修正後:**
+
+```Typescript
+ } catch (error: unknown) {
+   // error が Error 型かどうかを判定してから message を参照します
+   if (error instanceof Error) {
+     console.error("Googleログインエラー:", error.message);
+     alert(Googleログインに失敗しました: ${error.message});
+   } else {
+     console.error("Googleログインエラー:", error);
+     alert("Googleログインに失敗しました: 詳細不明のエラー");
+   }
+ }
+ ```
+
+ 
+ ### 3.2. 画像最適化に関する警告 (`@next/next/no-img-element`)
+ 
+ `src/components/UserProfile.tsx` で発生する `Using <img> could result in slower LCP and higher bandwidth. Considerusing <Image /> from next/image` という警告は、Next.jsの画像最適化機能に関するものです。
+ この警告は、`<img>` タグの代わりにNext.jsが提供する `<Image />` コンポーネントを使用することで解消できます。`<Image/>`
+ コンポーネントは、画像の遅延読み込み、サイズ最適化、フォーマット変換などを自動的に行い、パフォーマンスを向上させます。
+ 
+ **修正内容:**
+ 
+ `src/components/UserProfile.tsx` の `<img>` タグを `next/image` からインポトした `<Image />`コンポーネントに置き換えます。
+ 
+ **修正前:**
+ ```Typescript
+       {user.photoURL && (
+         <img
+           src={user.photoURL}
+           alt="User Photo"
+           className="w-24 h-24 rounded-full mx-auto mb-4"
+         />
+       )}
+ ```
+
+  **修正後:**
+
+  ```Typescript
+  import Image from 'next/image'; // 先頭に追記
+       {user.photoURL && (
+         <Image
+           src={user.photoURL}
+           alt="User Photo"
+           width={96} // <img>のw-24 (96px) に合わせる
+           height={96} // <img>のh-24 (96px) に合わせる
+           className="w-24 h-24 rounded-full mx-auto mb-4"
+         />
+       )}
+  ```
+  **注意:** `<Image />` コンポーネントを使用する場合、`width` と `height` プロパィの指定が必須となります。  
+  CSSの `w-24`と `h-24` はTailwind CSSのクラスで、それぞれ `width: 6rem;` と `height: 6rem;` に相当し、デフォルトのrem設定では `96px`になります。  
+
+### 3.2.1. 外部ドメインの画像最適化に関する警告
+
+Next.jsのImageコンポーネントを使用する際に、Googleアカウントのプロフィール画像など、外部ドメインの画像を表示しようとすると、以下のような警告が表示されることがあります。
+
+```
+Image optimization host "lh3.googleusercontent.com" is not configured in `next.config.js`.
+```
+
+これは、Next.jsがセキュリティ上の理由から、最適化する画像のホストを明示的に許可する必要があるためです。この警告を解消するには、`next.config.ts`ファイルに以下の設定を追加します。
+
+```typescript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '**',
+      },
+    ],
+  },
+};
+
+module.exports = nextConfig;
+```
+
+この設定により、`lh3.googleusercontent.com`からの画像がNext.jsによって最適化され、警告が表示されなくなります。  

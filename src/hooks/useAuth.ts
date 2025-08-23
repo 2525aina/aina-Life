@@ -48,10 +48,16 @@ export const useAuth = () => {
       // 認証が成功すると、onAuthStateChangedリスナーが発火し、userステートが更新されます。
       await signInWithPopup(auth, provider);
       console.log("Googleログイン成功！");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      // error が Error 型かどうかを判定してから message を参照します
+      if (error instanceof Error) {
       // エラーが発生した場合、コンソールにエラーメッセージを出力し、アラートを表示します。
       console.error("Googleログインエラー:", error.message);
       alert(`Googleログインに失敗しました: ${error.message}`);
+            } else {
+        console.error("Googleログインエラー:", error);
+        alert("Googleログインに失敗しました: 詳細不明のエラー");
+      }
     } finally {
       // ログイン処理が完了したら、ローディング状態をfalseに設定します。
       // 成功・失敗に関わらず実行されます。
@@ -68,10 +74,15 @@ export const useAuth = () => {
       // ログアウトが成功すると、onAuthStateChangedリスナーが発火し、userステートがnullに更新されます。
       await signOut(auth);
       console.log("ログアウト成功！");
-    } catch (error: any) {
-      // エラーが発生した場合、コンソールにエラーメッセージを出力し、アラートを表示します。
-      console.error("ログアウトエラー:", error.message);
-      alert(`ログアウトに失敗しました: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        // エラーが発生した場合、コンソールにエラーメッセージを出力し、アラートを表示します。
+        console.error("ログアウトエラー:", error.message);
+        alert(`ログアウトに失敗しました: ${error.message}`);
+      } else {
+        console.error("ログアウトエラー:", error);
+        alert("ログアウトに失敗しました: 詳細不明のエラー");
+      }
     } finally {
       // ログアウト処理が完了したら、ローディング状態をfalseに設定します。
       setLoading(false);

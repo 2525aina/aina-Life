@@ -1,8 +1,9 @@
 // src/components/UserProfile.tsx
 // このコンポーネントは、ログインしているユーザーの情報を表示し、ログアウトボタンを提供します。
 
-import React from 'react';
-import { useAuth } from '@/hooks/useAuth'; // 作成したカスタムフックをインポート
+import React from "react";
+import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth"; // 作成したカスタムフックをインポート
 
 // UserProfileコンポーネントの定義
 const UserProfile: React.FC = () => {
@@ -32,9 +33,11 @@ const UserProfile: React.FC = () => {
       </p>
       {/* ユーザーのプロフィール画像があれば表示します。 */}
       {user.photoURL && (
-        <img
+        <Image
           src={user.photoURL}
           alt="User Photo"
+          width={96} // <img>のw-24 (96px) に合わせる
+          height={96} // <img>のh-24 (96px) に合わせる
           className="w-24 h-24 rounded-full mx-auto mb-4"
         />
       )}
@@ -45,7 +48,7 @@ const UserProfile: React.FC = () => {
         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
       >
         {/* ローディング中はテキストを変更します。 */}
-        {loading ? 'ログアウト中...' : 'ログアウト'}
+        {loading ? "ログアウト中..." : "ログアウト"}
       </button>
     </div>
   );
