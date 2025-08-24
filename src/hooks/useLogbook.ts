@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './useAuth';
+import { usePets } from './usePets'; // ★ usePetsをインポート
 
 // Taskデータ型定義
 export interface Task {
@@ -21,7 +22,7 @@ export interface Task {
   order: number;
 }
 
-// Logデータ型定義 (今回は未使用だが、将来の履歴表示用)
+// Logデータ型定義
 export interface Log {
   id: string;
   taskName: string;
@@ -29,26 +30,25 @@ export interface Log {
   timestamp: Timestamp;
 }
 
-// TODO: 将来的には、現在選択中のペットIDを動的に取得する
-const TEMP_DOG_ID = 'dog1';
-
 export const useLogbook = () => {
   const { user } = useAuth();
+  const { selectedPetId } = usePets(); // ★ 選択中のペットIDを取得
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [logs, setLogs] = useState<Log[]>([]); // ★ logs用のstateを追加
+  const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
 
   // 副作用フックでタスク一覧とログをFirestoreから取得
   useEffect(() => {
-    if (!user) {
+    // ユーザーがいない、またはペットが選択されていない場合は何もしない
+    if (!user || !selectedPetId) {
       setTasks([]);
-      setLogs([]); // ★ログもクリア
+      setLogs([]);
       setLoading(false);
       return;
     }
 
     // 1. タスクの監視
-    const tasksCollection = collection(db, 'dogs', TEMP_DOG_ID, 'tasks');
+    const tasksCollection = collection(db, 'dogs', selectedPetId, 'tasks'); // ★ IDを動的に
     const tasksQuery = query(tasksCollection, orderBy('order'));
     const unsubscribeTasks = onSnapshot(
       tasksQuery,
@@ -66,8 +66,8 @@ export const useLogbook = () => {
       }
     );
 
-    // 2. ★今日のログの監視
-    const logsCollection = collection(db, 'dogs', TEMP_DOG_ID, 'logs');
+    // 2. 今日のログの監視
+    const logsCollection = collection(db, 'dogs', selectedPetId, 'logs'); // ★ IDを動的に
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
@@ -93,7 +93,7 @@ export const useLogbook = () => {
       unsubscribeTasks();
       unsubscribeLogs();
     };
-  }, [user]);
+  }, [user, selectedPetId]); // ★ selectedPetIdに依存させる
 
   // 新しいログを追加する関数
   const addLog = async (task: Task) => {
@@ -101,9 +101,13 @@ export const useLogbook = () => {
       alert('ログインが必要です。');
       return;
     }
+    if (!selectedPetId) {
+      alert('ペットが選択されていません。');
+      return;
+    }
 
     try {
-      const logsCollection = collection(db, 'dogs', TEMP_DOG_ID, 'logs');
+      const logsCollection = collection(db, 'dogs', selectedPetId, 'logs'); // ★ IDを動的に
       await addDoc(logsCollection, {
         taskName: task.name,
         taskId: task.id,
@@ -120,5 +124,5 @@ export const useLogbook = () => {
     }
   };
 
-  return { tasks, logs, loading, addLog }; // ★返り値にlogsを追加
+  return { tasks, logs, loading, addLog };
 };
