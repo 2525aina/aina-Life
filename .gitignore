@@ -45,3 +45,6 @@ firebase.sdk.bk
 
 # Firebase CLI generated files
 .firebase/
+
+# commit message
+commit_message.txt
