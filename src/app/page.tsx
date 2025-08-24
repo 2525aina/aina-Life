@@ -7,7 +7,8 @@
 import { useAuth } from "@/hooks/useAuth"; // 作成した認証カスタムフックをインポート
 import LoginButton from "@/components/LoginButton"; // ログインボタンコンポーネントをインポート
 import UserProfile from "@/components/UserProfile"; // ユーザープロフィールコンポーネントをインポート
-import { TaskSelector } from "@/components/TaskSelector"; // ★追加：タスク選択コンポーネント
+import { TaskSelector } from "@/components/TaskSelector"; // タスク選択コンポーネント
+import { LogTimeline } from "@/components/LogTimeline"; // ★追加：ログタイムラインコンポーネント
 
 // Homeコンポーネントの定義
 export default function Home() {
@@ -29,10 +30,11 @@ export default function Home() {
 
       {/* ユーザーがログインしているかどうかに基づいて表示を切り替えます。 */}
       {user ? (
-        // ★変更：ログインしている場合、プロフィールとタスク選択の両方を表示
+        // ★変更：ログインしている場合、プロフィール、タスク選択、タイムラインを表示
         <div className="w-full max-w-lg mx-auto">
           <UserProfile />
           <TaskSelector />
+          <LogTimeline />
         </div>
       ) : (
         // ログインしていない場合、LoginButtonコンポーネントを表示します。
