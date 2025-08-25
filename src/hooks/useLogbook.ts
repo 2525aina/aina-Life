@@ -184,5 +184,87 @@ export const useLogbook = (targetDate?: Date) => {
     }
   };
 
-  return { tasks, logs, loading, addLog, updateLog, deleteLog };
+  // 新しいタスクを追加する関数
+  const addTask = async (taskData: Omit<Task, 'id'>) => {
+    if (!user || !selectedPetId) {
+      alert('ログインが必要です。');
+      return;
+    }
+    try {
+      const tasksCollection = collection(db, 'dogs', selectedPetId, 'tasks');
+      await addDoc(tasksCollection, {
+        ...taskData,
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      console.log('タスクを追加しました:', taskData.name);
+    } catch (error) {
+      console.error('タスクの追加に失敗しました:', error);
+      alert('タスクの追加に失敗しました。');
+    }
+  };
+
+  // タスクを更新する関数
+  const updateTask = async (taskId: string, updatedData: Partial<Task>) => {
+    if (!user || !selectedPetId) {
+      alert('ログインが必要です。');
+      return;
+    }
+    try {
+      const taskRef = doc(db, 'dogs', selectedPetId, 'tasks', taskId);
+      await updateDoc(taskRef, {
+        ...updatedData,
+        updatedAt: serverTimestamp(),
+      });
+      console.log('タスクを更新しました:', taskId);
+    } catch (error) {
+      console.error('タスクの更新に失敗しました:', error);
+      alert('タスクの更新に失敗しました。');
+    }
+  };
+
+  // タスクを削除する関数
+  const deleteTask = async (taskId: string) => {
+    if (!user || !selectedPetId) {
+      alert('ログインが必要です。');
+      return;
+    }
+    if (!confirm('本当にこのタスクを削除しますか？')) {
+      return;
+    }
+    try {
+      const taskRef = doc(db, 'dogs', selectedPetId, 'tasks', taskId);
+      await deleteDoc(taskRef);
+      console.log('タスクを削除しました:', taskId);
+    } catch (error) {
+      console.error('タスクの削除に失敗しました:', error);
+      alert('タスクの削除に失敗しました。');
+    }
+  };
+
+  // タスクの並び順を更新する関数
+  const reorderTasks = async (reorderedTasks: Task[]) => {
+    if (!user || !selectedPetId) {
+      alert('ログインが必要です。');
+      return;
+    }
+    try {
+      // Firestoreのトランザクションまたはバッチ書き込みを使用するとより効率的だが、
+      // シンプルさのため個別に更新
+      for (const task of reorderedTasks) {
+        const taskRef = doc(db, 'dogs', selectedPetId, 'tasks', task.id);
+        await updateDoc(taskRef, {
+          order: task.order,
+          updatedAt: serverTimestamp(),
+        });
+      }
+      console.log('タスクの並び順を更新しました。');
+    } catch (error) {
+      console.error('タスクの並び順の更新に失敗しました:', error);
+      alert('タスクの並び順の更新に失敗しました。');
+    }
+  };
+
+  return { tasks, logs, loading, addLog, updateLog, deleteLog, addTask, updateTask, deleteTask, reorderTasks };
 };
