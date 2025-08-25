@@ -9,9 +9,10 @@ import {
   orderBy,
   Timestamp,
   where,
-  doc, // ★追加
-  updateDoc, // ★追加
-  deleteDoc, // ★追加
+  doc,
+  updateDoc,
+  deleteDoc,
+  FieldValue, // ★追加
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './useAuth';
@@ -32,6 +33,7 @@ export interface Log {
   taskId: string;
   timestamp: Timestamp;
   note?: string; // ★追加：メモ
+  updatedAt?: Timestamp | FieldValue; // ★修正：FieldValueも許容
 }
 
 export const useLogbook = (targetDate?: Date) => {
