@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useLogbook, Log, Task } from '@/hooks/useLogbook';
+import { useLogbook, Log } from '@/hooks/useLogbook';
 import { Timestamp, serverTimestamp } from 'firebase/firestore'; // serverTimestampを追加
 
 interface EditLogModalProps {
