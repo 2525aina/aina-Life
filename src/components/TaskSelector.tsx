@@ -29,8 +29,7 @@ export const TaskSelector = () => {
           key={task.id}
           onClick={() => addLog(task)}
           className="bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white font-semibold py-2 px-5 rounded-full shadow-sm transition-all duration-150 ease-in-out transform hover:scale-105"
-          // TODO: 将来的に、task.colorを使ってボタンの色を動的に変更する
-          // style={{ backgroundColor: task.color }}
+          style={{ backgroundColor: task.color, color: task.textColor || 'white' }}
         >
           {task.name}
         </button>

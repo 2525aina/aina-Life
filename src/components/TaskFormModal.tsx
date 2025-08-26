@@ -13,6 +13,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, t
   const { addTask, updateTask, loading: logbookLoading } = useLogbook();
   const [name, setName] = useState<string>('');
   const [color, setColor] = useState<string>('#000000'); // デフォルト色
+  const [textColor, setTextColor] = useState<string>('#FFFFFF'); // ★追加: 文字色用のstate
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -21,16 +22,18 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, t
         // 編集モード: 既存のタスクデータでフォームを初期化
         setName(taskToEdit.name);
         setColor(taskToEdit.color);
+        setTextColor(taskToEdit.textColor || '#FFFFFF'); // ★追加: textColorの初期化
       } else {
         // 新規作成モード: フォームをリセット
         setName('');
         setColor('#000000');
+        setTextColor('#FFFFFF'); // ★追加: textColorのリセット
       }
     }
   }, [isOpen, taskToEdit]);
 
   const handleSubmit = async () => {
-    if (!name || !color) {
+    if (!name || !color) { // textColorはオプションなので必須チェックから除外
       alert('タスク名と色を入力してください。');
       return;
     }
@@ -39,14 +42,12 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, t
     try {
       if (taskToEdit) {
         // 編集
-        await updateTask(taskToEdit.id, { name, color });
+        await updateTask(taskToEdit.id, { name, color, textColor }); // ★修正: textColorを渡す
         alert('タスクを更新しました！');
       } else {
         // 新規作成
-        // orderは既存タスクの最大値+1とする (簡易的な実装)
-        // TODO: orderの適切な管理 (並べ替え機能と連携)
         const newOrder = 0; // 仮の値
-        await addTask({ name, color, order: newOrder });
+        await addTask({ name, color, textColor, order: newOrder }); // ★修正: textColorを渡す
         alert('タスクを追加しました！');
       }
       onClose(); // モーダルを閉じる
@@ -78,7 +79,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, t
         </div>
 
         <div className="mb-6">
-          <label htmlFor="taskColor" className="block text-gray-700 text-sm font-bold mb-2">色 (HEXコード)</label>
+          <label htmlFor="taskColor" className="block text-gray-700 text-sm font-bold mb-2">背景色 (HEXコード)</label> {/* ★修正: ラベルを背景色に */}
           <input
             type="color"
             id="taskColor"
@@ -90,6 +91,25 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, t
             type="text"
             value={color}
             onChange={(e) => setColor(e.target.value)}
+            className="ml-2 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-24"
+            placeholder="#RRGGBB"
+          />
+        </div>
+
+        {/* ★追加: 文字色入力フィールド */}
+        <div className="mb-6">
+          <label htmlFor="taskTextColor" className="block text-gray-700 text-sm font-bold mb-2">文字色 (HEXコード)</label>
+          <input
+            type="color"
+            id="taskTextColor"
+            value={textColor}
+            onChange={(e) => setTextColor(e.target.value)}
+            className="shadow appearance-none border rounded w-full py-2 px-3 h-10 leading-tight focus:outline-none focus:shadow-outline"
+          />
+          <input
+            type="text"
+            value={textColor}
+            onChange={(e) => setTextColor(e.target.value)}
             className="ml-2 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-24"
             placeholder="#RRGGBB"
           />

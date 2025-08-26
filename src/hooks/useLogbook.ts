@@ -24,6 +24,7 @@ export interface Task {
   name: string;
   color: string;
   order: number;
+  textColor?: string; // ★追加
 }
 
 // Logデータ型定義
