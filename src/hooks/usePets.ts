@@ -1,6 +1,6 @@
 // src/hooks/usePets.ts
 import { useState, useEffect, useCallback } from 'react';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './useAuth';
 
@@ -85,5 +85,35 @@ export const usePets = () => {
     }
   };
 
-  return { pets, selectedPetId, loading, selectPet, addPet };
+  const deletePet = async (petId: string) => {
+    if (!user) {
+      alert('ログインが必要です。');
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'dogs', petId));
+      // If the deleted pet was the selected one, clear selection or select another
+      if (selectedPetId === petId) {
+        setSelectedPetId(null);
+      }
+    } catch (error) {
+      console.error('ペットの削除に失敗しました:', error);
+      alert('ペットの削除に失敗しました。');
+    }
+  };
+
+  const updatePet = async (petId: string, petData: Omit<Pet, 'id' | 'ownerIds'>) => {
+    if (!user) {
+      alert('ログインが必要です。');
+      return;
+    }
+    try {
+      await updateDoc(doc(db, 'dogs', petId), petData);
+    } catch (error) {
+      console.error('ペットの更新に失敗しました:', error);
+      alert('ペットの更新に失敗しました。');
+    }
+  };
+
+  return { pets, selectedPetId, loading, selectPet, addPet, deletePet, updatePet };
 };
