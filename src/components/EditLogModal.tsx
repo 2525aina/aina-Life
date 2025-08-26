@@ -70,6 +70,8 @@ export const EditLogModal: React.FC<EditLogModalProps> = ({ isOpen, onClose, log
     } catch (error) {
       console.error('ログの更新に失敗しました:', error);
       alert('ログの更新に失敗しました。');
+    } finally {
+      setIsUpdating(false); // 更新が完了したらisUpdatingをfalseに戻す
     }
   };
 

@@ -29,7 +29,7 @@ export const LogTimeline: React.FC<LogTimelineProps> = ({
   title = '記録', // デフォルトタイトル
   emptyMessage = 'まだ記録がありません。', // デフォルトメッセージ
 }) => {
-  const { updateLog, deleteLog } = useLogbook();
+  const { deleteLog } = useLogbook();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // 編集モーダルの開閉状態
   const [logToEdit, setLogToEdit] = useState<Log | null>(null); // 編集対象のログ
 
