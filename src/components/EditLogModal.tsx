@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLogbook, Log } from '@/hooks/useLogbook';
-import { Timestamp, serverTimestamp } from 'firebase/firestore'; // serverTimestampを追加
+import { Timestamp, serverTimestamp } from 'firebase/firestore';
+import { toast } from 'react-hot-toast';
 
 interface EditLogModalProps {
   isOpen: boolean;
@@ -55,23 +56,23 @@ export const EditLogModal: React.FC<EditLogModalProps> = ({ isOpen, onClose, log
         updatedDate.setHours(hours, minutes, 0, 0);
 
         // DateオブジェクトをFirestore Timestampに変換
-        const firestoreTimestamp = Timestamp.fromDate(updatedDate); // 修正
+        const firestoreTimestamp = Timestamp.fromDate(updatedDate);
 
         await updateLog(logToEdit.id, {
           taskName: task.name,
           taskId: task.id,
-          timestamp: firestoreTimestamp, // Firestore Timestampを使用
+          timestamp: firestoreTimestamp,
           note: note,
-          updatedAt: serverTimestamp(), // serverTimestampを使用
+          updatedAt: serverTimestamp(),
         });
-        alert('ログを更新しました！');
+        toast.success('ログを更新しました！');
         onClose();
       }
     } catch (error) {
       console.error('ログの更新に失敗しました:', error);
-      alert('ログの更新に失敗しました。');
+      toast.error('ログの更新に失敗しました。');
     } finally {
-      setIsUpdating(false); // 更新が完了したらisUpdatingをfalseに戻す
+      setIsUpdating(false);
     }
   };
 
