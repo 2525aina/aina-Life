@@ -25,6 +25,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "aina-Life", // タイトル
   description: "aina-Life - あなたの生活を彩るアプリ", // 説明文
+  manifest: "/manifest.json",
 };
 
 // ルートレイアウトコンポーネント
