@@ -11,6 +11,8 @@ import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { useLogbook, Task } from "@/hooks/useLogbook"; // タスク管理用フック
 import { usePetSelection } from "@/contexts/PetSelectionContext"; // グローバルなペット選択状態
 import { TaskFormModal } from "@/components/TaskFormModal"; // タスク追加/編集用モーダル
+import { useAuth } from "@/hooks/useAuth"; // 認証状態フック
+import LoginButton from "@/components/LoginButton"; // ログインボタン
 
 // dnd-kit imports
 import {
@@ -84,11 +86,22 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
 
 // ページコンポーネント本体
 export default function TaskManagementPage() {
-  const { pets, selectedPet, setSelectedPet, loading: petsLoading } =
-    usePetSelection();
+  const {
+    pets,
+    selectedPet,
+    setSelectedPet,
+    loading: petsLoading,
+  } = usePetSelection();
+  const { user, loading: authLoading } = useAuth(); // 認証状態を取得
 
-  const { tasks, loading, addTask, updateTask, deleteTask, reorderTasks } =
-    useLogbook(selectedPet?.id);
+  const {
+    tasks,
+    loading: logbookLoading,
+    addTask,
+    updateTask,
+    deleteTask,
+    reorderTasks,
+  } = useLogbook(selectedPet?.id);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false); // モーダル開閉状態
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null); // 編集対象タスク
 
@@ -138,20 +151,44 @@ export default function TaskManagementPage() {
     }
   };
 
+  const loading = petsLoading || logbookLoading || authLoading; // 全体のローディング状態
+
+  // 認証状態の判定が終わるまで「読み込み中」を表示
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
+
+  // 未認証の場合はログイン画面にリダイレクトするか、ログインを促すメッセージを表示
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-white">
+        <h1 className="text-3xl font-bold mb-8">ログインが必要です</h1>
+        <p>このページを表示するにはログインしてください。</p>
+        <LoginButton /> {/* ログインボタンを追加 */}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header
-        pets={pets}
-        selectedPet={selectedPet}
-        onPetChange={setSelectedPet}
-        loading={petsLoading}
-      />
+      {user && ( // 認証済みの場合のみヘッダーを表示
+        <Header
+          pets={pets}
+          selectedPet={selectedPet}
+          onPetChange={setSelectedPet}
+          loading={petsLoading}
+        />
+      )}
       <main className="flex-grow w-full p-4 pb-16">
         <h1 className="text-3xl font-bold mb-4 text-white text-center">
           タスク管理画面
         </h1>
 
-        {loading ? (
+        {logbookLoading ? ( // 一般的な読み込みではなく、ここでログブックロードを使用してください
           <div className="text-center text-white">タスクを読み込み中...</div>
         ) : (
           <div className="max-w-lg mx-auto bg-gray-700 p-4 rounded-lg shadow-md">
@@ -194,7 +231,7 @@ export default function TaskManagementPage() {
           </div>
         )}
       </main>
-      <FooterNav /> {/* 共通フッターナビ */}
+      {user && <FooterNav />} {/* 認証済みの場合のみフッターナビを表示 */}
       <TaskFormModal
         isOpen={isFormModalOpen} // モーダル開閉状態
         onClose={() => setIsFormModalOpen(false)} // 閉じる処理

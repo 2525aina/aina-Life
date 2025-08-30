@@ -28,8 +28,12 @@ export default function Home() {
   // 認証フックからユーザー情報とローディング状態を取得
   const { user, loading: authLoading } = useAuth();
   // グローバルなペット選択状態を取得
-  const { pets, selectedPet, setSelectedPet, loading: petsLoading } =
-    usePetSelection();
+  const {
+    pets,
+    selectedPet,
+    setSelectedPet,
+    loading: petsLoading,
+  } = usePetSelection();
 
   // モーダルの開閉状態を管理
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,12 +55,14 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header
-        pets={pets}
-        selectedPet={selectedPet}
-        onPetChange={setSelectedPet}
-        loading={petsLoading}
-      />
+      {user && ( // 条件付きレンダリングヘッダー
+        <Header
+          pets={pets}
+          selectedPet={selectedPet}
+          onPetChange={setSelectedPet}
+          loading={petsLoading}
+        />
+      )}
       <main className="flex-grow w-full pb-16">
         {user ? (
           // 認証済みの場合：ダッシュボードを表示
@@ -82,7 +88,7 @@ export default function Home() {
           </div>
         )}
       </main>
-      <FooterNav /> {/* 共通フッターナビ */}
+      {user && <FooterNav />} {/* 条件付きでFooterNavをレンダリングします */}
     </div>
   );
 }

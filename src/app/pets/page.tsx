@@ -11,11 +11,19 @@ import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { usePets, Pet } from "@/hooks/usePets"; // ペット管理フック
 import { usePetSelection } from "@/contexts/PetSelectionContext"; // グローバルなペット選択状態
 import { PetFormModal } from "@/components/PetFormModal"; // ペット追加/編集用モーダル
+import { useAuth } from "@/hooks/useAuth"; // 認証状態フック
+import LoginButton from "@/components/LoginButton"; // ログインボタン
 
 export default function PetsPage() {
   // usePetsフックからペット情報とローディング状態、削除関数を取得
-  const { deletePet } = usePets(); // Only need deletePet from here
-  const { pets, loading, selectedPet, setSelectedPet } = usePetSelection(); // Get pets, loading, and selectedPet from context
+  const { deletePet } = usePets(); // ここからdeletePetのみが必要
+  const {
+    pets,
+    loading: petsLoading,
+    selectedPet,
+    setSelectedPet,
+  } = usePetSelection(); // コンテキストからペット、読み込み中、選択済みペットを取得
+  const { user, loading: authLoading } = useAuth(); // 認証状態を取得
   const [isModalOpen, setIsModalOpen] = useState(false); // モーダル開閉状態
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null); // 編集対象ペット
 
@@ -41,14 +49,38 @@ export default function PetsPage() {
     await deletePet(petId);
   };
 
+  const loading = petsLoading || authLoading; // 全体のローディング状態
+
+  // 認証状態の判定が終わるまで「読み込み中」を表示
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
+
+  // 未認証の場合はログイン画面にリダイレクトするか、ログインを促すメッセージを表示
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-white">
+        <h1 className="text-3xl font-bold mb-8">ログインが必要です</h1>
+        <p className="mb-4">このページを表示するにはログインしてください。</p>
+        <LoginButton /> {/* ログインボタンを追加 */}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header
-        pets={pets}
-        selectedPet={selectedPet}
-        onPetChange={setSelectedPet}
-        loading={loading}
-      />
+      {user && ( // 認証済みの場合のみヘッダーを表示
+        <Header
+          pets={pets}
+          selectedPet={selectedPet}
+          onPetChange={setSelectedPet}
+          loading={petsLoading}
+        />
+      )}
       <main className="flex-grow w-full p-4 pb-16">
         {/* ページタイトルと追加ボタン */}
         <div className="flex justify-between items-center mb-6">
@@ -62,7 +94,7 @@ export default function PetsPage() {
         </div>
 
         {/* ペット一覧表示またはローディング表示 */}
-        {loading ? (
+        {petsLoading ? ( // ここでは petsLoading を使用し、一般的な読み込み処理は使用しない
           <div className="text-center text-white">
             ペット情報を読み込み中...
           </div>
@@ -109,7 +141,7 @@ export default function PetsPage() {
           </div>
         )}
       </main>
-      <FooterNav /> {/* 共通フッターナビ */}
+      {user && <FooterNav />} {/* 認証済みの場合のみフッターナビを表示 */}
       {/* ペット追加・編集モーダル */}
       <PetFormModal
         isOpen={isModalOpen} // モーダル開閉状態

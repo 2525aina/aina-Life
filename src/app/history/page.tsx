@@ -11,6 +11,8 @@ import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { useLogbook } from "@/hooks/useLogbook"; // ログデータ取得フック
 import { usePetSelection } from "@/contexts/PetSelectionContext"; // グローバルなペット選択状態
 import { LogTimeline } from "@/components/LogTimeline"; // ログタイムライン表示コンポーネント
+import { useAuth } from "@/hooks/useAuth"; // 認証状態フック
+import LoginButton from "@/components/LoginButton"; // ログインボタン
 
 // 日付を日本語表記でフォーマットするヘルパー関数
 const formatDate = (date: Date) => {
@@ -26,6 +28,7 @@ export default function HistoryPage() {
   const [selectedDate, setSelectedDate] = useState(new Date()); // 選択されている日付
   const { pets, selectedPet, setSelectedPet, loading: petsLoading } =
     usePetSelection();
+  const { user, loading: authLoading } = useAuth(); // 認証状態を取得
 
   // 前日へ移動
   const goToPreviousDay = () => {
@@ -52,16 +55,38 @@ export default function HistoryPage() {
     selectedDate
   );
 
-  const loading = petsLoading || logbookLoading;
+  const loading = petsLoading || logbookLoading || authLoading; // 認証ローディングも考慮
+
+  // 認証状態の判定が終わるまで「読み込み中」を表示
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
+
+  // 未認証の場合はログイン画面にリダイレクトするか、ログインを促すメッセージを表示
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-white">
+        <h1 className="text-3xl font-bold mb-8">ログインが必要です</h1>
+        <p className="mb-4">このページを表示するにはログインしてください。</p>
+        <LoginButton /> {/* ログインボタンを追加 */}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header
-        pets={pets}
-        selectedPet={selectedPet}
-        onPetChange={setSelectedPet}
-        loading={petsLoading}
-      />
+      {user && ( // 認証済みの場合のみヘッダーを表示
+        <Header
+          pets={pets}
+          selectedPet={selectedPet}
+          onPetChange={setSelectedPet}
+          loading={petsLoading}
+        />
+      )}
       <main className="flex-grow w-full p-4 pb-16">
         <h1 className="text-3xl font-bold mb-4 text-white text-center">履歴</h1>
 
@@ -102,7 +127,8 @@ export default function HistoryPage() {
           />
         )}
       </main>
-      <FooterNav /> {/* 共通フッターナビ */}
+      {user && <FooterNav />}{" "}
+      {/* 認証済みの場合のみフッターナビを表示 */}
     </div>
   );
 }
