@@ -26,8 +26,12 @@ const formatDate = (date: Date) => {
 
 export default function HistoryPage() {
   const [selectedDate, setSelectedDate] = useState(new Date()); // 選択されている日付
-  const { pets, selectedPet, setSelectedPet, loading: petsLoading } =
-    usePetSelection();
+  const {
+    pets,
+    selectedPet,
+    setSelectedPet,
+    loading: petsLoading,
+  } = usePetSelection();
   const { user, loading: authLoading } = useAuth(); // 認証状態を取得
 
   // 前日へ移動
@@ -88,9 +92,10 @@ export default function HistoryPage() {
         />
       )}
       <main className="flex-grow w-full p-4 pb-16">
-        <div className="max-w-7xl mx-auto"> {/* Added max-w-7xl mx-auto */}
-          <h1 className="text-3xl font-bold mb-4 text-white text-center">履歴</h1>
-
+        <div className="max-w-7xl mx-auto">
+          {" "}
+          {/* Added max-w-7xl mx-auto */}
+          {/* <h1 className="text-3xl font-bold mb-4 text-white text-center">履歴</h1> */}
           {/* 日付切替用スイッチャー */}
           <div className="flex items-center justify-center mb-6 space-x-2">
             <button
@@ -115,7 +120,6 @@ export default function HistoryPage() {
               今日 {/* 今日ボタン */}
             </button>
           </div>
-
           {/* ログ表示部分 */}
           {loading ? (
             <div className="text-center text-white">ログを読み込み中...</div>
@@ -127,10 +131,10 @@ export default function HistoryPage() {
               emptyMessage="この日の記録はありません。" // ログが空の場合のメッセージ
             />
           )}
-        </div> {/* Closing div for max-w-7xl mx-auto */}
+        </div>{" "}
+        {/* Closing div for max-w-7xl mx-auto */}
       </main>
-      {user && <FooterNav />}{" "}
-      {/* 認証済みの場合のみフッターナビを表示 */}
+      {user && <FooterNav />} {/* 認証済みの場合のみフッターナビを表示 */}
     </div>
   );
 }

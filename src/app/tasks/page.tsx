@@ -184,52 +184,57 @@ export default function TaskManagementPage() {
         />
       )}
       <main className="flex-grow w-full p-4 pb-16">
-        <h1 className="text-3xl font-bold mb-4 text-white text-center">
-          タスク管理画面
-        </h1>
-
-        {logbookLoading ? ( // 一般的な読み込みではなく、ここでログブックロードを使用してください
-          <div className="text-center text-white">タスクを読み込み中...</div>
-        ) : (
-          <div className="max-w-7xl mx-auto bg-gray-700 p-4 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4 text-white">
-              {selectedPet ? `${selectedPet.name}のタスク` : "タスク"}
-            </h2>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter} // ドラッグ時の衝突判定
-              onDragEnd={handleDragEnd} // ドラッグ終了時処理
-            >
-              <SortableContext
-                items={tasks.map((task) => task.id)} // 並べ替え対象
-                strategy={verticalListSortingStrategy} // 垂直リスト向けソート戦略
-              >
-                <ul className="space-y-2">
-                  {tasks.length === 0 ? (
-                    <li className="text-white">
-                      タスクがありません。新しいタスクを追加しましょう。
-                    </li>
-                  ) : (
-                    tasks.map((task) => (
-                      <SortableTaskItem
-                        key={task.id}
-                        task={task}
-                        onEdit={handleEditTask}
-                        onDelete={handleDeleteTask}
-                      />
-                    ))
-                  )}
-                </ul>
-              </SortableContext>
-            </DndContext>
+        <div className="max-w-7xl mx-auto">
+          {" "}
+          {/* Added max-w-7xl mx-auto */}
+          {/* ページタイトルと追加ボタン */}
+          <div className="flex justify-end items-center mb-6">
+            <span></span>
+            {/* <h1 className="text-3xl font-bold mb-4 text-white text-center">タスク管理画面</h1> */}
             <button
               onClick={handleAddTask}
               className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md"
             >
-              新しいタスクを追加
+              + 新しいタスクを追加
             </button>
           </div>
-        )}
+          {logbookLoading ? ( // 一般的な読み込みではなく、ここでログブックロードを使用してください
+            <div className="text-center text-white">タスクを読み込み中...</div>
+          ) : (
+            <div className="max-w-7xl mx-auto bg-gray-700 p-4 rounded-lg shadow-md">
+              <h2 className="text-xl font-bold mb-4 text-white">
+                {selectedPet ? `${selectedPet.name}のタスク` : "タスク"}
+              </h2>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter} // ドラッグ時の衝突判定
+                onDragEnd={handleDragEnd} // ドラッグ終了時処理
+              >
+                <SortableContext
+                  items={tasks.map((task) => task.id)} // 並べ替え対象
+                  strategy={verticalListSortingStrategy} // 垂直リスト向けソート戦略
+                >
+                  <ul className="space-y-2">
+                    {tasks.length === 0 ? (
+                      <li className="text-white">
+                        タスクがありません。新しいタスクを追加しましょう。
+                      </li>
+                    ) : (
+                      tasks.map((task) => (
+                        <SortableTaskItem
+                          key={task.id}
+                          task={task}
+                          onEdit={handleEditTask}
+                          onDelete={handleDeleteTask}
+                        />
+                      ))
+                    )}
+                  </ul>
+                </SortableContext>
+              </DndContext>
+            </div>
+          )}
+        </div>{" "}
       </main>
       {user && <FooterNav />} {/* 認証済みの場合のみフッターナビを表示 */}
       <TaskFormModal

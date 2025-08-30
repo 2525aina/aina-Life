@@ -82,18 +82,20 @@ export default function PetsPage() {
         />
       )}
       <main className="flex-grow w-full p-4 pb-16">
-        <div className="max-w-7xl mx-auto"> {/* Added max-w-7xl mx-auto */}
+        <div className="max-w-7xl mx-auto">
+          {" "}
+          {/* Added max-w-7xl mx-auto */}
           {/* ページタイトルと追加ボタン */}
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-white">ペット管理</h1>
+            <span></span>
+            {/* <h1 className="text-3xl font-bold text-white">ペット管理</h1> */}
             <button
               onClick={handleOpenAddModal}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md"
+              className="mt-6 w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md"
             >
               + 新しいペットを追加
             </button>
           </div>
-
           {/* ペット一覧表示またはローディング表示 */}
           {petsLoading ? ( // ここでは petsLoading を使用し、一般的な読み込み処理は使用しない
             <div className="text-center text-white">
@@ -109,7 +111,9 @@ export default function PetsPage() {
                   >
                     {/* ペット情報表示 */}
                     <div>
-                      <h2 className="text-xl font-bold text-white">{pet.name}</h2>
+                      <h2 className="text-xl font-bold text-white">
+                        {pet.name}
+                      </h2>
                       <p className="text-sm text-gray-400">
                         {pet.breed || "犬種未設定"}
                       </p>
@@ -141,7 +145,8 @@ export default function PetsPage() {
               )}
             </div>
           )}
-        </div> {/* Closing div for max-w-7xl mx-auto */}
+        </div>{" "}
+        {/* Closing div for max-w-7xl mx-auto */}
       </main>
       {user && <FooterNav />} {/* 認証済みの場合のみフッターナビを表示 */}
       {/* ペット追加・編集モーダル */}

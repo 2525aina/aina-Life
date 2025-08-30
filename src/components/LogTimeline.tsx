@@ -2,23 +2,23 @@
 // ユーザーのログ記録を時系列で表示するタイムラインコンポーネント。
 // 依存: useLogbook (ログ操作フック), EditLogModal (ログ編集モーダル)
 
-'use client';
+"use client";
 
-import React, { useState } from 'react'; // useState: 編集モーダルの開閉状態管理
-import { Timestamp } from 'firebase/firestore'; // Firestore Timestamp 型
-import { Log, useLogbook } from '@/hooks/useLogbook'; // Log型・ログ操作フック
-import { EditLogModal } from '@/components/EditLogModal'; // ログ編集用モーダル
-import { Pet } from '@/hooks/usePets';
+import React, { useState } from "react"; // useState: 編集モーダルの開閉状態管理
+import { Timestamp } from "firebase/firestore"; // Firestore Timestamp 型
+import { Log, useLogbook } from "@/hooks/useLogbook"; // Log型・ログ操作フック
+import { EditLogModal } from "@/components/EditLogModal"; // ログ編集用モーダル
+import { Pet } from "@/hooks/usePets";
 
 // Timestampオブジェクトを "HH:mm" 形式の文字列に変換する
 // nullの場合は "--:--" を表示して未記録を表現
 const formatTime = (timestamp: Timestamp | null): string => {
   if (!timestamp) {
-    return '--:--';
+    return "--:--";
   }
-  return timestamp.toDate().toLocaleTimeString('ja-JP', {
-    hour: '2-digit',
-    minute: '2-digit',
+  return timestamp.toDate().toLocaleTimeString("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -32,8 +32,8 @@ interface LogTimelineProps {
 export const LogTimeline: React.FC<LogTimelineProps> = ({
   logs,
   selectedPet,
-  title = '記録', // デフォルトタイトル
-  emptyMessage = 'まだ記録がありません。', // デフォルト空メッセージ
+  title = "記録", // デフォルトタイトル
+  emptyMessage = "まだ記録がありません。", // デフォルト空メッセージ
 }) => {
   const { deleteLog, updateLog } = useLogbook(selectedPet?.id);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // 編集モーダルの開閉状態
@@ -63,9 +63,9 @@ export const LogTimeline: React.FC<LogTimelineProps> = ({
   // ログがある場合はタイムライン表示
   return (
     <div className="mt-6 w-full">
-      <h2 className="text-lg font-semibold mb-3 text-center border-b pb-2 text-white">
-        {title} {/* タイトル表示 */}
-      </h2>
+      {/* <h2 className="text-lg font-semibold mb-3 text-center border-b pb-2 text-white"> */}
+      {/* {title} タイトル表示 */}
+      {/* </h2> */}
       <ul className="space-y-2">
         {logs.map((log) => (
           <li
