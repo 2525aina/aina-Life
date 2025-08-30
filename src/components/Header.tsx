@@ -5,6 +5,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link"; // Linkコンポーネントをインポート
 import { Pet } from "@/hooks/usePets"; // ペットの型定義
 
 interface HeaderProps {
@@ -64,8 +65,10 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="text-lg font-bold">ペットを登録してください</div>
         )}
 
-        {/* TODO: 設定アイコンを後ほど実装 */}
-        <div>⚙️</div>
+        {/* 設定アイコンをリンク化 */}
+        <Link href="/settings" className="text-2xl">
+          ⚙️
+        </Link>
       </div>
     </header>
   );
