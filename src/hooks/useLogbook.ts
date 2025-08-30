@@ -1,5 +1,11 @@
 // src/hooks/useLogbook.ts
+// ペットごとのタスクとログを管理するカスタムフック。
+// Firestoreから対象ペットのtasks・logsコレクションを監視し、CRUD操作を提供。
+// 依存: useAuth, usePets, firebase/firestore, db(firebase初期化)
+
+// Reactフック
 import { useState, useEffect } from 'react';
+// Firestore関連API
 import {
   collection,
   query,
@@ -12,41 +18,43 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  FieldValue, // ★追加
+  FieldValue, // Firestoreの特殊型を利用するため追加
 } from 'firebase/firestore';
+// Firebase初期化済みインスタンス
 import { db } from '@/lib/firebase';
+// 認証ユーザー取得
 import { useAuth } from './useAuth';
-import { usePets } from './usePets'; // ★ usePetsをインポート
+// 選択中のペット取得
+import { usePets } from './usePets';
 
-// Taskデータ型定義
+// タスクデータ型定義
 export interface Task {
   id: string;
   name: string;
   color: string;
   order: number;
-  textColor?: string; // ★追加
+  textColor?: string; // タスク表示用の文字色
 }
 
-// Logデータ型定義
+// ログデータ型定義
 export interface Log {
   id: string;
   taskName: string;
   taskId: string;
   timestamp: Timestamp;
-  note?: string; // ★追加：メモ
-  updatedAt?: Timestamp | FieldValue; // ★修正：FieldValueも許容
+  note?: string; // 任意のメモ
+  updatedAt?: Timestamp | FieldValue; // Firestoreの自動更新を許容
 }
 
 export const useLogbook = (targetDate?: Date) => {
-  const { user } = useAuth();
-  const { selectedPetId } = usePets(); // ★ 選択中のペットIDを取得
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [logs, setLogs] = useState<Log[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth(); // ログインユーザー情報
+  const { selectedPetId } = usePets(); // 選択中のペットID
+  const [tasks, setTasks] = useState<Task[]>([]); // ペットに紐づくタスク一覧
+  const [logs, setLogs] = useState<Log[]>([]); // 当日のログ一覧
+  const [loading, setLoading] = useState(true); // Firestoreからの読み込み状態
 
-  // 副作用フックでタスク一覧とログをFirestoreから取得
   useEffect(() => {
-    // ユーザーがいない、またはペットが選択されていない場合は何もしない
+    // 未ログイン、またはペット未選択の場合はデータをリセット
     if (!user || !selectedPetId) {
       setTasks([]);
       setLogs([]);
@@ -54,8 +62,8 @@ export const useLogbook = (targetDate?: Date) => {
       return;
     }
 
-    // 1. タスクの監視
-    const tasksCollection = collection(db, 'dogs', selectedPetId, 'tasks'); // ★ IDを動的に
+    // --- タスクの購読 ---
+    const tasksCollection = collection(db, 'dogs', selectedPetId, 'tasks');
     const tasksQuery = query(tasksCollection, orderBy('order'));
     const unsubscribeTasks = onSnapshot(
       tasksQuery,
@@ -73,12 +81,10 @@ export const useLogbook = (targetDate?: Date) => {
       }
     );
 
-    // 2. ログの監視
-    const logsCollection = collection(db, 'dogs', selectedPetId, 'logs'); // ★ IDを動的に
-
-    // targetDateが指定されていればそれを使用、なければ今日の日付をデフォルトとする
+    // --- ログの購読 ---
+    const logsCollection = collection(db, 'dogs', selectedPetId, 'logs');
+    // 参照する日付範囲を決定（デフォルトは今日）
     const dateToFetch = targetDate || new Date();
-
     const startOfDay = new Date(dateToFetch);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(dateToFetch);
@@ -90,7 +96,6 @@ export const useLogbook = (targetDate?: Date) => {
       where('timestamp', '<', endOfDay),
       orderBy('timestamp', 'desc')
     );
-
     const unsubscribeLogs = onSnapshot(logsQuery, (snapshot) => {
       const fetchedLogs = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -99,14 +104,14 @@ export const useLogbook = (targetDate?: Date) => {
       setLogs(fetchedLogs);
     });
 
-    // クリーンアップ関数で両方の監視を停止
+    // コンポーネントアンマウント時に購読解除
     return () => {
       unsubscribeTasks();
       unsubscribeLogs();
     };
-  }, [user, selectedPetId, targetDate]); // ★ targetDateを依存配列に追加
+  }, [user, selectedPetId, targetDate]);
 
-  // 新しいログを追加する関数
+  // ログを追加する関数
   const addLog = async (task: Task, logTime?: string, note?: string) => {
     if (!user) {
       alert('ログインが必要です。');
@@ -118,25 +123,25 @@ export const useLogbook = (targetDate?: Date) => {
     }
 
     try {
-      const logsCollection = collection(db, 'dogs', selectedPetId, 'logs'); // ★ IDを動的に
+      const logsCollection = collection(db, 'dogs', selectedPetId, 'logs');
 
       let timestampToUse;
       if (logTime) {
-        // logTime (HH:mm) を今日のDateオブジェクトに変換
+        // 指定された時刻(HH:mm)を当日の日付に反映
         const [hours, minutes] = logTime.split(':').map(Number);
         const now = new Date();
-        now.setHours(hours, minutes, 0, 0); // 秒とミリ秒は0に設定
+        now.setHours(hours, minutes, 0, 0);
         timestampToUse = now;
       } else {
-        timestampToUse = serverTimestamp(); // 時刻が指定されなければサーバータイムスタンプ
+        timestampToUse = serverTimestamp(); // 未指定ならサーバー時刻
       }
 
       await addDoc(logsCollection, {
         taskName: task.name,
         taskId: task.id,
-        timestamp: timestampToUse, // 修正
-        inputType: logTime ? 'manual' : 'auto', // 時刻が指定されればmanual
-        note: note || '', // メモを追加
+        timestamp: timestampToUse,
+        inputType: logTime ? 'manual' : 'auto',
+        note: note || '',
         createdBy: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -157,9 +162,8 @@ export const useLogbook = (targetDate?: Date) => {
       const logRef = doc(db, 'dogs', selectedPetId, 'logs', logId);
       await updateDoc(logRef, {
         ...updatedData,
-        updatedAt: serverTimestamp(), // 更新日時を自動更新
+        updatedAt: serverTimestamp(),
       });
-      console.log('ログを更新しました:', logId);
     } catch (error) {
       console.error('ログの更新に失敗しました:', error);
       alert('ログの更新に失敗しました。');
@@ -178,14 +182,13 @@ export const useLogbook = (targetDate?: Date) => {
     try {
       const logRef = doc(db, 'dogs', selectedPetId, 'logs', logId);
       await deleteDoc(logRef);
-      console.log('ログを削除しました:', logId);
     } catch (error) {
       console.error('ログの削除に失敗しました:', error);
       alert('ログの削除に失敗しました。');
     }
   };
 
-  // 新しいタスクを追加する関数
+  // タスクを追加する関数
   const addTask = async (taskData: Omit<Task, 'id'>) => {
     if (!user || !selectedPetId) {
       alert('ログインが必要です。');
@@ -199,7 +202,6 @@ export const useLogbook = (targetDate?: Date) => {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      console.log('タスクを追加しました:', taskData.name);
     } catch (error) {
       console.error('タスクの追加に失敗しました:', error);
       alert('タスクの追加に失敗しました。');
@@ -218,7 +220,6 @@ export const useLogbook = (targetDate?: Date) => {
         ...updatedData,
         updatedAt: serverTimestamp(),
       });
-      console.log('タスクを更新しました:', taskId);
     } catch (error) {
       console.error('タスクの更新に失敗しました:', error);
       alert('タスクの更新に失敗しました。');
@@ -237,7 +238,6 @@ export const useLogbook = (targetDate?: Date) => {
     try {
       const taskRef = doc(db, 'dogs', selectedPetId, 'tasks', taskId);
       await deleteDoc(taskRef);
-      console.log('タスクを削除しました:', taskId);
     } catch (error) {
       console.error('タスクの削除に失敗しました:', error);
       alert('タスクの削除に失敗しました。');
@@ -251,8 +251,7 @@ export const useLogbook = (targetDate?: Date) => {
       return;
     }
     try {
-      // Firestoreのトランザクションまたはバッチ書き込みを使用するとより効率的だが、
-      // シンプルさのため個別に更新
+      // 本来はバッチ更新が効率的だが、シンプル化のためループで更新
       for (const task of reorderedTasks) {
         const taskRef = doc(db, 'dogs', selectedPetId, 'tasks', task.id);
         await updateDoc(taskRef, {
@@ -260,12 +259,22 @@ export const useLogbook = (targetDate?: Date) => {
           updatedAt: serverTimestamp(),
         });
       }
-      console.log('タスクの並び順を更新しました。');
     } catch (error) {
       console.error('タスクの並び順の更新に失敗しました:', error);
       alert('タスクの並び順の更新に失敗しました。');
     }
   };
 
-  return { tasks, logs, loading, addLog, updateLog, deleteLog, addTask, updateTask, deleteTask, reorderTasks };
+  return {
+    tasks,
+    logs,
+    loading,
+    addLog,
+    updateLog,
+    deleteLog,
+    addTask,
+    updateTask,
+    deleteTask,
+    reorderTasks,
+  };
 };

@@ -1,21 +1,30 @@
-'use client';
+// src/components/PetFormModal.tsx
+// ペットの新規追加や既存情報の編集を行うモーダル。
+// 依存: usePets (ペット情報の追加・更新フック)
 
-import React, { useState, useEffect } from 'react';
-import { usePets, Pet } from '@/hooks/usePets';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { usePets, Pet } from "@/hooks/usePets";
 
 interface PetFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  petToEdit?: Pet | null;
+  isOpen: boolean; // モーダルの表示状態
+  onClose: () => void; // モーダルを閉じる処理
+  petToEdit?: Pet | null; // 編集対象のペット情報（新規の場合はnull）
 }
 
-export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, onClose, petToEdit }) => {
-  const { addPet, updatePet } = usePets();
-  const [name, setName] = useState('');
-  const [breed, setBreed] = useState('');
-  const [birthday, setBirthday] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export const PetFormModal: React.FC<PetFormModalProps> = ({
+  isOpen,
+  onClose,
+  petToEdit,
+}) => {
+  const { addPet, updatePet } = usePets(); // ペット追加・更新用の関数を取得
+  const [name, setName] = useState(""); // ペット名
+  const [breed, setBreed] = useState(""); // 犬種（任意）
+  const [birthday, setBirthday] = useState(""); // 誕生日（任意）
+  const [isSubmitting, setIsSubmitting] = useState(false); // 保存処理中フラグ
 
+  // モーダルが開かれたときにフォームを初期化
   useEffect(() => {
     if (isOpen) {
       if (petToEdit) {
@@ -23,16 +32,17 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, onClose, pet
         setBreed(petToEdit.breed);
         setBirthday(petToEdit.birthday);
       } else {
-        setName('');
-        setBreed('');
-        setBirthday('');
+        setName("");
+        setBreed("");
+        setBirthday("");
       }
     }
   }, [isOpen, petToEdit]);
 
+  // フォーム送信処理
   const handleSubmit = async () => {
     if (!name) {
-      alert('ペットの名前を入力してください。');
+      alert("ペットの名前を入力してください。"); // 必須項目のバリデーション
       return;
     }
 
@@ -40,30 +50,41 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, onClose, pet
     try {
       const petData = { name, breed, birthday };
       if (petToEdit) {
+        // 既存ペットの更新処理
         await updatePet(petToEdit.id, petData);
-        alert('ペット情報を更新しました！');
+        alert("ペット情報を更新しました！");
       } else {
+        // 新規ペットの追加処理
         await addPet(petData);
-        alert('ペットを追加しました！');
+        alert("ペットを追加しました！");
       }
       onClose();
     } catch (error) {
-      console.error('ペット情報の保存に失敗しました:', error);
-      alert('ペット情報の保存に失敗しました。');
+      console.error("ペット情報の保存に失敗しました:", error);
+      alert("ペット情報の保存に失敗しました。");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // モーダル非表示時は描画しない
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
-        <h2 className="text-2xl font-bold mb-4">{petToEdit ? 'ペット情報を編集' : '新しいペットを追加'}</h2>
+        <h2 className="text-2xl font-bold mb-4">
+          {petToEdit ? "ペット情報を編集" : "新しいペットを追加"}
+        </h2>
 
+        {/* ペット名入力（必須） */}
         <div className="mb-4">
-          <label htmlFor="petName" className="block text-gray-700 text-sm font-bold mb-2">名前</label>
+          <label
+            htmlFor="petName"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            名前
+          </label>
           <input
             type="text"
             id="petName"
@@ -74,8 +95,14 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, onClose, pet
           />
         </div>
 
+        {/* 犬種入力（任意） */}
         <div className="mb-4">
-          <label htmlFor="petBreed" className="block text-gray-700 text-sm font-bold mb-2">犬種 (任意)</label>
+          <label
+            htmlFor="petBreed"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            犬種 (任意)
+          </label>
           <input
             type="text"
             id="petBreed"
@@ -86,8 +113,14 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, onClose, pet
           />
         </div>
 
+        {/* 誕生日入力（任意） */}
         <div className="mb-6">
-          <label htmlFor="petBirthday" className="block text-gray-700 text-sm font-bold mb-2">誕生日 (任意)</label>
+          <label
+            htmlFor="petBirthday"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            誕生日 (任意)
+          </label>
           <input
             type="date"
             id="petBirthday"
@@ -97,6 +130,7 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, onClose, pet
           />
         </div>
 
+        {/* ボタン群（キャンセル・保存） */}
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
@@ -110,7 +144,7 @@ export const PetFormModal: React.FC<PetFormModalProps> = ({ isOpen, onClose, pet
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             disabled={isSubmitting}
           >
-            {isSubmitting ? '保存中...' : '保存'}
+            {isSubmitting ? "保存中..." : "保存"}
           </button>
         </div>
       </div>

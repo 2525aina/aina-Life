@@ -1,82 +1,97 @@
-'use client';
+// src/components/EditLogModal.tsx
+// ログ編集用モーダルコンポーネント。
+// 依存: useLogbook, firebase/firestore(Timestamp, serverTimestamp), react-hot-toast
 
-import React, { useState, useEffect } from 'react';
-import { useLogbook, Log } from '@/hooks/useLogbook';
-import { Timestamp, serverTimestamp } from 'firebase/firestore';
-import { toast } from 'react-hot-toast';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useLogbook, Log } from "@/hooks/useLogbook";
+import { Timestamp, serverTimestamp } from "firebase/firestore";
+import { toast } from "react-hot-toast";
 
 interface EditLogModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  logToEdit: Log | null;
+  isOpen: boolean; // モーダルの開閉状態
+  onClose: () => void; // モーダルを閉じるハンドラ
+  logToEdit: Log | null; // 編集対象のログ
 }
 
-export const EditLogModal: React.FC<EditLogModalProps> = ({ isOpen, onClose, logToEdit }) => {
-  const { tasks, updateLog, loading: logbookLoading } = useLogbook();
-  const [selectedTask, setSelectedTask] = useState<string>('');
-  const [logTime, setLogTime] = useState<string>('');
-  const [note, setNote] = useState<string>('');
-  const [isUpdating, setIsUpdating] = useState(false);
+export const EditLogModal: React.FC<EditLogModalProps> = ({
+  isOpen,
+  onClose,
+  logToEdit,
+}) => {
+  const { tasks, updateLog, loading: logbookLoading } = useLogbook(); // タスク一覧とログ更新関数取得
+  const [selectedTask, setSelectedTask] = useState<string>(""); // 選択中のタスクID
+  const [logTime, setLogTime] = useState<string>(""); // 入力中の時刻文字列(HH:mm)
+  const [note, setNote] = useState<string>(""); // 入力中のメモ
+  const [isUpdating, setIsUpdating] = useState(false); // 更新処理中フラグ
 
   useEffect(() => {
     if (isOpen && logToEdit) {
-      // 編集対象のログデータでフォームを初期化
+      // 編集対象のログでフォーム初期化
       setSelectedTask(logToEdit.taskId);
-      const date = logToEdit.timestamp instanceof Timestamp ? logToEdit.timestamp.toDate() : new Date();
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const date =
+        logToEdit.timestamp instanceof Timestamp
+          ? logToEdit.timestamp.toDate()
+          : new Date();
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
       setLogTime(`${hours}:${minutes}`);
-      setNote(logToEdit.note || '');
+      setNote(logToEdit.note || "");
     } else if (isOpen && !logToEdit) {
-      // 新規作成モードの場合（今回は編集専用だが、将来的な拡張性のため）
+      // 新規作成モード用の初期値設定（将来拡張用）
       const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
       setLogTime(`${hours}:${minutes}`);
-      if (tasks.length > 0) {
-        setSelectedTask(tasks[0].id);
-      }
-      setNote('');
+      if (tasks.length > 0) setSelectedTask(tasks[0].id);
+      setNote("");
     }
   }, [isOpen, logToEdit, tasks]);
 
   const handleSubmit = async () => {
     if (!logToEdit || !selectedTask || !logTime) {
-      alert('タスクと時刻を入力してください。');
+      alert("タスクと時刻を入力してください。");
       return;
     }
 
-    setIsUpdating(true);
+    setIsUpdating(true); // 更新処理開始フラグをセット
     try {
-      const task = tasks.find(t => t.id === selectedTask);
+      const task = tasks.find((t) => t.id === selectedTask);
       if (task) {
-        // 時刻をDateオブジェクトに変換
-        const [hours, minutes] = logTime.split(':').map(Number);
-        const updatedDate = new Date(logToEdit.timestamp instanceof Timestamp ? logToEdit.timestamp.toDate() : new Date());
+        // 入力時刻(HH:mm)をDateに変換
+        const [hours, minutes] = logTime.split(":").map(Number);
+        const updatedDate = new Date(
+          logToEdit.timestamp instanceof Timestamp
+            ? logToEdit.timestamp.toDate()
+            : new Date()
+        );
         updatedDate.setHours(hours, minutes, 0, 0);
 
-        // DateオブジェクトをFirestore Timestampに変換
+        // Firestore用Timestampに変換
         const firestoreTimestamp = Timestamp.fromDate(updatedDate);
 
+        // ログ更新処理
         await updateLog(logToEdit.id, {
           taskName: task.name,
           taskId: task.id,
           timestamp: firestoreTimestamp,
           note: note,
-          updatedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(), // 更新日時をFirestoreサーバー時刻で記録
         });
-        toast.success('ログを更新しました！');
-        onClose();
+
+        toast.success("ログを更新しました！");
+        onClose(); // モーダルを閉じる
       }
     } catch (error) {
-      console.error('ログの更新に失敗しました:', error);
-      toast.error('ログの更新に失敗しました。');
+      console.error("ログの更新に失敗しました:", error);
+      toast.error("ログの更新に失敗しました。");
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false); // 更新処理終了フラグをリセット
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) return null; // モーダルが閉じている場合は何も表示しない
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -84,7 +99,12 @@ export const EditLogModal: React.FC<EditLogModalProps> = ({ isOpen, onClose, log
         <h2 className="text-2xl font-bold mb-4">ログを編集</h2>
 
         <div className="mb-4">
-          <label htmlFor="logTime" className="block text-gray-700 text-sm font-bold mb-2">時刻</label>
+          <label
+            htmlFor="logTime"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            時刻
+          </label>
           <input
             type="time"
             id="logTime"
@@ -95,9 +115,14 @@ export const EditLogModal: React.FC<EditLogModalProps> = ({ isOpen, onClose, log
         </div>
 
         <div className="mb-4">
-          <label htmlFor="taskSelect" className="block text-gray-700 text-sm font-bold mb-2">タスク</label>
+          <label
+            htmlFor="taskSelect"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            タスク
+          </label>
           {logbookLoading ? (
-            <p>タスク読み込み中...</p>
+            <p>タスク読み込み中...</p> // タスク取得中のUI
           ) : tasks.length > 0 ? (
             <select
               id="taskSelect"
@@ -112,12 +137,17 @@ export const EditLogModal: React.FC<EditLogModalProps> = ({ isOpen, onClose, log
               ))}
             </select>
           ) : (
-            <p>タスクがありません。設定から追加してください。</p>
+            <p>タスクがありません。設定から追加してください。</p> // タスク未登録時の表示
           )}
         </div>
 
         <div className="mb-6">
-          <label htmlFor="note" className="block text-gray-700 text-sm font-bold mb-2">メモ (任意)</label>
+          <label
+            htmlFor="note"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            メモ (任意)
+          </label>
           <textarea
             id="note"
             value={note}
@@ -141,7 +171,7 @@ export const EditLogModal: React.FC<EditLogModalProps> = ({ isOpen, onClose, log
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             disabled={isUpdating || logbookLoading}
           >
-            {isUpdating ? '更新中...' : 'ログを更新'}
+            {isUpdating ? "更新中..." : "ログを更新"}
           </button>
         </div>
       </div>

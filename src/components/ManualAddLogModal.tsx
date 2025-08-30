@@ -1,61 +1,71 @@
-'use client';
+// src/components/ManualAddLogModal.tsx
+// ユーザーが手動でログを追加するためのモーダルコンポーネント。
+// 依存: useLogbook (タスク取得・ログ追加フック)
 
-import React, { useState, useEffect } from 'react';
-import { useLogbook } from '@/hooks/useLogbook';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useLogbook } from "@/hooks/useLogbook";
 
 interface ManualAddLogModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean; // モーダル表示状態
+  onClose: () => void; // モーダルを閉じる処理
 }
 
-export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({ isOpen, onClose }) => {
-  const { tasks, addLog, loading: logbookLoading } = useLogbook();
-  const [selectedTask, setSelectedTask] = useState<string>('');
-  const [logTime, setLogTime] = useState<string>('');
-  const [note, setNote] = useState<string>('');
-  const [isAdding, setIsAdding] = useState(false);
+export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
+  const { tasks, addLog, loading: logbookLoading } = useLogbook(); // タスク一覧とログ追加関数を取得
+  const [selectedTask, setSelectedTask] = useState<string>(""); // 選択中のタスクID
+  const [logTime, setLogTime] = useState<string>(""); // 入力された時刻
+  const [note, setNote] = useState<string>(""); // 任意メモ
+  const [isAdding, setIsAdding] = useState(false); // ログ追加処理中フラグ
 
+  // モーダル開閉時にフォーム初期化
   useEffect(() => {
     if (isOpen) {
-      // モーダルが開いたときに現在時刻をセット
+      // 現在時刻をデフォルトセット
       const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
       setLogTime(`${hours}:${minutes}`);
 
-      // タスクが読み込まれていれば最初のタスクをデフォルト選択
+      // タスクが存在すれば先頭を選択
       if (tasks.length > 0) {
         setSelectedTask(tasks[0].id);
       }
     }
   }, [isOpen, tasks]);
 
+  // フォーム送信処理
   const handleSubmit = async () => {
     if (!selectedTask || !logTime) {
-      alert('タスクと時刻を入力してください。');
+      alert("タスクと時刻を入力してください。"); // 必須項目チェック
       return;
     }
 
     setIsAdding(true);
     try {
-      const task = tasks.find(t => t.id === selectedTask);
+      const task = tasks.find((t) => t.id === selectedTask);
       if (task) {
-        await addLog(task, logTime, note); // logTimeとnoteを渡す
-        alert('ログを追加しました！');
+        await addLog(task, logTime, note); // 選択タスク・時刻・メモを渡して追加
+        alert("ログを追加しました！");
         onClose(); // モーダルを閉じる
-        // フォームをリセット
-        setNote('');
-        setLogTime('');
-        setSelectedTask('');
+        // フォームリセット
+        setNote("");
+        setLogTime("");
+        setSelectedTask("");
       }
     } catch (error) {
-      console.error('ログの追加に失敗しました:', error);
-      alert('ログの追加に失敗しました。');
+      console.error("ログの追加に失敗しました:", error);
+      alert("ログの追加に失敗しました。");
     } finally {
       setIsAdding(false);
     }
   };
 
+  // 非表示時は描画しない
   if (!isOpen) return null;
 
   return (
@@ -63,8 +73,14 @@ export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({ isOpen, on
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
         <h2 className="text-2xl font-bold mb-4">手動でログを追加</h2>
 
+        {/* 時刻入力 */}
         <div className="mb-4">
-          <label htmlFor="logTime" className="block text-gray-700 text-sm font-bold mb-2">時刻</label>
+          <label
+            htmlFor="logTime"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            時刻
+          </label>
           <input
             type="time"
             id="logTime"
@@ -74,8 +90,14 @@ export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({ isOpen, on
           />
         </div>
 
+        {/* タスク選択 */}
         <div className="mb-4">
-          <label htmlFor="taskSelect" className="block text-gray-700 text-sm font-bold mb-2">タスク</label>
+          <label
+            htmlFor="taskSelect"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            タスク
+          </label>
           {logbookLoading ? (
             <p>タスク読み込み中...</p>
           ) : tasks.length > 0 ? (
@@ -96,8 +118,14 @@ export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({ isOpen, on
           )}
         </div>
 
+        {/* メモ入力（任意） */}
         <div className="mb-6">
-          <label htmlFor="note" className="block text-gray-700 text-sm font-bold mb-2">メモ (任意)</label>
+          <label
+            htmlFor="note"
+            className="block text-gray-700 text-sm font-bold mb-2"
+          >
+            メモ (任意)
+          </label>
           <textarea
             id="note"
             value={note}
@@ -108,6 +136,7 @@ export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({ isOpen, on
           ></textarea>
         </div>
 
+        {/* ボタン群 */}
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
@@ -121,7 +150,7 @@ export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({ isOpen, on
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             disabled={isAdding || logbookLoading}
           >
-            {isAdding ? '追加中...' : 'ログを追加'}
+            {isAdding ? "追加中..." : "ログを追加"}
           </button>
         </div>
       </div>

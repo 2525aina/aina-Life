@@ -1,18 +1,18 @@
 // src/components/LoginButton.tsx
-// このコンポーネントは、Googleログインボタンを表示し、クリック時に認証処理をトリガーします。
+// Googleログインボタンを表示し、クリック時に認証処理を実行するコンポーネント。
+// 依存: useAuth (認証用カスタムフック)
 
-import React from 'react';
-import { useAuth } from '@/hooks/useAuth'; // 作成したカスタムフックをインポート
+import React from "react";
+import { useAuth } from "@/hooks/useAuth"; // 認証用フックをインポート
 
-// LoginButtonコンポーネントの定義
 const LoginButton: React.FC = () => {
-  // useAuthフックからログイン関数を取得します。
-  // loading状態も取得し、ボタンの無効化に使用します。
+  // useAuthフックからログイン関数とローディング状態を取得
+  // ローディング中はボタンを無効化して二重送信を防ぎます
   const { signInWithGoogle, loading } = useAuth();
 
-  // ボタンがクリックされたときのハンドラ
+  // ボタンクリック時の処理
   const handleClick = () => {
-    // ローディング中でなければ、Googleログイン処理を開始します。
+    // ローディング中でなければログイン処理を実行
     if (!loading) {
       signInWithGoogle();
     }
@@ -21,12 +21,11 @@ const LoginButton: React.FC = () => {
   return (
     <button
       onClick={handleClick}
-      // ローディング中はボタンを無効化し、ユーザーが複数回クリックするのを防ぎます。
-      disabled={loading}
+      disabled={loading} // ローディング中はクリック不可
       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
     >
-      {/* ローディング中はテキストを変更して、ユーザーに処理中であることを伝えます。 */}
-      {loading ? 'ログイン中...' : 'Googleでログイン'}
+      {/* ローディング中は表示テキストを変更し、ユーザーに処理中であることを通知 */}
+      {loading ? "ログイン中..." : "Googleでログイン"}
     </button>
   );
 };

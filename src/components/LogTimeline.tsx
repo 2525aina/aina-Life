@@ -1,17 +1,20 @@
 // src/components/LogTimeline.tsx
+// ユーザーのログ記録を時系列で表示するタイムラインコンポーネント。
+// 依存: useLogbook (ログ操作フック), EditLogModal (ログ編集モーダル)
+
 'use client';
 
-import React, { useState } from 'react'; // useStateを追加
-import { Timestamp } from 'firebase/firestore';
-import { Log, useLogbook } from '@/hooks/useLogbook'; // LogインターフェースとuseLogbookをインポート
-import { EditLogModal } from '@/components/EditLogModal'; // EditLogModalをインポート
+import React, { useState } from 'react'; // useState: 編集モーダルの開閉状態管理
+import { Timestamp } from 'firebase/firestore'; // Firestore Timestamp 型
+import { Log, useLogbook } from '@/hooks/useLogbook'; // Log型・ログ操作フック
+import { EditLogModal } from '@/components/EditLogModal'; // ログ編集用モーダル
 
-// Timestampオブジェクトを "HH:mm" 形式の文字列にフォーマットするヘルパー関数
+// Timestampオブジェクトを "HH:mm" 形式の文字列に変換する
+// nullの場合は "--:--" を表示して未記録を表現
 const formatTime = (timestamp: Timestamp | null): string => {
   if (!timestamp) {
     return '--:--';
   }
-  // toDate()でJavaScriptのDateオブジェクトに変換してからフォーマット
   return timestamp.toDate().toLocaleTimeString('ja-JP', {
     hour: '2-digit',
     minute: '2-digit',
@@ -20,29 +23,31 @@ const formatTime = (timestamp: Timestamp | null): string => {
 
 interface LogTimelineProps {
   logs: Log[];
-  title?: string; // タイトルをカスタマイズできるように追加
-  emptyMessage?: string; // ログがない場合のメッセージをカスタマイズできるように追加
+  title?: string; // タイトルをカスタマイズ可能
+  emptyMessage?: string; // ログが空のときに表示するメッセージ
 }
 
 export const LogTimeline: React.FC<LogTimelineProps> = ({
   logs,
   title = '記録', // デフォルトタイトル
-  emptyMessage = 'まだ記録がありません。', // デフォルトメッセージ
+  emptyMessage = 'まだ記録がありません。', // デフォルト空メッセージ
 }) => {
-  const { deleteLog } = useLogbook();
+  const { deleteLog } = useLogbook(); // ログ削除関数を取得
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // 編集モーダルの開閉状態
-  const [logToEdit, setLogToEdit] = useState<Log | null>(null); // 編集対象のログ
+  const [logToEdit, setLogToEdit] = useState<Log | null>(null); // 編集対象のログを保持
 
+  // 編集ボタン押下時の処理
   const handleEdit = (log: Log) => {
-    setLogToEdit(log);
-    setIsEditModalOpen(true);
+    setLogToEdit(log); // 編集対象ログをセット
+    setIsEditModalOpen(true); // モーダルを開く
   };
 
+  // 削除ボタン押下時の処理
   const handleDelete = async (logId: string) => {
-    await deleteLog(logId);
+    await deleteLog(logId); // 指定IDのログを削除
   };
 
-  // ログがまだない場合の表示
+  // ログがない場合は空メッセージを表示
   if (logs.length === 0) {
     return (
       <div className="mt-8 text-center text-gray-500">
@@ -51,11 +56,11 @@ export const LogTimeline: React.FC<LogTimelineProps> = ({
     );
   }
 
-  // ログがある場合のタイムライン表示
+  // ログがある場合はタイムライン表示
   return (
     <div className="mt-6 w-full">
       <h2 className="text-lg font-semibold mb-3 text-center border-b pb-2 text-white">
-        {title}
+        {title} {/* タイトル表示 */}
       </h2>
       <ul className="space-y-2">
         {logs.map((log) => (
@@ -64,14 +69,14 @@ export const LogTimeline: React.FC<LogTimelineProps> = ({
             className="flex items-center p-3 bg-white rounded-lg shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors"
           >
             <span className="font-mono text-base text-gray-700 bg-gray-100 px-2 py-1 rounded">
-              {formatTime(log.timestamp)}
+              {formatTime(log.timestamp)} {/* ログ時刻をフォーマットして表示 */}
             </span>
             <span className="ml-4 font-medium text-gray-800 text-base">
-              {log.taskName}
+              {log.taskName} {/* ログのタスク名 */}
             </span>
-            {log.note && ( // メモがあれば表示
+            {log.note && (
               <span className="ml-2 text-sm text-gray-500">
-                ({log.note})
+                ({log.note}) {/* メモがある場合に表示 */}
               </span>
             )}
             {/* 編集・削除ボタン */}
@@ -93,6 +98,7 @@ export const LogTimeline: React.FC<LogTimelineProps> = ({
         ))}
       </ul>
 
+      {/* 編集モーダル表示 */}
       <EditLogModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
