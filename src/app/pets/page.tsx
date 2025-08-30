@@ -82,64 +82,66 @@ export default function PetsPage() {
         />
       )}
       <main className="flex-grow w-full p-4 pb-16">
-        {/* ページタイトルと追加ボタン */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-white">ペット管理</h1>
-          <button
-            onClick={handleOpenAddModal}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md"
-          >
-            + 新しいペットを追加
-          </button>
-        </div>
+        <div className="max-w-7xl mx-auto"> {/* Added max-w-7xl mx-auto */}
+          {/* ページタイトルと追加ボタン */}
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-white">ペット管理</h1>
+            <button
+              onClick={handleOpenAddModal}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md"
+            >
+              + 新しいペットを追加
+            </button>
+          </div>
 
-        {/* ペット一覧表示またはローディング表示 */}
-        {petsLoading ? ( // ここでは petsLoading を使用し、一般的な読み込み処理は使用しない
-          <div className="text-center text-white">
-            ペット情報を読み込み中...
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {pets.length > 0 ? (
-              pets.map((pet) => (
-                <div
-                  key={pet.id}
-                  className="bg-gray-700 p-4 rounded-lg shadow-md flex justify-between items-center"
-                >
-                  {/* ペット情報表示 */}
-                  <div>
-                    <h2 className="text-xl font-bold text-white">{pet.name}</h2>
-                    <p className="text-sm text-gray-400">
-                      {pet.breed || "犬種未設定"}
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      {pet.birthday || "誕生日未設定"}
-                    </p>
+          {/* ペット一覧表示またはローディング表示 */}
+          {petsLoading ? ( // ここでは petsLoading を使用し、一般的な読み込み処理は使用しない
+            <div className="text-center text-white">
+              ペット情報を読み込み中...
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {pets.length > 0 ? (
+                pets.map((pet) => (
+                  <div
+                    key={pet.id}
+                    className="bg-gray-700 p-4 rounded-lg shadow-md flex justify-between items-center"
+                  >
+                    {/* ペット情報表示 */}
+                    <div>
+                      <h2 className="text-xl font-bold text-white">{pet.name}</h2>
+                      <p className="text-sm text-gray-400">
+                        {pet.breed || "犬種未設定"}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {pet.birthday || "誕生日未設定"}
+                      </p>
+                    </div>
+                    {/* 編集・削除ボタン */}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleOpenEditModal(pet)}
+                        className="text-blue-300 hover:text-blue-100 text-sm"
+                      >
+                        編集
+                      </button>
+                      <button
+                        onClick={() => handleDeletePet(pet.id)}
+                        className="text-red-300 hover:text-red-100 text-sm"
+                      >
+                        削除
+                      </button>
+                    </div>
                   </div>
-                  {/* 編集・削除ボタン */}
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleOpenEditModal(pet)}
-                      className="text-blue-300 hover:text-blue-100 text-sm"
-                    >
-                      編集
-                    </button>
-                    <button
-                      onClick={() => handleDeletePet(pet.id)}
-                      className="text-red-300 hover:text-red-100 text-sm"
-                    >
-                      削除
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-400">
-                まだペットが登録されていません。
-              </p>
-            )}
-          </div>
-        )}
+                ))
+              ) : (
+                <p className="text-center text-gray-400">
+                  まだペットが登録されていません。
+                </p>
+              )}
+            </div>
+          )}
+        </div> {/* Closing div for max-w-7xl mx-auto */}
       </main>
       {user && <FooterNav />} {/* 認証済みの場合のみフッターナビを表示 */}
       {/* ペット追加・編集モーダル */}

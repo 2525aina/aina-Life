@@ -88,44 +88,46 @@ export default function HistoryPage() {
         />
       )}
       <main className="flex-grow w-full p-4 pb-16">
-        <h1 className="text-3xl font-bold mb-4 text-white text-center">履歴</h1>
+        <div className="max-w-7xl mx-auto"> {/* Added max-w-7xl mx-auto */}
+          <h1 className="text-3xl font-bold mb-4 text-white text-center">履歴</h1>
 
-        {/* 日付切替用スイッチャー */}
-        <div className="flex items-center justify-center mb-6 space-x-2">
-          <button
-            onClick={goToPreviousDay}
-            className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600"
-          >
-            &lt; {/* 前日ボタン */}
-          </button>
-          <span className="text-xl font-semibold text-white">
-            {formatDate(selectedDate)} {/* 選択日付表示 */}
-          </span>
-          <button
-            onClick={goToNextDay}
-            className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600"
-          >
-            &gt; {/* 翌日ボタン */}
-          </button>
-          <button
-            onClick={goToToday}
-            className="ml-4 px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 text-sm"
-          >
-            今日 {/* 今日ボタン */}
-          </button>
-        </div>
+          {/* 日付切替用スイッチャー */}
+          <div className="flex items-center justify-center mb-6 space-x-2">
+            <button
+              onClick={goToPreviousDay}
+              className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600"
+            >
+              &lt; {/* 前日ボタン */}
+            </button>
+            <span className="text-xl font-semibold text-white">
+              {formatDate(selectedDate)} {/* 選択日付表示 */}
+            </span>
+            <button
+              onClick={goToNextDay}
+              className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600"
+            >
+              &gt; {/* 翌日ボタン */}
+            </button>
+            <button
+              onClick={goToToday}
+              className="ml-4 px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 text-sm"
+            >
+              今日 {/* 今日ボタン */}
+            </button>
+          </div>
 
-        {/* ログ表示部分 */}
-        {loading ? (
-          <div className="text-center text-white">ログを読み込み中...</div>
-        ) : (
-          <LogTimeline
-            logs={logs} // 日付に対応するログ配列
-            selectedPet={selectedPet}
-            title={`${formatDate(selectedDate)} の記録`} // タイトル
-            emptyMessage="この日の記録はありません。" // ログが空の場合のメッセージ
-          />
-        )}
+          {/* ログ表示部分 */}
+          {loading ? (
+            <div className="text-center text-white">ログを読み込み中...</div>
+          ) : (
+            <LogTimeline
+              logs={logs} // 日付に対応するログ配列
+              selectedPet={selectedPet}
+              title={`${formatDate(selectedDate)} の記録`} // タイトル
+              emptyMessage="この日の記録はありません。" // ログが空の場合のメッセージ
+            />
+          )}
+        </div> {/* Closing div for max-w-7xl mx-auto */}
       </main>
       {user && <FooterNav />}{" "}
       {/* 認証済みの場合のみフッターナビを表示 */}

@@ -191,7 +191,7 @@ export default function TaskManagementPage() {
         {logbookLoading ? ( // 一般的な読み込みではなく、ここでログブックロードを使用してください
           <div className="text-center text-white">タスクを読み込み中...</div>
         ) : (
-          <div className="max-w-lg mx-auto bg-gray-700 p-4 rounded-lg shadow-md">
+          <div className="max-w-7xl mx-auto bg-gray-700 p-4 rounded-lg shadow-md">
             <h2 className="text-xl font-bold mb-4 text-white">
               {selectedPet ? `${selectedPet.name}のタスク` : "タスク"}
             </h2>

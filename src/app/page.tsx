@@ -67,7 +67,7 @@ export default function Home() {
         {user ? (
           // 認証済みの場合：ダッシュボードを表示
           <>
-            <div className="max-w-lg mx-auto p-4 space-y-4">
+            <div className="max-w-7xl mx-auto p-4 space-y-4">
               <UserProfile /> {/* ユーザー情報 */}
               <TaskSelector selectedPet={selectedPet} /> {/* タスク選択 */}
               <LogTimeline logs={logs} selectedPet={selectedPet} />
