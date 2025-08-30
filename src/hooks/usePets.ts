@@ -6,7 +6,7 @@
 // Reactフック
 import { useState, useEffect } from 'react';
 // Firestore関連API
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
 import { db } from '@/lib/firebase';
 // 認証情報を取得するカスタムフック
@@ -82,7 +82,23 @@ export const usePets = () => {
       alert('ログインが必要です。');
       return;
     }
+    if (!confirm('⚠️本当にこのペットを完全に削除しますか？この操作は元に戻せません。')) {
+      return;
+    }
     try {
+      // 1. サブコレクション (tasks) のドキュメントを全て削除
+      const tasksRef = collection(db, 'dogs', petId, 'tasks');
+      const taskDocs = await getDocs(tasksRef);
+      const deleteTasksPromises = taskDocs.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deleteTasksPromises);
+
+      // 2. サブコレクション (logs) のドキュメントを全て削除
+      const logsRef = collection(db, 'dogs', petId, 'logs');
+      const logDocs = await getDocs(logsRef);
+      const deleteLogsPromises = logDocs.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deleteLogsPromises);
+
+      // 3. 親ドキュメント (pet) を削除
       await deleteDoc(doc(db, 'dogs', petId));
     } catch (error) {
       console.error('ペットの削除に失敗しました:', error);
