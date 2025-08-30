@@ -32,7 +32,7 @@ export const FooterNav = () => {
 
         {/* タスクリンク */}
         <Link
-          href="/settings/tasks"
+          href="/tasks"
           className="flex flex-col items-center text-gray-600 hover:text-blue-600"
         >
           <span>📝</span>
