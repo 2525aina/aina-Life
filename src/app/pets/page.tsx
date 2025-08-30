@@ -5,7 +5,7 @@
 
 "use client"; // クライアントサイドで実行
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header"; // 共通ヘッダー
 import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { usePets, Pet } from "@/hooks/usePets"; // ペット管理フック
@@ -14,8 +14,15 @@ import { PetFormModal } from "@/components/PetFormModal"; // ペット追加/編
 export default function PetsPage() {
   // usePetsフックからペット情報とローディング状態、削除関数を取得
   const { pets, loading, deletePet } = usePets();
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // モーダル開閉状態
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null); // 編集対象ペット
+
+  useEffect(() => {
+    if (pets.length > 0 && !selectedPet) {
+      setSelectedPet(pets[0]);
+    }
+  }, [pets, selectedPet]);
 
   // 新規ペット追加用モーダルを開く
   const handleOpenAddModal = () => {
@@ -31,12 +38,22 @@ export default function PetsPage() {
 
   // ペット削除処理
   const handleDeletePet = async (petId: string) => {
+    // 削除後に選択中のペットを更新する必要がある場合
+    if (selectedPet && selectedPet.id === petId) {
+      const newSelectedPet = pets.find((p) => p.id !== petId);
+      setSelectedPet(newSelectedPet || null);
+    }
     await deletePet(petId);
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header /> {/* 共通ヘッダー */}
+      <Header
+        pets={pets}
+        selectedPet={selectedPet}
+        onPetChange={setSelectedPet}
+        loading={loading}
+      />
       <main className="flex-grow w-full p-4 pb-16">
         {/* ページタイトルと追加ボタン */}
         <div className="flex justify-between items-center mb-6">

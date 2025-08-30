@@ -6,17 +6,20 @@
 
 import React, { useState, useEffect } from "react";
 import { useLogbook } from "@/hooks/useLogbook";
+import { Pet } from "@/hooks/usePets";
 
 interface ManualAddLogModalProps {
   isOpen: boolean; // モーダル表示状態
   onClose: () => void; // モーダルを閉じる処理
+  selectedPet: Pet | null;
 }
 
 export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({
   isOpen,
   onClose,
+  selectedPet,
 }) => {
-  const { tasks, addLog, loading: logbookLoading } = useLogbook(); // タスク一覧とログ追加関数を取得
+  const { tasks, addLog, loading: logbookLoading } = useLogbook(selectedPet?.id);
   const [selectedTask, setSelectedTask] = useState<string>(""); // 選択中のタスクID
   const [logTime, setLogTime] = useState<string>(""); // 入力された時刻
   const [note, setNote] = useState<string>(""); // 任意メモ
@@ -32,11 +35,11 @@ export const ManualAddLogModal: React.FC<ManualAddLogModalProps> = ({
       setLogTime(`${hours}:${minutes}`);
 
       // タスクが存在すれば先頭を選択
-      if (tasks.length > 0) {
+      if (tasks.length > 0 && !selectedTask) {
         setSelectedTask(tasks[0].id);
       }
     }
-  }, [isOpen, tasks]);
+  }, [isOpen, tasks, selectedTask]);
 
   // フォーム送信処理
   const handleSubmit = async () => {

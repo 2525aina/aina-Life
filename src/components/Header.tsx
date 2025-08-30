@@ -1,19 +1,31 @@
 // src/components/Header.tsx
 // 選択中のペットを切り替え可能なヘッダーコンポーネント。
-// 依存: usePets (ペット情報管理フック)
+// 親コンポーネントからペット情報と選択状態を受け取る。
 
 "use client";
 
 import React from "react";
-import { usePets } from "@/hooks/usePets";
+import { Pet } from "@/hooks/usePets"; // ペットの型定義
 
-export const Header = () => {
-  // usePetsフックからペットリスト、選択中ID、選択関数、ローディング状態を取得
-  const { pets, selectedPetId, selectPet, loading } = usePets();
+interface HeaderProps {
+  pets: Pet[];
+  selectedPet: Pet | null;
+  onPetChange: (pet: Pet) => void;
+  loading?: boolean; // ローディング状態を親から受け取る
+}
 
+export const Header: React.FC<HeaderProps> = ({
+  pets,
+  selectedPet,
+  onPetChange,
+  loading,
+}) => {
   // セレクトボックス変更時のハンドラ
   const handlePetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    selectPet(e.target.value); // 選択されたペットIDで切替
+    const pet = pets.find((p) => p.id === e.target.value);
+    if (pet) {
+      onPetChange(pet);
+    }
   };
 
   // ローディング中はスケルトン表示でUIのガタつきを抑える
@@ -34,10 +46,10 @@ export const Header = () => {
   return (
     <header className="w-full p-4 bg-white border-b border-gray-400 sticky top-0 z-10">
       <div className="max-w-lg mx-auto flex justify-between items-center">
-        {pets.length > 0 && selectedPetId ? (
+        {pets.length > 0 && selectedPet ? (
           // ペット選択用セレクトボックス
           <select
-            value={selectedPetId}
+            value={selectedPet.id}
             onChange={handlePetChange}
             className="text-lg font-bold bg-transparent border-none focus:ring-0 p-0 text-gray-400"
           >

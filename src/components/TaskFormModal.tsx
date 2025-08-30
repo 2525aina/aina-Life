@@ -6,19 +6,24 @@
 
 import React, { useState, useEffect } from "react";
 import { useLogbook, Task } from "@/hooks/useLogbook"; // タスク管理用フックと型定義
+import { Pet } from "@/hooks/usePets";
 
 interface TaskFormModalProps {
   isOpen: boolean; // モーダルの開閉状態
   onClose: () => void; // モーダルを閉じる処理
   taskToEdit?: Task | null; // 編集対象タスク（新規作成時はnull）
+  selectedPet: Pet | null;
 }
 
 export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   isOpen,
   onClose,
   taskToEdit,
+  selectedPet,
 }) => {
-  const { addTask, updateTask, loading: logbookLoading } = useLogbook(); // タスク追加・更新処理を取得
+  const { addTask, updateTask, loading: logbookLoading } = useLogbook(
+    selectedPet?.id
+  );
   const [name, setName] = useState<string>(""); // タスク名入力
   const [color, setColor] = useState<string>("#000000"); // 背景色（初期値: 黒）
   const [textColor, setTextColor] = useState<string>("#FFFFFF"); // 文字色（初期値: 白）

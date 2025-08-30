@@ -5,10 +5,11 @@
 
 "use client"; // クライアントサイドで実行
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header"; // 共通ヘッダー
 import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { useLogbook, Task } from "@/hooks/useLogbook"; // タスク管理用フック
+import { usePets, Pet } from "@/hooks/usePets";
 import { TaskFormModal } from "@/components/TaskFormModal"; // タスク追加/編集用モーダル
 
 // dnd-kit imports
@@ -83,8 +84,17 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
 
 // ページコンポーネント本体
 export default function TaskManagementPage() {
+  const { pets, loading: petsLoading } = usePets();
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+
+  useEffect(() => {
+    if (pets.length > 0 && !selectedPet) {
+      setSelectedPet(pets[0]);
+    }
+  }, [pets, selectedPet]);
+
   const { tasks, loading, addTask, updateTask, deleteTask, reorderTasks } =
-    useLogbook(); // タスク管理フック
+    useLogbook(selectedPet?.id);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false); // モーダル開閉状態
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null); // 編集対象タスク
 
@@ -117,9 +127,9 @@ export default function TaskManagementPage() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over?.id) {
+    if (over && active.id !== over.id) {
       const oldIndex = tasks.findIndex((task) => task.id === active.id);
-      const newIndex = tasks.findIndex((task) => task.id === over?.id);
+      const newIndex = tasks.findIndex((task) => task.id === over.id);
 
       // 新しい順序に配列を並べ替え
       const newOrderTasks = arrayMove(tasks, oldIndex, newIndex).map(
@@ -136,7 +146,12 @@ export default function TaskManagementPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header /> {/* 共通ヘッダー */}
+      <Header
+        pets={pets}
+        selectedPet={selectedPet}
+        onPetChange={setSelectedPet}
+        loading={petsLoading}
+      />
       <main className="flex-grow w-full p-4 pb-16">
         <h1 className="text-3xl font-bold mb-4 text-white text-center">
           タスク管理画面
@@ -147,7 +162,7 @@ export default function TaskManagementPage() {
         ) : (
           <div className="max-w-lg mx-auto bg-gray-700 p-4 rounded-lg shadow-md">
             <h2 className="text-xl font-bold mb-4 text-white">
-              登録済みタスク
+              {selectedPet ? `${selectedPet.name}のタスク` : "タスク"}
             </h2>
             <DndContext
               sensors={sensors}
@@ -190,6 +205,7 @@ export default function TaskManagementPage() {
         isOpen={isFormModalOpen} // モーダル開閉状態
         onClose={() => setIsFormModalOpen(false)} // 閉じる処理
         taskToEdit={taskToEdit} // 編集対象タスク
+        selectedPet={selectedPet}
       />
     </div>
   );

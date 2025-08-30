@@ -4,7 +4,7 @@
 // 依存: useAuth, firebase/firestore, db(firebase初期化)
 
 // Reactフック
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 // Firestore関連API
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
@@ -24,14 +24,12 @@ export interface Pet {
 export const usePets = () => {
   const { user } = useAuth(); // ログインユーザーを取得
   const [pets, setPets] = useState<Pet[]>([]); // ユーザーが登録したペット一覧
-  const [selectedPetId, setSelectedPetId] = useState<string | null>(null); // 現在選択中のペットID
   const [loading, setLoading] = useState(true); // Firestoreからの読み込み状態
 
   useEffect(() => {
     if (!user) {
       // 未ログイン時は初期化して終了
       setPets([]);
-      setSelectedPetId(null);
       setLoading(false);
       return;
     }
@@ -49,17 +47,6 @@ export const usePets = () => {
           ...(doc.data() as Omit<Pet, 'id'>),
         }));
         setPets(fetchedPets);
-
-        // 選択中のペットが存在しない場合は、先頭のペットを自動選択
-        if (fetchedPets.length > 0) {
-          const currentSelectionExists = fetchedPets.some(p => p.id === selectedPetId);
-          if (!selectedPetId || !currentSelectionExists) {
-            setSelectedPetId(fetchedPets[0].id);
-          }
-        } else {
-          setSelectedPetId(null);
-        }
-
         setLoading(false);
       },
       (error) => {
@@ -69,12 +56,7 @@ export const usePets = () => {
     );
 
     return () => unsubscribe(); // クリーンアップ時に購読解除
-  }, [user, selectedPetId]);
-
-  // ペットを選択する関数（UI側で選択操作時に使用）
-  const selectPet = useCallback((petId: string) => {
-    setSelectedPetId(petId);
-  }, []);
+  }, [user]);
 
   // 新しいペットを追加する関数
   const addPet = async (petData: Omit<Pet, 'id' | 'ownerIds'>) => {
@@ -102,10 +84,6 @@ export const usePets = () => {
     }
     try {
       await deleteDoc(doc(db, 'dogs', petId));
-      // 選択中のペットが削除された場合は選択解除
-      if (selectedPetId === petId) {
-        setSelectedPetId(null);
-      }
     } catch (error) {
       console.error('ペットの削除に失敗しました:', error);
       alert('ペットの削除に失敗しました。');
@@ -126,5 +104,5 @@ export const usePets = () => {
     }
   };
 
-  return { pets, selectedPetId, loading, selectPet, addPet, deletePet, updatePet };
+  return { pets, loading, addPet, deletePet, updatePet };
 };

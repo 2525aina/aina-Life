@@ -5,10 +5,11 @@
 
 "use client"; // クライアントサイドで実行
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header"; // 共通ヘッダー
 import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { useLogbook } from "@/hooks/useLogbook"; // ログデータ取得フック
+import { usePets, Pet } from "@/hooks/usePets"; // ペット情報取得フック
 import { LogTimeline } from "@/components/LogTimeline"; // ログタイムライン表示コンポーネント
 
 // 日付を日本語表記でフォーマットするヘルパー関数
@@ -23,6 +24,22 @@ const formatDate = (date: Date) => {
 
 export default function HistoryPage() {
   const [selectedDate, setSelectedDate] = useState(new Date()); // 選択されている日付
+  const { pets, loading: petsLoading } = usePets();
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+
+  // ペットリストが読み込まれたら、選択中のペットを更新
+  useEffect(() => {
+    if (pets.length > 0 && !selectedPet) {
+      setSelectedPet(pets[0]);
+    } else if (pets.length > 0 && selectedPet) {
+      const updatedSelectedPet = pets.find((p) => p.id === selectedPet.id);
+      if (updatedSelectedPet) {
+        setSelectedPet(updatedSelectedPet);
+      }
+    } else if (pets.length === 0) {
+      setSelectedPet(null);
+    }
+  }, [pets, selectedPet]);
 
   // 前日へ移動
   const goToPreviousDay = () => {
@@ -44,11 +61,21 @@ export default function HistoryPage() {
   };
 
   // 選択日付に基づくログデータを取得
-  const { logs, loading } = useLogbook(selectedDate);
+  const { logs, loading: logbookLoading } = useLogbook(
+    selectedPet?.id,
+    selectedDate
+  );
+
+  const loading = petsLoading || logbookLoading;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header /> {/* 共通ヘッダー */}
+      <Header
+        pets={pets}
+        selectedPet={selectedPet}
+        onPetChange={setSelectedPet}
+        loading={petsLoading}
+      />
       <main className="flex-grow w-full p-4 pb-16">
         <h1 className="text-3xl font-bold mb-4 text-white text-center">履歴</h1>
 
@@ -83,6 +110,7 @@ export default function HistoryPage() {
         ) : (
           <LogTimeline
             logs={logs} // 日付に対応するログ配列
+            selectedPet={selectedPet}
             title={`${formatDate(selectedDate)} の記録`} // タイトル
             emptyMessage="この日の記録はありません。" // ログが空の場合のメッセージ
           />

@@ -5,9 +5,19 @@
 "use client";
 
 import { useLogbook } from "@/hooks/useLogbook"; // タスク一覧やログ追加処理を扱うカスタムフック
+import { Pet } from "@/hooks/usePets";
 
-export const TaskSelector = () => {
-  const { tasks, loading, addLog } = useLogbook(); // タスク一覧・ロード状態・記録追加処理を取得
+interface TaskSelectorProps {
+  selectedPet: Pet | null;
+}
+
+export const TaskSelector: React.FC<TaskSelectorProps> = ({ selectedPet }) => {
+  const { tasks, loading, addLog } = useLogbook(selectedPet?.id);
+
+  // 選択中のペットがいない場合は何も表示しない
+  if (!selectedPet) {
+    return null;
+  }
 
   // 読み込み中はユーザーにローディング表示を出す
   if (loading) {

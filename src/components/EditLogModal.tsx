@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLogbook, Log } from "@/hooks/useLogbook";
+import { Pet } from "@/hooks/usePets";
 import { Timestamp, serverTimestamp } from "firebase/firestore";
 import { toast } from "react-hot-toast";
 
@@ -13,14 +14,18 @@ interface EditLogModalProps {
   isOpen: boolean; // モーダルの開閉状態
   onClose: () => void; // モーダルを閉じるハンドラ
   logToEdit: Log | null; // 編集対象のログ
+  selectedPet: Pet | null;
 }
 
 export const EditLogModal: React.FC<EditLogModalProps> = ({
   isOpen,
   onClose,
   logToEdit,
+  selectedPet,
 }) => {
-  const { tasks, updateLog, loading: logbookLoading } = useLogbook(); // タスク一覧とログ更新関数取得
+  const { tasks, updateLog, loading: logbookLoading } = useLogbook(
+    selectedPet?.id
+  );
   const [selectedTask, setSelectedTask] = useState<string>(""); // 選択中のタスクID
   const [logTime, setLogTime] = useState<string>(""); // 入力中の時刻文字列(HH:mm)
   const [note, setNote] = useState<string>(""); // 入力中のメモ

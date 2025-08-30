@@ -6,11 +6,12 @@
 "use client"; // このコンポーネントはクライアントサイドで実行される
 
 // React関連
-import { useState } from "react"; // コンポーネント内で状態管理に使用
+import { useState, useEffect } from "react"; // コンポーネント内で状態管理に使用
 
 // 認証・データ取得フック
 import { useAuth } from "@/hooks/useAuth"; // 認証状態とユーザー情報を管理
 import { useLogbook } from "@/hooks/useLogbook"; // ログデータを管理
+import { usePets, Pet } from "@/hooks/usePets"; // ペット情報と型をインポート
 
 // UIコンポーネント
 import LoginButton from "@/components/LoginButton"; // ログイン開始ボタン
@@ -25,13 +26,35 @@ import { ManualAddLogModal } from "@/components/ManualAddLogModal"; // 手動で
 // メインページの定義
 export default function Home() {
   // 認証フックからユーザー情報とローディング状態を取得
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  // ペットに関する情報を取得
+  const { pets, loading: petsLoading } = usePets();
+  // 選択中のペットの状態を管理
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
 
   // モーダルの開閉状態を管理
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // ログブックからユーザーのログデータを取得
-  const { logs } = useLogbook();
+  const { logs } = useLogbook(selectedPet?.id);
+
+  // ペットリストが読み込まれたら、選択中のペットを更新
+  useEffect(() => {
+    if (pets.length > 0 && !selectedPet) {
+      setSelectedPet(pets[0]);
+    } else if (pets.length > 0 && selectedPet) {
+      // 選択中のペット情報が更新された場合（例：名前変更）、最新の状態を反映
+      const updatedSelectedPet = pets.find((p) => p.id === selectedPet.id);
+      if (updatedSelectedPet) {
+        setSelectedPet(updatedSelectedPet);
+      }
+    } else if (pets.length === 0) {
+      setSelectedPet(null);
+    }
+  }, [pets, selectedPet]);
+
+  // 全体のローディング状態
+  const loading = authLoading || petsLoading;
 
   // 認証状態の判定が終わるまで「読み込み中」を表示
   if (loading) {
@@ -44,21 +67,26 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header /> {/* 共通ヘッダー */}
+      <Header
+        pets={pets}
+        selectedPet={selectedPet}
+        onPetChange={setSelectedPet}
+      />
       <main className="flex-grow w-full pb-16">
         {user ? (
           // 認証済みの場合：ダッシュボードを表示
           <>
             <div className="max-w-lg mx-auto p-4 space-y-4">
               <UserProfile /> {/* ユーザー情報 */}
-              <TaskSelector /> {/* タスク選択 */}
-              <LogTimeline logs={logs} /> {/* ログ履歴を表示 */}
+              <TaskSelector selectedPet={selectedPet} /> {/* タスク選択 */}
+              <LogTimeline logs={logs} selectedPet={selectedPet} />
             </div>
             <QuickAddButton onClick={() => setIsModalOpen(true)} />{" "}
             {/* 新規ログ追加ボタン */}
             <ManualAddLogModal
               isOpen={isModalOpen} // 開閉状態
               onClose={() => setIsModalOpen(false)} // 閉じる処理
+              selectedPet={selectedPet}
             />
           </>
         ) : (
