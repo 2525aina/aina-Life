@@ -9,20 +9,15 @@ import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header"; // 共通ヘッダー
 import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { usePets, Pet } from "@/hooks/usePets"; // ペット管理フック
+import { usePetSelection } from "@/contexts/PetSelectionContext"; // グローバルなペット選択状態
 import { PetFormModal } from "@/components/PetFormModal"; // ペット追加/編集用モーダル
 
 export default function PetsPage() {
   // usePetsフックからペット情報とローディング状態、削除関数を取得
-  const { pets, loading, deletePet } = usePets();
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const { deletePet } = usePets(); // Only need deletePet from here
+  const { pets, loading, selectedPet, setSelectedPet } = usePetSelection(); // Get pets, loading, and selectedPet from context
   const [isModalOpen, setIsModalOpen] = useState(false); // モーダル開閉状態
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null); // 編集対象ペット
-
-  useEffect(() => {
-    if (pets.length > 0 && !selectedPet) {
-      setSelectedPet(pets[0]);
-    }
-  }, [pets, selectedPet]);
 
   // 新規ペット追加用モーダルを開く
   const handleOpenAddModal = () => {

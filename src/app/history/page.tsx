@@ -5,11 +5,11 @@
 
 "use client"; // クライアントサイドで実行
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Header } from "@/components/Header"; // 共通ヘッダー
 import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { useLogbook } from "@/hooks/useLogbook"; // ログデータ取得フック
-import { usePets, Pet } from "@/hooks/usePets"; // ペット情報取得フック
+import { usePetSelection } from "@/contexts/PetSelectionContext"; // グローバルなペット選択状態
 import { LogTimeline } from "@/components/LogTimeline"; // ログタイムライン表示コンポーネント
 
 // 日付を日本語表記でフォーマットするヘルパー関数
@@ -24,22 +24,8 @@ const formatDate = (date: Date) => {
 
 export default function HistoryPage() {
   const [selectedDate, setSelectedDate] = useState(new Date()); // 選択されている日付
-  const { pets, loading: petsLoading } = usePets();
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-
-  // ペットリストが読み込まれたら、選択中のペットを更新
-  useEffect(() => {
-    if (pets.length > 0 && !selectedPet) {
-      setSelectedPet(pets[0]);
-    } else if (pets.length > 0 && selectedPet) {
-      const updatedSelectedPet = pets.find((p) => p.id === selectedPet.id);
-      if (updatedSelectedPet) {
-        setSelectedPet(updatedSelectedPet);
-      }
-    } else if (pets.length === 0) {
-      setSelectedPet(null);
-    }
-  }, [pets, selectedPet]);
+  const { pets, selectedPet, setSelectedPet, loading: petsLoading } =
+    usePetSelection();
 
   // 前日へ移動
   const goToPreviousDay = () => {

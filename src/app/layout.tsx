@@ -7,6 +7,7 @@ import type { Metadata } from "next"; // ページのメタデータ型定義
 import { Geist, Geist_Mono } from "next/font/google"; // Google Fonts の読み込み
 import "./globals.css"; // 全体スタイルを読み込む
 import { Toaster } from "react-hot-toast"; // トースト通知用コンポーネント
+import { PetSelectionProvider } from "@/contexts/PetSelectionContext";
 
 // Geistフォント（サンセリフ）をCSS変数として定義
 const geistSans = Geist({
@@ -37,8 +38,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`} // フォントとアンチエイリアス適用
       >
-        {children} {/* 各ページのコンテンツ */}
-        <Toaster /> {/* グローバル通知コンポーネント */}
+        <PetSelectionProvider>
+          {children} {/* 各ページのコンテンツ */}
+          <Toaster /> {/* グローバル通知コンポーネント */}
+        </PetSelectionProvider>
       </body>
     </html>
   );

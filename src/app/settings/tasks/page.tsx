@@ -5,11 +5,11 @@
 
 "use client"; // クライアントサイドで実行
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Header } from "@/components/Header"; // 共通ヘッダー
 import { FooterNav } from "@/components/FooterNav"; // 共通フッターナビ
 import { useLogbook, Task } from "@/hooks/useLogbook"; // タスク管理用フック
-import { usePets, Pet } from "@/hooks/usePets";
+import { usePetSelection } from "@/contexts/PetSelectionContext"; // グローバルなペット選択状態
 import { TaskFormModal } from "@/components/TaskFormModal"; // タスク追加/編集用モーダル
 
 // dnd-kit imports
@@ -84,14 +84,8 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
 
 // ページコンポーネント本体
 export default function TaskManagementPage() {
-  const { pets, loading: petsLoading } = usePets();
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-
-  useEffect(() => {
-    if (pets.length > 0 && !selectedPet) {
-      setSelectedPet(pets[0]);
-    }
-  }, [pets, selectedPet]);
+  const { pets, selectedPet, setSelectedPet, loading: petsLoading } =
+    usePetSelection();
 
   const { tasks, loading, addTask, updateTask, deleteTask, reorderTasks } =
     useLogbook(selectedPet?.id);
