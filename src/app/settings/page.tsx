@@ -12,7 +12,7 @@ import LoginButton from "@/components/LoginButton";
 export default function SettingsPage() {
   const { user, loading: authLoading, signOutUser } = useAuth();
   const { selectedPet, setSelectedPet, pets, loading: petsLoading } = usePetSelection();
-  const { getSharedMembers, inviteMember, getPendingInvitations } = usePets();
+  const { getSharedMembers, inviteMember, getPendingInvitations, updateInvitationStatus } = usePets();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
@@ -36,12 +36,16 @@ export default function SettingsPage() {
     }
   }, [selectedPet, fetchMembers]);
 
-  useEffect(() => {
+  const fetchPendingInvites = useCallback(async () => {
     setLoadingInvites(true);
-    getPendingInvitations()
-      .then(invites => setPendingInvites(invites))
-      .finally(() => setLoadingInvites(false));
+    const invites = await getPendingInvitations();
+    setPendingInvites(invites);
+    setLoadingInvites(false);
   }, [getPendingInvitations]);
+
+  useEffect(() => {
+    fetchPendingInvites();
+  }, [fetchPendingInvites]);
 
   const handleInvite = async () => {
     if (!selectedPet) {
@@ -59,10 +63,22 @@ export default function SettingsPage() {
       toast.success(`${inviteEmail}さんを招待しました。`);
       setInviteEmail("");
       fetchMembers();
+      fetchPendingInvites(); // 招待後に保留中の招待も更新
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  const handleInvitationResponse = async (petId: string, memberId: string, status: 'active' | 'declined') => {
+    try {
+      await updateInvitationStatus(petId, memberId, status);
+      toast.success(`招待を${status === 'active' ? '承諾' : '拒否'}しました。`);
+      fetchPendingInvites(); // 招待リストを更新
+      fetchMembers(); // 共有メンバーリストも更新
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message);
     }
   };
 
@@ -94,7 +110,7 @@ export default function SettingsPage() {
           {/* 保留中の招待セクション */}
           {loadingInvites ? (
             <p>招待を読み込み中...</p>
-          ) : pendingInvites.length > 0 && (
+          ) : pendingInvites.length > 0 ? (
             <section className="bg-yellow-800 bg-opacity-50 p-4 rounded-lg shadow-md text-white mb-6">
               <h2 className="text-xl font-bold mb-4">保留中の招待</h2>
               <ul className="space-y-3">
@@ -102,16 +118,23 @@ export default function SettingsPage() {
                   <li key={invite.memberId} className="bg-gray-700 p-3 rounded-md flex items-center justify-between">
                     <div>
                       <p><strong>{invite.pet.name}</strong>への招待が届いています。</p>
-                      {/* <p className="text-sm text-gray-400">招待者: {invite.member.invitedBy}</p> */}
                     </div>
                     <div className="flex space-x-2">
-                      <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-md text-sm">承諾</button>
-                      <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-md text-sm">拒否</button>
+                      <button
+                        onClick={() => handleInvitationResponse(invite.pet.id, invite.memberId, 'active')}
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-md text-sm"
+                      >承諾</button>
+                      <button
+                        onClick={() => handleInvitationResponse(invite.pet.id, invite.memberId, 'declined')}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-md text-sm"
+                      >拒否</button>
                     </div>
                   </li>
                 ))}
               </ul>
             </section>
+          ) : (
+            <p className="text-gray-400">保留中の招待はありません。</p>
           )}
 
           {/* ユーザー情報セクション */}
