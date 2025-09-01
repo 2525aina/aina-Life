@@ -4,7 +4,7 @@
 // 依存: useAuth, firebase/firestore, db(firebase初期化)
 
 // Reactフック
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 // Firestore関連API
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
@@ -19,6 +19,13 @@ export interface Pet {
   name: string;
   breed: string;
   birthday: string;
+}
+
+// 共有メンバーのデータ型定義
+export interface Member {
+  id: string;
+  role: 'owner' | 'general' | 'viewer';
+  // emailやdisplayNameなど、他のユーザー情報も必要に応じて追加
 }
 
 export const usePets = () => {
@@ -120,5 +127,21 @@ export const usePets = () => {
     }
   };
 
-  return { pets, loading, addPet, deletePet, updatePet };
+  // 共有メンバーを取得する関数
+  const getSharedMembers = useCallback(async (petId: string): Promise<Member[]> => {
+    try {
+      const membersCollection = collection(db, 'dogs', petId, 'members');
+      const snapshot = await getDocs(membersCollection);
+      const members = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...(doc.data() as { role: Member['role'] }),
+      }));
+      return members;
+    } catch (error) {
+      console.error('共有メンバーの取得に失敗しました:', error);
+      return []; // エラー時は空配列を返す
+    }
+  }, []);
+
+  return { pets, loading, addPet, deletePet, updatePet, getSharedMembers };
 };
