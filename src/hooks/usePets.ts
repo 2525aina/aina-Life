@@ -29,6 +29,12 @@ export interface Member {
   status?: 'pending' | 'active' | 'removed' | 'declined';
 }
 
+// 保留中の招待データ型定義
+export interface PendingInvitation {
+  pet: Pet;
+  memberId: string;
+}
+
 export const usePets = () => {
   const { user } = useAuth(); // ログインユーザーを取得
   const [pets, setPets] = useState<Pet[]>([]); // ユーザーが登録したペット一覧
@@ -187,5 +193,32 @@ export const usePets = () => {
     }
   };
 
-  return { pets, loading, addPet, deletePet, updatePet, getSharedMembers, inviteMember };
+  // 保留中の招待を取得する関数
+  const getPendingInvitations = useCallback(async (): Promise<PendingInvitation[]> => {
+    if (!user || !user.email) return [];
+    try {
+      const q = query(
+        collectionGroup(db, 'members'),
+        where('inviteEmail', '==', user.email),
+        where('status', '==', 'pending')
+      );
+      const snapshot = await getDocs(q);
+      const invitations = await Promise.all(snapshot.docs.map(async (memberDoc) => {
+        const petDocRef = memberDoc.ref.parent.parent;
+        if (!petDocRef) return null;
+        const petDoc = await getDoc(petDocRef);
+        if (!petDoc.exists()) return null;
+        return {
+          pet: { id: petDoc.id, ...petDoc.data() } as Pet,
+          memberId: memberDoc.id,
+        };
+      }));
+      return invitations.filter(inv => inv !== null) as PendingInvitation[];
+    } catch (error) {
+      console.error("保留中の招待の取得に失敗しました:", error);
+      return [];
+    }
+  }, [user]);
+
+  return { pets, loading, addPet, deletePet, updatePet, getSharedMembers, inviteMember, getPendingInvitations };
 };
