@@ -25,7 +25,8 @@ export interface Pet {
 export interface Member {
   id: string;
   role: 'owner' | 'general' | 'viewer';
-  // emailやdisplayNameなど、他のユーザー情報も必要に応じて追加
+  inviteEmail?: string; // 招待時のメールアドレス
+  status?: 'pending' | 'active' | 'removed' | 'declined';
 }
 
 export const usePets = () => {
@@ -134,7 +135,7 @@ export const usePets = () => {
       const snapshot = await getDocs(membersCollection);
       const members = snapshot.docs.map(doc => ({
         id: doc.id,
-        ...(doc.data() as { role: Member['role'] }),
+        ...(doc.data() as Omit<Member, 'id'>),
       }));
       return members;
     } catch (error) {
@@ -143,5 +144,26 @@ export const usePets = () => {
     }
   }, []);
 
-  return { pets, loading, addPet, deletePet, updatePet, getSharedMembers };
+  // メンバーを招待する関数
+  const inviteMember = async (petId: string, email: string) => {
+    if (!user) {
+      throw new Error('ログインが必要です。');
+    }
+    try {
+      const membersCollection = collection(db, 'dogs', petId, 'members');
+      // TODO: 招待する前に、既にメンバーでないか、招待中でないかを確認する
+      await addDoc(membersCollection, {
+        inviteEmail: email,
+        invitedBy: user.uid,
+        invitedAt: serverTimestamp(),
+        role: 'viewer', // 招待時は閲覧者として設定
+        status: 'pending', //ステータスは招待中
+      });
+    } catch (error) {
+      console.error('メンバーの招待に失敗しました:', error);
+      throw new Error('メンバーの招待に失敗しました。');
+    }
+  };
+
+  return { pets, loading, addPet, deletePet, updatePet, getSharedMembers, inviteMember };
 };

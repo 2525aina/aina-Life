@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { usePetSelection } from "@/contexts/PetSelectionContext";
 import { usePets, Member } from "@/hooks/usePets";
@@ -11,25 +12,55 @@ import LoginButton from "@/components/LoginButton";
 export default function SettingsPage() {
   const { user, loading: authLoading, signOutUser } = useAuth();
   const { selectedPet, pets, loading: petsLoading } = usePetSelection();
-  const { getSharedMembers } = usePets();
+  const { getSharedMembers, inviteMember } = usePets();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [isInviting, setIsInviting] = useState(false);
+
+  const fetchMembers = useCallback(async () => {
+    if (selectedPet) {
+      setLoadingMembers(true);
+      const fetchedMembers = await getSharedMembers(selectedPet.id);
+      setMembers(fetchedMembers);
+      setLoadingMembers(false);
+    }
+  }, [selectedPet, getSharedMembers]);
 
   useEffect(() => {
     if (selectedPet) {
-      const fetchMembers = async () => {
-        setLoadingMembers(true);
-        const fetchedMembers = await getSharedMembers(selectedPet.id);
-        // TODO: メンバーのemailなどを取得する処理
-        setMembers(fetchedMembers);
-        setLoadingMembers(false);
-      };
       fetchMembers();
     } else {
       setMembers([]);
     }
-  }, [selectedPet, getSharedMembers]);
+  }, [selectedPet, fetchMembers]);
+
+  const handleInvite = async () => {
+    if (!selectedPet) {
+      toast.error("招待するペットを選択してください。");
+      return;
+    }
+    if (!inviteEmail) {
+      toast.error("招待するユーザーのメールアドレスを入力してください。");
+      return;
+    }
+
+    setIsInviting(true);
+    try {
+      await inviteMember(selectedPet.id, inviteEmail);
+      toast.success(`${inviteEmail}さんを招待しました。`);
+      setInviteEmail("");
+      // 招待後にメンバーリストを再読み込み
+      fetchMembers();
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
+    } finally {
+      setIsInviting(false);
+    }
+  };
 
   const loading = authLoading || petsLoading;
 
@@ -82,7 +113,6 @@ export default function SettingsPage() {
 
             {selectedPet ? (
               <>
-                {/* ペット選択のUI */}
                 <div className="mb-4">
                   <p className="text-sm text-gray-400 mb-1">対象のペット</p>
                   <div className="bg-gray-600 p-2 rounded-md">
@@ -90,7 +120,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* 共有メンバーリスト */}
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2">共有中のメンバー</h3>
                   {loadingMembers ? (
@@ -103,8 +132,8 @@ export default function SettingsPage() {
                           className="flex items-center justify-between bg-gray-600 p-2 rounded-md"
                         >
                           <div>
-                            <p className="font-medium">{member.id}</p> {/* TODO: email等に置き換え */}
-                            <p className="text-sm text-gray-400">役割: {member.role}</p>
+                            <p className="font-medium">{member.inviteEmail || member.id}</p>
+                            <p className="text-sm text-gray-400">役割: {member.role} ({member.status})</p>
                           </div>
                           <button className="text-xs bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded-md">
                             解除
@@ -117,17 +146,23 @@ export default function SettingsPage() {
                   )}
                 </div>
 
-                {/* メンバー招待フォーム */}
                 <div>
                   <h3 className="text-lg font-semibold mb-2">新しいメンバーを招待</h3>
                   <div className="flex space-x-2">
                     <input
                       type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
                       placeholder="招待するユーザーのメールアドレス"
                       className="flex-grow bg-gray-800 border border-gray-600 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={isInviting}
                     />
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
-                      招待
+                    <button
+                      onClick={handleInvite}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md disabled:bg-gray-500"
+                      disabled={isInviting}
+                    >
+                      {isInviting ? "招待中..." : "招待"}
                     </button>
                   </div>
                 </div>
