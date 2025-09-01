@@ -36,16 +36,14 @@ export default function SettingsPage() {
     }
   }, [selectedPet, fetchMembers]);
 
-  const fetchPendingInvites = useCallback(async () => {
-    setLoadingInvites(true);
-    const invites = await getPendingInvitations();
-    setPendingInvites(invites);
-    setLoadingInvites(false);
-  }, [getPendingInvitations]);
-
   useEffect(() => {
-    fetchPendingInvites();
-  }, [fetchPendingInvites]);
+    setLoadingInvites(true);
+    const unsubscribe = getPendingInvitations((invites) => {
+      setPendingInvites(invites);
+      setLoadingInvites(false);
+    });
+    return () => unsubscribe();
+  }, [getPendingInvitations]);
 
   const handleInvite = async () => {
     if (!selectedPet) {
@@ -63,7 +61,7 @@ export default function SettingsPage() {
       toast.success(`${inviteEmail}さんを招待しました。`);
       setInviteEmail("");
       fetchMembers();
-      fetchPendingInvites(); // 招待後に保留中の招待も更新
+      // fetchPendingInvites(); // 招待後に保留中の招待も更新 - onSnapshotになったので不要
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
     } finally {
@@ -75,7 +73,7 @@ export default function SettingsPage() {
     try {
       await updateInvitationStatus(petId, memberId, status);
       toast.success(`招待を${status === 'active' ? '承諾' : '拒否'}しました。`);
-      fetchPendingInvites(); // 招待リストを更新
+      // fetchPendingInvites(); // 招待リストを更新 - onSnapshotになったので不要
       fetchMembers(); // 共有メンバーリストも更新
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);

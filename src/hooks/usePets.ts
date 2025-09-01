@@ -213,15 +213,17 @@ export const usePets = () => {
   };
 
   // 保留中の招待を取得する関数
-  const getPendingInvitations = useCallback(async (): Promise<PendingInvitation[]> => {
-    if (!user || !user.email) return [];
-    try {
-      const q = query(
-        collectionGroup(db, 'members'),
-        where('inviteEmail', '==', user.email),
-        where('status', '==', 'pending')
-      );
-      const snapshot = await getDocs(q);
+  const getPendingInvitations = useCallback((onInvitationsUpdate: (invitations: PendingInvitation[]) => void) => {
+    if (!user || !user.email) {
+      onInvitationsUpdate([]);
+      return () => {};
+    }
+    const q = query(
+      collectionGroup(db, 'members'),
+      where('inviteEmail', '==', user.email),
+      where('status', '==', 'pending')
+    );
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
       const invitations = await Promise.all(snapshot.docs.map(async (memberDoc) => {
         const petDocRef = memberDoc.ref.parent.parent;
         if (!petDocRef) return null;
@@ -232,11 +234,12 @@ export const usePets = () => {
           memberId: memberDoc.id,
         };
       }));
-      return invitations.filter(inv => inv !== null) as PendingInvitation[];
-    } catch (error) {
+      onInvitationsUpdate(invitations.filter(inv => inv !== null) as PendingInvitation[]);
+    }, (error) => {
       console.error("保留中の招待の取得に失敗しました:", error);
-      return [];
-    }
+      onInvitationsUpdate([]);
+    });
+    return unsubscribe;
   }, [user]);
 
   // 招待のステータスを更新する関数
