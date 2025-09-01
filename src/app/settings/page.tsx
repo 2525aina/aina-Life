@@ -11,7 +11,7 @@ import LoginButton from "@/components/LoginButton";
 
 export default function SettingsPage() {
   const { user, loading: authLoading, signOutUser } = useAuth();
-  const { selectedPet, pets, loading: petsLoading } = usePetSelection();
+  const { selectedPet, setSelectedPet, pets, loading: petsLoading } = usePetSelection();
   const { getSharedMembers, inviteMember } = usePets();
 
   const [members, setMembers] = useState<Member[]>([]);
@@ -87,7 +87,7 @@ export default function SettingsPage() {
       <Header
         pets={pets}
         selectedPet={selectedPet}
-        onPetChange={() => {}}
+        onPetChange={setSelectedPet}
         loading={petsLoading}
       />
       <main className="flex-grow w-full p-4 pb-16">
