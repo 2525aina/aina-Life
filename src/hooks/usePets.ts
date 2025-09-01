@@ -260,5 +260,19 @@ export const usePets = () => {
     }
   }, [user]);
 
-  return { pets, loading, addPet, deletePet, updatePet, getSharedMembers, inviteMember, getPendingInvitations, updateInvitationStatus };
+  // 共有メンバーを削除する関数
+  const removeMember = useCallback(async (petId: string, memberId: string) => {
+    if (!user) {
+      throw new Error('ログインが必要です。');
+    }
+    try {
+      const memberDocRef = doc(db, 'dogs', petId, 'members', memberId);
+      await deleteDoc(memberDocRef);
+    } catch (error) {
+      console.error('メンバーの削除に失敗しました:', error);
+      throw new Error('メンバーの削除に失敗しました。');
+    }
+  }, [user]);
+
+  return { pets, loading, addPet, deletePet, updatePet, getSharedMembers, inviteMember, getPendingInvitations, updateInvitationStatus, removeMember };
 };

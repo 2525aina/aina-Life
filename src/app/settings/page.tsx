@@ -12,7 +12,7 @@ import LoginButton from "@/components/LoginButton";
 export default function SettingsPage() {
   const { user, loading: authLoading, signOutUser } = useAuth();
   const { selectedPet, setSelectedPet, pets, loading: petsLoading } = usePetSelection();
-  const { inviteMember, getPendingInvitations, updateInvitationStatus, getSharedMembers } = usePets();
+  const { inviteMember, getPendingInvitations, updateInvitationStatus, getSharedMembers, removeMember } = usePets();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
@@ -85,7 +85,7 @@ export default function SettingsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-white">
+      <div className="flex flex-col min-h-screen items-center justify-center text-white">
         <h1 className="text-3xl font-bold mb-8">ログインが必要です</h1>
         <p className="mb-4">このページを表示するにはログインしてください。</p>
         <LoginButton />
@@ -158,7 +158,23 @@ export default function SettingsPage() {
                             <p className="font-medium">{member.inviteEmail || member.id}</p>
                             <p className="text-sm text-gray-400">役割: {member.role} ({member.status})</p>
                           </div>
-                          <button className="text-xs bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded-md">解除</button>
+                          <button
+                            onClick={() => {
+                              if (confirm('本当にこのメンバーを共有から解除しますか？')) {
+                                toast.promise(
+                                  removeMember(selectedPet.id, member.id),
+                                  {
+                                    loading: '解除中...',
+                                    success: 'メンバーを解除しました！',
+                                    error: '解除に失敗しました。',
+                                  }
+                                );
+                              }
+                            }}
+                            className="text-xs bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded-md"
+                          >
+                            解除
+                          </button>
                         </li>
                       ))}
                     </ul>
