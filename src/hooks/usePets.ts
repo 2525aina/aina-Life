@@ -6,7 +6,7 @@
 // Reactフック
 import { useState, useEffect, useCallback } from 'react';
 // Firestore関連API
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs, collectionGroup, getDoc } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
 import { db } from '@/lib/firebase';
 // 認証情報を取得するカスタムフック
@@ -36,34 +36,56 @@ export const usePets = () => {
 
   useEffect(() => {
     if (!user) {
-      // 未ログイン時は初期化して終了
       setPets([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    const petsCollection = collection(db, 'dogs');
-    const q = query(petsCollection, where('ownerIds', 'array-contains', user.uid));
 
-    // Firestoreのリアルタイム購読
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const fetchedPets = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as Omit<Pet, 'id'>),
-        }));
-        setPets(fetchedPets);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('ペット情報の取得に失敗しました:', error);
-        setLoading(false);
-      }
-    );
+    // 1. 自分がオーナーのペットを購読
+    const ownerPetsQuery = query(collection(db, 'dogs'), where('ownerIds', 'array-contains', user.uid));
+    const unsubscribeOwnerPets = onSnapshot(ownerPetsQuery, (snapshot) => {
+      const ownedPets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
+      
+      // 2. 共有されているペットを取得 (inviteEmail と status でクエリ)
+      const sharedPetsQuery = query(
+        collectionGroup(db, 'members'), 
+        where('inviteEmail', '==', user.email),
+        where('status', '==', 'active')
+      );
 
-    return () => unsubscribe(); // クリーンアップ時に購読解除
+      getDocs(sharedPetsQuery).then(async (membersSnapshot) => {
+        const sharedPetPromises = membersSnapshot.docs.map(memberDoc => {
+          // memberドキュメントの親(pet)の参照を取得
+          const petDocRef = memberDoc.ref.parent.parent;
+          if (!petDocRef) return null;
+          return getDoc(petDocRef);
+        }).filter(p => p !== null) as Promise<any>[];
+        
+        const sharedPetDocs = await Promise.all(sharedPetPromises);
+        const sharedPets = sharedPetDocs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
+
+        // 3. 統合と重複排除
+        const allPets = [...ownedPets, ...sharedPets];
+        const uniquePets = Array.from(new Map(allPets.map(p => [p.id, p])).values());
+        
+        setPets(uniquePets);
+        setLoading(false);
+      }).catch(error => {
+        console.error("共有ペットの取得に失敗しました:", error);
+        // エラーが発生しても、オーナーのペットは表示する
+        setPets(ownedPets);
+        setLoading(false);
+      });
+    }, (error) => {
+      console.error('ペット情報の取得に失敗しました:', error);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribeOwnerPets();
+    };
   }, [user]);
 
   // 新しいペットを追加する関数
