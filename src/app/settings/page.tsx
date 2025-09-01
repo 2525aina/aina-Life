@@ -12,7 +12,7 @@ import LoginButton from "@/components/LoginButton";
 export default function SettingsPage() {
   const { user, loading: authLoading, signOutUser } = useAuth();
   const { selectedPet, setSelectedPet, pets, loading: petsLoading } = usePetSelection();
-  const { getSharedMembers, inviteMember, getPendingInvitations, updateInvitationStatus } = usePets();
+  const { inviteMember, getPendingInvitations, updateInvitationStatus, getSharedMembers } = usePets();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
@@ -21,20 +21,19 @@ export default function SettingsPage() {
   const [pendingInvites, setPendingInvites] = useState<PendingInvitation[]>([]);
   const [loadingInvites, setLoadingInvites] = useState(true);
 
-  const fetchMembers = useCallback(async () => {
-    if (selectedPet) {
-      setLoadingMembers(true);
-      const fetchedMembers = await getSharedMembers(selectedPet.id);
+  useEffect(() => {
+    if (!selectedPet) {
+      setMembers([]);
+      setLoadingMembers(false);
+      return;
+    }
+    setLoadingMembers(true);
+    const unsubscribe = getSharedMembers(selectedPet.id, (fetchedMembers) => {
       setMembers(fetchedMembers);
       setLoadingMembers(false);
-    }
+    });
+    return () => unsubscribe();
   }, [selectedPet, getSharedMembers]);
-
-  useEffect(() => {
-    if (selectedPet) {
-      fetchMembers();
-    }
-  }, [selectedPet, fetchMembers]);
 
   useEffect(() => {
     setLoadingInvites(true);
@@ -60,8 +59,6 @@ export default function SettingsPage() {
       await inviteMember(selectedPet.id, inviteEmail);
       toast.success(`${inviteEmail}さんを招待しました。`);
       setInviteEmail("");
-      fetchMembers();
-      // fetchPendingInvites(); // 招待後に保留中の招待も更新 - onSnapshotになったので不要
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
     } finally {
@@ -73,8 +70,6 @@ export default function SettingsPage() {
     try {
       await updateInvitationStatus(petId, memberId, status);
       toast.success(`招待を${status === 'active' ? '承諾' : '拒否'}しました。`);
-      // fetchPendingInvites(); // 招待リストを更新 - onSnapshotになったので不要
-      fetchMembers(); // 共有メンバーリストも更新
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
     }

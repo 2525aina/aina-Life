@@ -176,20 +176,24 @@ export const usePets = () => {
   };
 
   // 共有メンバーを取得する関数
-  const getSharedMembers = useCallback(async (petId: string): Promise<Member[]> => {
-    try {
-      const membersCollection = collection(db, 'dogs', petId, 'members');
-      const snapshot = await getDocs(membersCollection);
+  const getSharedMembers = useCallback((petId: string, onMembersUpdate: (members: Member[]) => void) => {
+    if (!user) {
+      onMembersUpdate([]);
+      return () => {};
+    }
+    const membersCollection = collection(db, 'dogs', petId, 'members');
+    const unsubscribe = onSnapshot(membersCollection, (snapshot) => {
       const members = snapshot.docs.map(doc => ({
         id: doc.id,
         ...(doc.data() as Omit<Member, 'id'>),
       }));
-      return members;
-    } catch (error) {
+      onMembersUpdate(members);
+    }, (error) => {
       console.error('共有メンバーの取得に失敗しました:', error);
-      return []; // エラー時は空配列を返す
-    }
-  }, []);
+      onMembersUpdate([]);
+    });
+    return unsubscribe;
+  }, [user]);
 
   // メンバーを招待する関数
   const inviteMember = async (petId: string, email: string) => {
