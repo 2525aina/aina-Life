@@ -2,16 +2,46 @@
 
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { doc, updateDoc, getFirestore } from "firebase/firestore";
+import { doc, updateDoc, getFirestore, Timestamp } from "firebase/firestore";
 import { app } from "@/lib/firebase"; // Assuming firebase app is initialized here
 import { User } from "firebase/auth"; // Firebase User type
 import { Pet } from "@/hooks/usePets"; // Assuming Pet type from usePets
 
+interface FirestoreUser {
+  nickname?: string;
+  birthday?: string;
+  gender?: string;
+  introduction?: string;
+  primaryPetId?: string;
+  settings?: {
+    theme?: "light" | "dark" | "system";
+    notifications?: {
+      dailySummary?: boolean;
+    };
+  };
+  updatedAt?: Timestamp; // Add updatedAt to FirestoreUser
+}
+
+interface UserProfileUpdateData {
+  nickname: string;
+  birthday: string;
+  gender: string;
+  introduction: string;
+  primaryPetId: string;
+  settings: {
+    theme: "light" | "dark" | "system";
+    notifications: {
+      dailySummary: boolean;
+    };
+  };
+  updatedAt: Timestamp; // Change to Timestamp
+}
+
 interface UserProfileEditFormProps {
   currentUser: User; // Firebase Auth User object
-  firestoreUser: any; // Firestore user document data (nickname, birthday, etc.)
+  firestoreUser: FirestoreUser; // Firestore user document data (nickname, birthday, etc.)
   pets: Pet[]; // List of pets for primaryPetId selection
-  onSave: (updatedData: any) => Promise<void>;
+  onSave: (updatedData: UserProfileUpdateData) => Promise<void>;
 }
 
 export const UserProfileEditForm: React.FC<UserProfileEditFormProps> = ({
@@ -57,7 +87,7 @@ export const UserProfileEditForm: React.FC<UserProfileEditFormProps> = ({
           dailySummary: dailySummaryNotifications,
         },
       },
-      updatedAt: new Date(), // Firestore Timestamp
+      updatedAt: Timestamp.fromDate(new Date()), // Firestore Timestamp
     };
 
     try {

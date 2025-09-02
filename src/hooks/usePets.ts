@@ -6,7 +6,7 @@
 // Reactフック
 import { useState, useEffect, useCallback } from 'react';
 // Firestore関連API
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs, collectionGroup, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs, collectionGroup, getDoc, DocumentSnapshot } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
 import { db } from '@/lib/firebase';
 // 認証情報を取得するカスタムフック
@@ -91,7 +91,7 @@ export const usePets = () => {
           const petDocRef = memberDoc.ref.parent.parent;
           if (!petDocRef) return null;
           return getDoc(petDocRef);
-        }).filter(p => p !== null) as Promise<any>[];
+        }).filter(p => p !== null) as Promise<DocumentSnapshot>[];
 
         const fetchedSharedPets = await Promise.all(sharedPetPromises);
         const validSharedPets = fetchedSharedPets.filter(doc => doc && doc.exists()).map(doc => ({ id: doc!.id, ...doc!.data() } as Pet));
