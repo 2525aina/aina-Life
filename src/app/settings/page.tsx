@@ -8,9 +8,10 @@ import { usePets, Member, PendingInvitation } from "@/hooks/usePets";
 import { Header } from "@/components/Header";
 import { FooterNav } from "@/components/FooterNav";
 import LoginButton from "@/components/LoginButton";
+import { UserProfileEditForm } from "@/components/UserProfileEditForm"; // Import the new component
 
 export default function SettingsPage() {
-  const { user, loading: authLoading, signOutUser } = useAuth();
+  const { user, firestoreUser, loading: authLoading, signOutUser, updateFirestoreUser } = useAuth(); // Destructure firestoreUser and updateFirestoreUser
   const { selectedPet, setSelectedPet, pets, loading: petsLoading } = usePetSelection();
   const { inviteMember, getPendingInvitations, updateInvitationStatus, getSharedMembers, removeMember } = usePets();
 
@@ -77,7 +78,7 @@ export default function SettingsPage() {
 
   const loading = authLoading || petsLoading;
 
-  if (loading) {
+  if (loading || !firestoreUser) { // Add firestoreUser to loading check
     return (
       <div className="min-h-screen flex items-center justify-center"><p>読み込み中...</p></div>
     );
@@ -133,8 +134,12 @@ export default function SettingsPage() {
           {/* ユーザー情報セクション */}
           <section className="bg-gray-700 p-4 rounded-lg shadow-md text-white mb-6">
             <h2 className="text-xl font-bold mb-2">ユーザー情報</h2>
-            <p className="mb-1"><strong>名前:</strong> {user.displayName || "未設定"}</p>
-            <p><strong>メール:</strong> {user.email || "未設定"}</p>
+            <UserProfileEditForm
+              currentUser={user}
+              firestoreUser={firestoreUser}
+              pets={pets}
+              onSave={updateFirestoreUser}
+            />
           </section>
 
           {/* 家族と共有機能セクション */}
