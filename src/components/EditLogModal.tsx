@@ -82,7 +82,6 @@ export const EditLogModal: React.FC<EditLogModalProps> = ({
           taskId: task.id,
           timestamp: firestoreTimestamp,
           note: note,
-          updatedAt: serverTimestamp(), // 更新日時をFirestoreサーバー時刻で記録
         });
 
         toast.success("ログを更新しました！");

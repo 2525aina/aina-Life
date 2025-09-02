@@ -72,9 +72,16 @@ export const LogTimeline: React.FC<LogTimelineProps> = ({
             key={log.id}
             className="flex items-center p-3 bg-white rounded-lg shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors"
           >
-            <span className="font-mono text-base text-gray-700 bg-gray-100 px-2 py-1 rounded">
-              {formatTime(log.timestamp)} {/* ログ時刻をフォーマットして表示 */}
-            </span>
+            <div className="flex flex-col items-center mr-4">
+              {log.updatedByUserNickname && (
+                <span className="text-xs text-gray-500 mb-1">
+                  {log.updatedByUserNickname.substring(0, 5)}
+                </span>
+              )}
+              <span className="font-mono text-base text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                {formatTime(log.timestamp)} {/* ログ時刻をフォーマットして表示 */}
+              </span>
+            </div>
             <span className="ml-4 font-medium text-gray-800 text-base">
               {log.taskName} {/* ログのタスク名 */}
             </span>

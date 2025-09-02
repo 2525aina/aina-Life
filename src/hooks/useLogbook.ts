@@ -19,6 +19,7 @@ import {
   updateDoc,
   deleteDoc,
   FieldValue, // Firestoreの特殊型を利用するため追加
+  getDocs, // ユーザー情報を取得するために追加
 } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
 import { db } from '@/lib/firebase';
@@ -34,6 +35,26 @@ export interface Task {
   textColor?: string; // タスク表示用の文字色
 }
 
+// Firestoreのユーザーデータ型を定義 (useAuth.tsからコピー)
+interface FirestoreUser {
+  authName: string;
+  authEmail: string;
+  nickname?: string;
+  birthday?: string;
+  gender?: string;
+  profileImageUrl?: string;
+  introduction?: string;
+  primaryPetId?: string;
+  settings?: {
+    theme?: "light" | "dark" | "system";
+    notifications?: {
+      dailySummary?: boolean;
+    };
+  };
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 // ログデータ型定義
 export interface Log {
   id: string;
@@ -42,7 +63,12 @@ export interface Log {
   taskId: string;
   timestamp: Timestamp;
   note?: string; // 任意のメモ
-  updatedAt?: Timestamp | FieldValue; // Firestoreの自動更新を許容
+  createdBy: string; // ログを作成したユーザーのUID
+  updatedBy: string; // ログを最後に更新したユーザーのUID
+  createdAt: Timestamp; // 作成日時
+  updatedAt: Timestamp; // 更新日時
+  createdByUserNickname?: string; // 作成者のニックネーム (動的に取得)
+  updatedByUserNickname?: string; // 更新者のニックネーム (動的に取得)
 }
 
 export const useLogbook = (petId?: string | null, targetDate?: Date) => {
@@ -95,12 +121,40 @@ export const useLogbook = (petId?: string | null, targetDate?: Date) => {
       where('timestamp', '<', endOfDay),
       orderBy('timestamp', 'desc')
     );
-    const unsubscribeLogs = onSnapshot(logsQuery, (snapshot) => {
-      const fetchedLogs = snapshot.docs.map((doc) => ({
+    const unsubscribeLogs = onSnapshot(logsQuery, async (snapshot) => {
+      const fetchedLogsData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...(doc.data() as Omit<Log, 'id'>),
       }));
-      setLogs(fetchedLogs);
+
+      // ログから一意のユーザーIDを抽出
+      const uniqueUserIds = Array.from(new Set([
+        ...fetchedLogsData.map(log => log.createdBy),
+        ...fetchedLogsData.map(log => log.updatedBy)
+      ].filter(Boolean))); // nullやundefinedを除外
+
+      // ユーザー情報を一括で取得
+      const usersMap = new Map<string, string>(); // UID -> nickname
+      if (uniqueUserIds.length > 0) {
+        const usersQuery = query(collection(db, 'users'), where('__name__', 'in', uniqueUserIds));
+        const usersSnapshot = await getDocs(usersQuery);
+        usersSnapshot.forEach(userDoc => {
+          const userData = userDoc.data() as FirestoreUser;
+          usersMap.set(userDoc.id, userData.nickname || userData.authName || '名無し');
+        });
+      }
+
+      // ログデータにニックネームを付与
+      const logsWithNicknames = fetchedLogsData.map(log => {
+        const updaterId = log.updatedBy || log.createdBy; // Use updatedBy, fallback to createdBy
+        return {
+          ...log,
+          createdByUserNickname: usersMap.get(log.createdBy) || '名無し',
+          updatedByUserNickname: usersMap.get(updaterId) || '名無し',
+        };
+      });
+
+      setLogs(logsWithNicknames);
     });
 
     // コンポーネントアンマウント時に購読解除
@@ -144,6 +198,7 @@ export const useLogbook = (petId?: string | null, targetDate?: Date) => {
         note: note || '',
         createdBy: user.uid,
         createdAt: serverTimestamp(),
+        updatedBy: user.uid, // 新規作成時は作成者が更新者
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
@@ -162,6 +217,7 @@ export const useLogbook = (petId?: string | null, targetDate?: Date) => {
       const logRef = doc(db, 'dogs', petId, 'logs', logId);
       await updateDoc(logRef, {
         ...updatedData,
+        updatedBy: user.uid, // 更新者を現在のユーザーに設定
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
@@ -200,6 +256,7 @@ export const useLogbook = (petId?: string | null, targetDate?: Date) => {
         ...taskData,
         createdBy: user.uid,
         createdAt: serverTimestamp(),
+        updatedBy: user.uid,
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
@@ -218,6 +275,7 @@ export const useLogbook = (petId?: string | null, targetDate?: Date) => {
       const taskRef = doc(db, 'dogs', petId, 'tasks', taskId);
       await updateDoc(taskRef, {
         ...updatedData,
+        updatedBy: user.uid,
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
@@ -256,6 +314,7 @@ export const useLogbook = (petId?: string | null, targetDate?: Date) => {
         const taskRef = doc(db, 'dogs', petId, 'tasks', task.id);
         await updateDoc(taskRef, {
           order: task.order,
+          updatedBy: user.uid,
           updatedAt: serverTimestamp(),
         });
       }
