@@ -11,9 +11,26 @@ import LoginButton from "@/components/LoginButton";
 import { UserProfileEditForm } from "@/components/UserProfileEditForm"; // Import the new component
 
 export default function SettingsPage() {
-  const { user, firestoreUser, loading: authLoading, signOutUser, updateFirestoreUser } = useAuth(); // Destructure firestoreUser and updateFirestoreUser
-  const { selectedPet, setSelectedPet, pets, loading: petsLoading } = usePetSelection();
-  const { inviteMember, getPendingInvitations, updateInvitationStatus, getSharedMembers, removeMember } = usePets();
+  const {
+    user,
+    firestoreUser,
+    loading: authLoading,
+    signOutUser,
+    updateFirestoreUser,
+  } = useAuth(); // Destructure firestoreUser and updateFirestoreUser
+  const {
+    selectedPet,
+    setSelectedPet,
+    pets,
+    loading: petsLoading,
+  } = usePetSelection();
+  const {
+    inviteMember,
+    getPendingInvitations,
+    updateInvitationStatus,
+    getSharedMembers,
+    removeMember,
+  } = usePets();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
@@ -67,10 +84,14 @@ export default function SettingsPage() {
     }
   };
 
-  const handleInvitationResponse = async (petId: string, memberId: string, status: 'active' | 'declined') => {
+  const handleInvitationResponse = async (
+    petId: string,
+    memberId: string,
+    status: "active" | "declined"
+  ) => {
     try {
       await updateInvitationStatus(petId, memberId, status);
-      toast.success(`招待を${status === 'active' ? '承諾' : '拒否'}しました。`);
+      toast.success(`招待を${status === "active" ? "承諾" : "拒否"}しました。`);
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
     }
@@ -78,9 +99,12 @@ export default function SettingsPage() {
 
   const loading = authLoading || petsLoading;
 
-  if (loading || !firestoreUser) { // Add firestoreUser to loading check
+  if (loading || !firestoreUser) {
+    // Add firestoreUser to loading check
     return (
-      <div className="min-h-screen flex items-center justify-center"><p>読み込み中...</p></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <p>読み込み中...</p>
+      </div>
     );
   }
 
@@ -96,10 +120,17 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      <Header pets={pets} selectedPet={selectedPet} onPetChange={setSelectedPet} loading={petsLoading} />
+      <Header
+        pets={pets}
+        selectedPet={selectedPet}
+        onPetChange={setSelectedPet}
+        loading={petsLoading}
+      />
       <main className="flex-grow w-full p-4 pb-16">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-4 text-white text-center">設定</h1>
+          <h1 className="text-3xl font-bold mb-4 text-white text-center">
+            設定
+          </h1>
 
           {/* 保留中の招待セクション */}
           {loadingInvites ? (
@@ -108,20 +139,42 @@ export default function SettingsPage() {
             <section className="bg-yellow-800 bg-opacity-50 p-4 rounded-lg shadow-md text-white mb-6">
               <h2 className="text-xl font-bold mb-4">保留中の招待</h2>
               <ul className="space-y-3">
-                {pendingInvites.map(invite => (
-                  <li key={invite.memberId} className="bg-gray-700 p-3 rounded-md flex items-center justify-between">
+                {pendingInvites.map((invite) => (
+                  <li
+                    key={invite.memberId}
+                    className="bg-gray-700 p-3 rounded-md flex items-center justify-between"
+                  >
                     <div>
-                      <p><strong>{invite.pet.name}</strong>への招待が届いています。</p>
+                      <p>
+                        <strong>{invite.pet.name}</strong>
+                        への招待が届いています。
+                      </p>
                     </div>
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handleInvitationResponse(invite.pet.id, invite.memberId, 'active')}
+                        onClick={() =>
+                          handleInvitationResponse(
+                            invite.pet.id,
+                            invite.memberId,
+                            "active"
+                          )
+                        }
                         className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-md text-sm"
-                      >承諾</button>
+                      >
+                        承諾
+                      </button>
                       <button
-                        onClick={() => handleInvitationResponse(invite.pet.id, invite.memberId, 'declined')}
+                        onClick={() =>
+                          handleInvitationResponse(
+                            invite.pet.id,
+                            invite.memberId,
+                            "declined"
+                          )
+                        }
                         className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-md text-sm"
-                      >拒否</button>
+                      >
+                        拒否
+                      </button>
                     </div>
                   </li>
                 ))}
@@ -149,29 +202,44 @@ export default function SettingsPage() {
               <>
                 <div className="mb-4">
                   <p className="text-sm text-gray-400 mb-1">対象のペット</p>
-                  <div className="bg-gray-600 p-2 rounded-md"><p className="font-bold">{selectedPet.name}</p></div>
+                  <div className="bg-gray-600 p-2 rounded-md">
+                    <p className="font-bold">{selectedPet.name}</p>
+                  </div>
                 </div>
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-2">共有中のメンバー</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    共有中のメンバー
+                  </h3>
                   {loadingMembers ? (
                     <p>メンバーを読み込み中...</p>
                   ) : members.length > 0 ? (
                     <ul className="space-y-2">
                       {members.map((member) => (
-                        <li key={member.id} className="flex items-center justify-between bg-gray-600 p-2 rounded-md">
+                        <li
+                          key={member.id}
+                          className="flex items-center justify-between bg-gray-600 p-2 rounded-md"
+                        >
                           <div>
-                            <p className="font-medium">{member.inviteEmail || member.id}</p>
-                            <p className="text-sm text-gray-400">役割: {member.role} ({member.status})</p>
+                            <p className="font-medium">
+                              {member.inviteEmail || member.id}
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              役割: {member.role} ({member.status})
+                            </p>
                           </div>
                           <button
                             onClick={() => {
-                              if (confirm('本当にこのメンバーを共有から解除しますか？')) {
+                              if (
+                                confirm(
+                                  "本当にこのメンバーを共有から解除しますか？"
+                                )
+                              ) {
                                 toast.promise(
                                   removeMember(selectedPet.id, member.id),
                                   {
-                                    loading: '解除中...',
-                                    success: 'メンバーを解除しました！',
-                                    error: '解除に失敗しました。',
+                                    loading: "解除中...",
+                                    success: "メンバーを解除しました！",
+                                    error: "解除に失敗しました。",
                                   }
                                 );
                               }
@@ -184,11 +252,15 @@ export default function SettingsPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-400">このペットはまだ誰とも共有されていません。</p>
+                    <p className="text-gray-400">
+                      このペットはまだ誰とも共有されていません。
+                    </p>
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">新しいメンバーを招待</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    新しいメンバーを招待
+                  </h3>
                   <div className="flex space-x-2">
                     <input
                       type="email"
@@ -198,20 +270,31 @@ export default function SettingsPage() {
                       className="flex-grow bg-gray-800 border border-gray-600 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       disabled={isInviting}
                     />
-                    <button onClick={handleInvite} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md disabled:bg-gray-500" disabled={isInviting}>
+                    <button
+                      onClick={handleInvite}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md disabled:bg-gray-500"
+                      disabled={isInviting}
+                    >
                       {isInviting ? "招待中..." : "招待"}
                     </button>
                   </div>
                 </div>
               </>
             ) : (
-              <p className="text-gray-400">共有設定を行うには、まずペットを登録・選択してください。</p>
+              <p className="text-gray-400">
+                共有設定を行うには、まずペットを登録・選択してください。
+              </p>
             )}
           </section>
 
           {/* ログアウトボタン */}
           <div className="text-center mt-8">
-            <button onClick={signOutUser} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md">ログアウト</button>
+            <button
+              onClick={signOutUser}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md"
+            >
+              ログアウト
+            </button>
           </div>
         </div>
       </main>

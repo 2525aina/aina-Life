@@ -20,6 +20,8 @@ import {
   deleteDoc,
   FieldValue, // Firestoreの特殊型を利用するため追加
   getDocs, // ユーザー情報を取得するために追加
+  writeBatch, // バッチ処理のために追加
+  getDoc, // getDocを追加
 } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
 import { db } from '@/lib/firebase';
@@ -272,7 +274,28 @@ export const useLogbook = (petId?: string | null, targetDate?: Date) => {
       return;
     }
     try {
+      // 既存のタスクデータを取得
       const taskRef = doc(db, 'dogs', petId, 'tasks', taskId);
+      const taskSnap = await getDoc(taskRef);
+      if (!taskSnap.exists()) {
+        throw new Error("タスクが見つかりません。");
+      }
+      const oldTask = taskSnap.data() as Task;
+
+      // タスク名を更新する場合、関連するログも更新
+      if (updatedData.name && updatedData.name !== oldTask.name) {
+        const logsCollection = collection(db, 'dogs', petId, 'logs');
+        const logsQuery = query(logsCollection, where('taskId', '==', taskId));
+        const logsSnapshot = await getDocs(logsQuery);
+
+        const batch = writeBatch(db);
+        logsSnapshot.docs.forEach(logDoc => {
+          batch.update(logDoc.ref, { taskName: updatedData.name });
+        });
+        await batch.commit();
+      }
+
+      // タスク自体を更新
       await updateDoc(taskRef, {
         ...updatedData,
         updatedBy: user.uid,
