@@ -183,7 +183,6 @@ export default function SettingsPage() {
           ) : (
             <p className="text-gray-400">保留中の招待はありません。</p>
           )}
-
           {/* ユーザー情報セクション */}
           <section className="bg-gray-700 p-4 rounded-lg shadow-md text-white mb-6">
             <h2 className="text-xl font-bold mb-2">ユーザー情報</h2>
@@ -204,6 +203,28 @@ export default function SettingsPage() {
                   <p className="text-sm text-gray-400 mb-1">対象のペット</p>
                   <div className="bg-gray-600 p-2 rounded-md">
                     <p className="font-bold">{selectedPet.name}</p>
+                  </div>
+                </div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2">
+                    新しいメンバーを招待
+                  </h3>
+                  <div className="flex space-x-2">
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="招待するユーザーのメールアドレス"
+                      className="flex-grow bg-gray-800 border border-gray-600 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={isInviting}
+                    />
+                    <button
+                      onClick={handleInvite}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md disabled:bg-gray-500"
+                      disabled={isInviting}
+                    >
+                      {isInviting ? "招待中..." : "招待"}
+                    </button>
                   </div>
                 </div>
                 <div className="mb-6">
@@ -256,28 +277,6 @@ export default function SettingsPage() {
                       このペットはまだ誰とも共有されていません。
                     </p>
                   )}
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">
-                    新しいメンバーを招待
-                  </h3>
-                  <div className="flex space-x-2">
-                    <input
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="招待するユーザーのメールアドレス"
-                      className="flex-grow bg-gray-800 border border-gray-600 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={isInviting}
-                    />
-                    <button
-                      onClick={handleInvite}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md disabled:bg-gray-500"
-                      disabled={isInviting}
-                    >
-                      {isInviting ? "招待中..." : "招待"}
-                    </button>
-                  </div>
                 </div>
               </>
             ) : (
