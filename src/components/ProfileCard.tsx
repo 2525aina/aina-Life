@@ -12,15 +12,19 @@ interface ProfileCardProps {
   onDelete: () => void;
 }
 
-export const ProfileCard: React.FC<ProfileCardProps> = ({ pet, onEdit, onDelete }) => {
+export const ProfileCard: React.FC<ProfileCardProps> = ({
+  pet,
+  onEdit,
+  onDelete,
+}) => {
   const age = calculatePeriod(pet.birthday);
   const timeWithFamily = calculatePeriod(pet.adoptionDate);
 
   const genderMap = {
-    male: '男の子',
-    female: '女の子',
-    other: 'その他'
-  }
+    male: "男の子",
+    female: "女の子",
+    other: "その他",
+  };
 
   return (
     <div className="bg-gray-700 shadow-lg rounded-lg p-6 mt-6 text-white">
@@ -29,7 +33,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ pet, onEdit, onDelete 
         <div className="md:w-1/3 text-center mb-6 md:mb-0">
           <div className="w-32 h-32 mx-auto rounded-full bg-gray-800 mb-4 flex items-center justify-center">
             {pet.profileImageUrl ? (
-              <img src={pet.profileImageUrl} alt={pet.name} className="w-full h-full rounded-full object-cover" />
+              <img
+                src={pet.profileImageUrl}
+                alt={pet.name}
+                className="w-full h-full rounded-full object-cover"
+              />
             ) : (
               <span className="text-gray-500">No Image</span>
             )}
@@ -54,7 +62,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ pet, onEdit, onDelete 
             </div>
             <div>
               <p className="text-sm text-gray-400">お迎え日</p>
-              <p>{pet.adoptionDate ? `${pet.adoptionDate} (${timeWithFamily})` : "未設定"}</p>
+              <p>
+                {pet.adoptionDate
+                  ? `${pet.adoptionDate} (${timeWithFamily})`
+                  : "未設定"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">マイクロチップID</p>
@@ -65,13 +77,19 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ pet, onEdit, onDelete 
           {/* Vet and Medical Notes */}
           <div className="space-y-4">
             <div>
-              <h4 className="text-md font-semibold text-gray-300 border-b border-gray-600 pb-1 mb-2">かかりつけ動物病院</h4>
+              <h4 className="text-md font-semibold text-gray-300 border-b border-gray-600 pb-1 mb-2">
+                かかりつけ動物病院
+              </h4>
               {pet.vetInfo && pet.vetInfo.length > 0 ? (
                 <div className="space-y-2">
                   {pet.vetInfo.map((vet) => (
                     <div key={vet.id} className="text-sm">
-                      <p><strong>病院名:</strong> {vet.name || '未設定'}</p>
-                      <p><strong>電話番号:</strong> {vet.phone || '未設定'}</p>
+                      <p>
+                        <strong>病院名:</strong> {vet.name || "未設定"}
+                      </p>
+                      <p>
+                        <strong>電話番号:</strong> {vet.phone || "未設定"}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -80,21 +98,34 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ pet, onEdit, onDelete 
               )}
             </div>
             <div>
-                <h4 className="text-md font-semibold text-gray-300 border-b border-gray-600 pb-1 mb-2">健康に関するメモ</h4>
-                <p className="text-sm whitespace-pre-wrap">{pet.medicalNotes || 'メモはありません'}</p>
+              <h4 className="text-md font-semibold text-gray-300 border-b border-gray-600 pb-1 mb-2">
+                健康に関するメモ
+              </h4>
+              <p className="text-sm whitespace-pre-wrap">
+                {pet.medicalNotes || "メモはありません"}
+              </p>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-4 mt-6">
-            <button onClick={onEdit} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md">
-              プロフィール編集
+            <button
+              onClick={onEdit}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md"
+            >
+              編集
             </button>
-            <button onClick={onDelete} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md">
+            <button
+              onClick={onDelete}
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md"
+            >
               削除
             </button>
-            <button disabled className="bg-gray-500 text-gray-300 font-bold py-2 px-4 rounded-md cursor-not-allowed">
-              家族と共有
+            <button
+              disabled
+              className="bg-gray-500 text-gray-300 font-bold py-2 px-4 rounded-md cursor-not-allowed"
+            >
+              共有
             </button>
           </div>
         </div>
@@ -102,7 +133,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ pet, onEdit, onDelete 
 
       {/* Weight Management Component */}
       <WeightManagement pet={pet} />
-
     </div>
   );
 };
