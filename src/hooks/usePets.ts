@@ -12,13 +12,26 @@ import { db } from '@/lib/firebase';
 // 認証情報を取得するカスタムフック
 import { useAuth } from './useAuth';
 
+// ペットの獣医情報
+export interface VetInfo {
+  id: string; // UIでの管理をしやすくするためのID
+  name?: string;
+  phone?: string;
+}
+
 // ペットデータ型定義
 export interface Pet {
   id: string;
   ownerIds: string[];
   name: string;
-  breed: string;
-  birthday: string;
+  breed?: string;
+  birthday?: string;
+  gender?: 'male' | 'female' | 'other';
+  profileImageUrl?: string;
+  adoptionDate?: string;
+  microchipId?: string;
+  medicalNotes?: string;
+  vetInfo?: VetInfo[]; // 配列に変更
 }
 
 // 共有メンバーのデータ型定義
@@ -162,7 +175,7 @@ export const usePets = () => {
   };
 
   // ペット情報を更新する関数
-  const updatePet = async (petId: string, petData: Omit<Pet, 'id' | 'ownerIds'>) => {
+  const updatePet = async (petId: string, petData: Partial<Omit<Pet, 'id' | 'ownerIds'>>) => {
     if (!user) {
       alert('ログインが必要です。');
       return;
