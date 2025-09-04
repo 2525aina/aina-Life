@@ -182,11 +182,14 @@ export const useLogbook = (petId?: string | null, targetDate?: Date) => {
 
       let timestampToUse;
       if (logTime) {
-        // 指定された時刻(HH:mm)を当日の日付に反映
-        const [hours, minutes] = logTime.split(':').map(Number);
-        const now = new Date();
-        now.setHours(hours, minutes, 0, 0);
-        timestampToUse = now;
+        // 指定された時刻をDateオブジェクトとしてパース
+        const parsedDate = new Date(logTime);
+        if (isNaN(parsedDate.getTime())) {
+          // パースに失敗した場合はサーバー時刻を使用
+          timestampToUse = serverTimestamp();
+        } else {
+          timestampToUse = parsedDate;
+        }
       } else {
         timestampToUse = serverTimestamp(); // 未指定ならサーバー時刻
       }

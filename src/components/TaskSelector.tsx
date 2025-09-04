@@ -4,15 +4,23 @@
 
 "use client";
 
-import { useLogbook } from "@/hooks/useLogbook"; // タスク一覧やログ追加処理を扱うカスタムフック
+import { useLogbook, Task } from "@/hooks/useLogbook"; // タスク一覧やログ追加処理を扱うカスタムフック
 import { Pet } from "@/hooks/usePets";
 
 interface TaskSelectorProps {
   selectedPet: Pet | null;
+  addLog: (task: Task, logTime?: string, note?: string) => Promise<void>;
+  logTimeInput: string;
+  memoInput: string;
 }
 
-export const TaskSelector: React.FC<TaskSelectorProps> = ({ selectedPet }) => {
-  const { tasks, loading, addLog } = useLogbook(selectedPet?.id);
+export const TaskSelector: React.FC<TaskSelectorProps> = ({
+  selectedPet,
+  addLog,
+  logTimeInput,
+  memoInput,
+}) => {
+  const { tasks, loading } = useLogbook(selectedPet?.id);
 
   // 選択中のペットがいない場合は何も表示しない
   if (!selectedPet) {
@@ -42,7 +50,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({ selectedPet }) => {
       {tasks.map((task) => (
         <button
           key={task.id}
-          onClick={() => addLog(task)} // 選択されたタスクを記録する
+          onClick={() => addLog(task, logTimeInput, memoInput)} // 選択されたタスクを記録する
           className="bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white font-semibold py-2 px-5 rounded-full shadow-sm transition-all duration-150 ease-in-out transform hover:scale-105"
           style={{
             backgroundColor: task.color,
