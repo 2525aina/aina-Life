@@ -6,7 +6,7 @@
 // Reactフック
 import { useState, useEffect, useCallback } from 'react';
 // Firestore関連API
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs, collectionGroup, getDoc, DocumentSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs, collectionGroup, getDoc, DocumentSnapshot, setDoc } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
 import { db } from '@/lib/firebase';
 // 認証情報を取得するカスタムフック
@@ -22,7 +22,7 @@ export interface VetInfo {
 // ペットデータ型定義
 export interface Pet {
   id: string;
-  ownerIds: string[];
+  ownerIds?: string[]; // Optional to support old data
   name: string;
   breed?: string;
   birthday?: string;
@@ -40,6 +40,7 @@ export interface Member {
   role: 'owner' | 'general' | 'viewer';
   inviteEmail?: string; // 招待時のメールアドレス
   status?: 'pending' | 'active' | 'removed' | 'declined';
+  uid?: string; // For querying
 }
 
 // 保留中の招待データ型定義
@@ -50,81 +51,54 @@ export interface PendingInvitation {
 
 export const usePets = () => {
   const { user } = useAuth(); // ログインユーザーを取得
-  const [ownedPets, setOwnedPets] = useState<Pet[]>([]);
-  const [sharedPets, setSharedPets] = useState<Pet[]>([]);
-  const [loadingOwned, setLoadingOwned] = useState(true);
-  const [loadingShared, setLoadingShared] = useState(true);
   const [pets, setPets] = useState<Pet[]>([]);
-  const loading = loadingOwned || loadingShared;
+  const [loading, setLoading] = useState(true);
 
-  // 1. 自分がオーナーのペットを購読
+  // 1. ペット情報を購読
   useEffect(() => {
     if (!user) {
-      setOwnedPets([]);
-      setLoadingOwned(false);
+      setPets([]);
+      setLoading(false);
       return;
     }
 
-    setLoadingOwned(true);
-    const ownerPetsQuery = query(collection(db, 'dogs'), where('ownerIds', 'array-contains', user.uid));
-    const unsubscribe = onSnapshot(
-      ownerPetsQuery,
-      (snapshot) => {
-        const fetchedPets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
-        setOwnedPets(fetchedPets);
-        setLoadingOwned(false);
-      },
-      (error) => {
-        console.error('オーナーのペット情報の取得に失敗しました:', error);
-        setLoadingOwned(false);
-      }
-    );
-    return () => unsubscribe();
+    setLoading(true);
+
+    // Query 1: For old data structure with ownerIds
+    const ownerIdsQuery = query(collection(db, 'dogs'), where('ownerIds', 'array-contains', user.uid));
+
+    // Query 2: For new data structure with members subcollection
+    const membersQuery = query(collectionGroup(db, 'members'), where('uid', '==', user.uid), where('status', '==', 'active'));
+
+    const unsubscribeOwnerIds = onSnapshot(ownerIdsQuery, (snapshot) => {
+      const ownerIdsPets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
+      updatePets(ownerIdsPets, 'ownerIds');
+    });
+
+    const unsubscribeMembers = onSnapshot(membersQuery, async (snapshot) => {
+      const memberPetsPromises = snapshot.docs.map(memberDoc => getDoc(memberDoc.ref.parent.parent!));
+      const petDocs = await Promise.all(memberPetsPromises);
+      const memberPets = petDocs.filter(doc => doc.exists()).map(doc => ({ id: doc.id, ...doc.data() } as Pet));
+      updatePets(memberPets, 'members');
+    });
+
+    // Temporary state to hold results from different queries
+    let petSources: { [key: string]: Pet[] } = {};
+
+    const updatePets = (newPets: Pet[], source: 'ownerIds' | 'members') => {
+      petSources[source] = newPets;
+      const allPets = Object.values(petSources).flat();
+      const uniquePets = Array.from(new Map(allPets.map(p => [p.id, p])).values());
+      setPets(uniquePets);
+      setLoading(false);
+    };
+
+    return () => {
+      unsubscribeOwnerIds();
+      unsubscribeMembers();
+    };
   }, [user]);
 
-  // 2. 共有されているペットを購読
-  useEffect(() => {
-    if (!user || !user.email) {
-      setSharedPets([]);
-      setLoadingShared(false);
-      return;
-    }
-
-    setLoadingShared(true);
-    const sharedPetsQuery = query(
-      collectionGroup(db, 'members'),
-      where('inviteEmail', '==', user.email),
-      where('status', '==', 'active')
-    );
-
-    const unsubscribe = onSnapshot(
-      sharedPetsQuery,
-      async (membersSnapshot) => {
-        const sharedPetPromises = membersSnapshot.docs.map(memberDoc => {
-          const petDocRef = memberDoc.ref.parent.parent;
-          if (!petDocRef) return null;
-          return getDoc(petDocRef);
-        }).filter(p => p !== null) as Promise<DocumentSnapshot>[];
-
-        const fetchedSharedPets = await Promise.all(sharedPetPromises);
-        const validSharedPets = fetchedSharedPets.filter(doc => doc && doc.exists()).map(doc => ({ id: doc!.id, ...doc!.data() } as Pet));
-        setSharedPets(validSharedPets);
-        setLoadingShared(false);
-      },
-      (error) => {
-        console.error('共有ペットの取得に失敗しました:', error);
-        setLoadingShared(false);
-      }
-    );
-    return () => unsubscribe();
-  }, [user]);
-
-  // 3. 統合と重複排除
-  useEffect(() => {
-    const allPets = [...ownedPets, ...sharedPets];
-    const uniquePets = Array.from(new Map(allPets.map(p => [p.id, p])).values());
-    setPets(uniquePets);
-  }, [ownedPets, sharedPets]);
 
   // 新しいペットを追加する関数
   const addPet = async (petData: Omit<Pet, 'id' | 'ownerIds'>) => {
@@ -133,11 +107,22 @@ export const usePets = () => {
       return;
     }
     try {
-      await addDoc(collection(db, 'dogs'), {
+      // 1. Create the main dog document
+      const newPetRef = await addDoc(collection(db, 'dogs'), {
         ...petData,
-        ownerIds: [user.uid], // ログインユーザーをオーナーとして登録
-        createdAt: serverTimestamp(), // 作成日時を付与
+        // ownerIds is no longer added
+        createdAt: serverTimestamp(),
       });
+
+      // 2. Create the owner in the members subcollection
+      const memberDocRef = doc(db, 'dogs', newPetRef.id, 'members', user.uid);
+      await setDoc(memberDocRef, {
+        uid: user.uid,
+        role: 'owner',
+        status: 'active',
+        invitedAt: serverTimestamp(), // Using as joinedAt
+      });
+
     } catch (error) {
       console.error('ペットの追加に失敗しました:', error);
       alert('ペットの追加に失敗しました。');

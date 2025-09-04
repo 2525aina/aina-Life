@@ -73,8 +73,12 @@ export default function PetsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      {/* The header on this page does not need pet switching functionality */}
-      <Header />
+      <Header
+        pets={pets}
+        selectedPet={selectedPet}
+        onPetChange={setSelectedPet}
+        loading={petsLoading}
+      />
       
       <main className="flex-grow w-full p-4 pb-16">
         <div className="max-w-4xl mx-auto">
