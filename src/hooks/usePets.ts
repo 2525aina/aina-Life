@@ -6,7 +6,7 @@
 // Reactフック
 import { useState, useEffect, useCallback } from 'react';
 // Firestore関連API
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs, collectionGroup, getDoc, DocumentSnapshot, setDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDocs, collectionGroup, getDoc, DocumentSnapshot, setDoc, Timestamp } from 'firebase/firestore';
 // Firebase初期化済みインスタンス
 import { db } from '@/lib/firebase';
 // 認証情報を取得するカスタムフック
@@ -36,11 +36,15 @@ export interface Pet {
 
 // 共有メンバーのデータ型定義
 export interface Member {
-  id: string;
+  id: string; // documentId which is userId
   role: 'owner' | 'general' | 'viewer';
-  inviteEmail?: string; // 招待時のメールアドレス
-  status?: 'pending' | 'active' | 'removed' | 'declined';
-  uid?: string; // For querying
+  status: 'pending' | 'active' | 'removed' | 'declined';
+  uid: string;
+  inviteEmail: string;
+  invitedBy?: string;
+  invitedAt?: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 // 保留中の招待データ型定義
@@ -102,7 +106,7 @@ export const usePets = () => {
 
   // 新しいペットを追加する関数
   const addPet = async (petData: Omit<Pet, 'id' | 'ownerIds'>) => {
-    if (!user) {
+    if (!user || !user.email) {
       alert('ログインが必要です。');
       return;
     }
@@ -110,17 +114,20 @@ export const usePets = () => {
       // 1. Create the main dog document
       const newPetRef = await addDoc(collection(db, 'dogs'), {
         ...petData,
-        // ownerIds is no longer added
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
 
       // 2. Create the owner in the members subcollection
       const memberDocRef = doc(db, 'dogs', newPetRef.id, 'members', user.uid);
       await setDoc(memberDocRef, {
         uid: user.uid,
+        inviteEmail: user.email,
         role: 'owner',
         status: 'active',
-        invitedAt: serverTimestamp(), // Using as joinedAt
+        invitedBy: user.uid, // Set the creator as the inviter
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
 
     } catch (error) {
@@ -166,7 +173,10 @@ export const usePets = () => {
       return;
     }
     try {
-      await updateDoc(doc(db, 'dogs', petId), petData);
+      await updateDoc(doc(db, 'dogs', petId), {
+        ...petData,
+        updatedAt: serverTimestamp(),
+      });
     } catch (error) {
       console.error('ペットの更新に失敗しました:', error);
       alert('ペットの更新に失敗しました。');
@@ -201,12 +211,15 @@ export const usePets = () => {
     try {
       const membersCollection = collection(db, 'dogs', petId, 'members');
       // TODO: 招待する前に、既にメンバーでないか、招待中でないかを確認する
+      // TODO: 招待される側のUIDが不明なため、document IDは自動生成させる
       await addDoc(membersCollection, {
         inviteEmail: email,
         invitedBy: user.uid,
+        role: 'viewer',
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         invitedAt: serverTimestamp(),
-        role: 'viewer', // 招待時は閲覧者として設定
-        status: 'pending', //ステータスは招待中
       });
     } catch (error) {
       console.error('メンバーの招待に失敗しました:', error);
@@ -251,7 +264,16 @@ export const usePets = () => {
     }
     try {
       const memberDocRef = doc(db, 'dogs', petId, 'members', memberId);
-      await updateDoc(memberDocRef, { status: newStatus });
+      const dataToUpdate: { [key: string]: any } = { 
+        status: newStatus,
+        updatedAt: serverTimestamp(),
+      };
+
+      if (newStatus === 'active') {
+        dataToUpdate.uid = user.uid; // Add UID of the user who accepted
+      }
+
+      await updateDoc(memberDocRef, dataToUpdate);
     } catch (error) {
       console.error('招待ステータスの更新に失敗しました:', error);
       throw new Error('招待ステータスの更新に失敗しました。');
