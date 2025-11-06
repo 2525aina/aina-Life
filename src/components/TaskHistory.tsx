@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTasks, Task } from "@/hooks/useTasks";
+import { useTasks } from "@/hooks/useTasks";
+import type { Task } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Pencil, Trash2, ArrowUp, ArrowDown } from 'lucide-react';

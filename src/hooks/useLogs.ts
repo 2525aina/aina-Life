@@ -18,32 +18,7 @@ import {
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePetSelection } from '@/contexts/PetSelectionContext';
-import { Task } from './useTasks';
-import { UserProfile } from './useUser';
-
-export interface Log {
-  id: string;
-  petId: string;
-  taskId: string;
-  taskName: string;
-  timestamp: Timestamp;
-  note?: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  taskColor?: string;
-  taskTextColor?: string;
-  deleted?: boolean;
-  deletedAt?: Timestamp | null;
-  isTaskDeleted?: boolean;
-  createdByName?: string;
-  updatedByName?: string;
-  creatorNameBgColor?: string;
-  creatorNameTextColor?: string;
-  timeBgColor?: string;
-  timeTextColor?: string;
-}
+import type { Task, UserProfile, Log } from '@/lib/types';
 
 import { toast } from 'sonner';
 

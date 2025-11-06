@@ -16,7 +16,7 @@ export function ServiceWorkerUpdater() {
     };
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
         .then((registration) => {
           setServiceWorkerRegistration(registration);
 

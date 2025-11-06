@@ -3,7 +3,7 @@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserProfile } from "@/hooks/useUser";
+import type { UserProfile } from "@/lib/types";
 
 interface TaskLoggerSettingsProps {
   taskLoggerSettings: UserProfile["settings"]["taskLogger"];

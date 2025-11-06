@@ -14,51 +14,13 @@ import {
   getDocs,
   collectionGroup,
   getDoc,
-  Timestamp,
   writeBatch,
   FieldValue,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-
-export interface VetInfo {
-  id: string;
-  name?: string;
-  phone?: string;
-}
-
-export interface Pet {
-  id: string;
-  name: string;
-  breed?: string;
-  birthday?: string;
-  gender?: 'male' | 'female' | 'other';
-  adoptionDate?: string;
-  profileImageUrl?: string;
-  microchipId?: string;
-  medicalNotes?: string;
-  vetInfo?: VetInfo[];
-  deleted?: boolean;
-  deletedAt?: Timestamp | null;
-}
-
-export interface Member {
-  id: string;
-  role: 'owner' | 'editor' | 'viewer';
-  status: 'pending' | 'active' | 'removed' | 'declined';
-  uid: string;
-  inviteEmail: string | null;
-  invitedBy?: string;
-  invitedAt?: Timestamp;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
-
-export interface PendingInvitation {
-  pet: Pet;
-  memberId: string;
-}
+import type { Pet, Member, PendingInvitation } from '@/lib/types';
 
 export const usePets = () => {
   const { user } = useAuth();

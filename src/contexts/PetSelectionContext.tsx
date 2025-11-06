@@ -7,7 +7,8 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { usePets, Pet } from "@/hooks/usePets";
+import { usePets } from "@/hooks/usePets";
+import type { Pet } from "@/lib/types";
 import { useUser } from "@/hooks/useUser";
 
 interface PetSelectionContextType {

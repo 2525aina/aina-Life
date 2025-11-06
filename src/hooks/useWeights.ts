@@ -4,18 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-
-export interface Weight {
-  id: string;
-  dogId: string;
-  createdBy: string;
-  date: Timestamp;
-  unit: string;
-  value: number;
-  updatedBy: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
+import type { Weight } from '@/lib/types';
 
 export const useWeights = (dogId: string) => {
   const { user } = useAuth();

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePets, Pet, VetInfo } from "@/hooks/usePets";
+import { usePets } from "@/hooks/usePets";
+import type { Pet, VetInfo } from "@/lib/types";
 import { useStorage } from "@/hooks/useStorage";
 import { Button } from "@/components/ui/button";
 import {
@@ -204,6 +205,8 @@ export function PetAddForm({
     if (step === 0) {
       if (!formData.name.trim()) {
         errors.name = "ペットの名前は必須です。";
+      } else if (formData.name.length > 20) {
+        errors.name = "ペットの名前は20文字以内で入力してください。";
       }
     }
     setValidationErrors(errors);
@@ -285,6 +288,7 @@ export function PetAddForm({
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full"
+                  maxLength={20} // Add maxLength attribute
                 />
                 {validationErrors.name && (
                   <p className="text-red-500 text-sm mt-1">

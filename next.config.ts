@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
 import withPWA from "@ducanh2912/next-pwa";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
-  output: 'export',
+  ...(isDev ? {} : { output: "export" }),
+  // output: 'export',
   /* config options here */
   images: {
     unoptimized: true,

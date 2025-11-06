@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { useLogActions, Log } from "@/hooks/useLogs";
+import { useLogActions } from "@/hooks/useLogs";
+import type { Log } from "@/lib/types";
 import { toast } from "sonner";
 import { Timestamp } from "firebase/firestore";
 

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { User as FirebaseAuthUser } from "firebase/auth";
-import { usePets, Pet, Member } from "@/hooks/usePets";
+import { usePets } from "@/hooks/usePets";
+import type { Pet, Member } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +20,7 @@ import {
   StethoscopeIcon,
   CakeIcon,
   NotebookText,
+  MessageCircle, // New import
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -55,6 +57,7 @@ import { WeightHistory } from "@/components/WeightHistory";
 import { TaskForm } from "@/components/TaskForm";
 import { TaskHistory } from "@/components/TaskHistory";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import Link from "next/link";
 
 
 interface PetCardProps {
@@ -283,6 +286,15 @@ export function PetCard({
     <Collapsible key={pet.id} asChild>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
         <div className="relative">
+          <Link href={`/pets/${pet.id}/chat`} className="absolute top-2 left-2 z-20"> {/* Chat icon link */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/50 text-white"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </Button>
+          </Link>
           <CollapsibleTrigger className="w-full text-left group">
             <div className="relative w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer">
               {pet.profileImageUrl ? (
@@ -510,6 +522,11 @@ export function PetCard({
                 <TaskHistory dogId={pet.id} />
               </TabsContent>
               <TabsContent value="sharing" className="mt-4">
+                <div className="mb-4">
+                  <Link href={`/pets/${pet.id}/chat`}>
+                    <Button className="w-full">チャットルームへ</Button>
+                  </Link>
+                </div>
                 <h3 className="text-lg font-semibold mb-2">メンバーを招待</h3>
                 <div className="flex space-x-2 mb-4">
                   <Input
