@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { usePetSelection } from "@/contexts/PetSelectionContext";
-import { useLogs, Log, useLogActions } from "@/hooks/useLogs";
+import { useLogs, useLogActions } from "@/hooks/useLogs";
+import type { Log } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";

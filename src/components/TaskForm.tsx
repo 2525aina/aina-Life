@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTasks, Task } from "@/hooks/useTasks";
+import { useTasks } from "@/hooks/useTasks";
+import type { Task } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

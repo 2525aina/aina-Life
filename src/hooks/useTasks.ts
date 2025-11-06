@@ -13,21 +13,11 @@ import {
   writeBatch,
   getDocs,
   where,
-  Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-
-export interface Task {
-  id: string;
-  name: string;
-  color: string;
-  order: number;
-  textColor?: string;
-  deleted?: boolean;
-  deletedAt?: Timestamp | null;
-}
+import type { Task } from '@/lib/types';
 
 export const useTasks = (dogId: string) => {
   const { user } = useAuth();

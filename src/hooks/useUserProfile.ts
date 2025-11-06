@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { UserProfile } from './useUser';
+import { UserProfile } from '@/lib/types';
 
 export const useUserProfile = (uid: string | null) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);

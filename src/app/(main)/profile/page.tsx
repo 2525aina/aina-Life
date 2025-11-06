@@ -17,7 +17,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, LogOutIcon } from "lucide-react";
-import { useUser, UserProfile } from "@/hooks/useUser";
+import { useUser } from "@/hooks/useUser";
+import type { UserProfile } from "@/lib/types";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { usePets } from "@/hooks/usePets";
@@ -32,6 +33,10 @@ import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { AccountLinker } from "@/components/ui/AccountLinker";
 import { TaskLoggerSettings } from "@/components/TaskLoggerSettings";
+import { useStorage } from "@/hooks/useStorage"; // Import useStorage
+import imageCompression from 'browser-image-compression'; // Import imageCompression
+import Image from "next/image"; // Import Image component
+import { UploadCloudIcon } from "lucide-react"; // Import UploadCloudIcon
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -42,8 +47,12 @@ export default function ProfilePage() {
   } = useUser();
   const { pets, loading: petsLoading } = usePets();
   const router = useRouter();
+  const { uploadImage, uploading, progress } = useStorage(); // Initialize useStorage
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null); // State for the selected image file
+  const [imagePreview, setImagePreview] = useState<string | null>(null); // State for image preview URL
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,6 +96,7 @@ export default function ProfilePage() {
           },
         },
       });
+      setImagePreview(userProfile.profileImageUrl || null); // Set image preview
     }
   }, [authLoading, user, router, userProfile, pets]);
 
@@ -95,6 +105,36 @@ export default function ProfilePage() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setValidationErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const options = {
+        maxSizeMB: 0.25,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true,
+        fileType: 'image/webp',
+        quality: 0.8,
+      };
+      try {
+        toast.info("画像を圧縮中...");
+        const compressedFile = await imageCompression(file, options);
+        toast.success("画像の圧縮が完了しました。");
+
+        setImageFile(compressedFile);
+        const previewUrl = URL.createObjectURL(compressedFile);
+        setImagePreview(previewUrl);
+      } catch (error) {
+        console.error("画像圧縮に失敗しました:", error);
+        toast.error("画像の圧縮に失敗しました。");
+      }
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -206,14 +246,34 @@ export default function ProfilePage() {
     });
   };
 
+  const validateProfileForm = () => {
+    const errors: Record<string, string> = {};
+    if (!formData.nickname || formData.nickname.trim() === "") {
+      errors.nickname = "表示名は必須です。";
+    } else if (formData.nickname.length > 20) {
+      errors.nickname = "表示名は20文字以内で入力してください。";
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleUpdateProfile = async () => {
-    if (!formData.nickname) {
-      toast.error("表示名は必須です。");
+    if (!validateProfileForm()) {
+      toast.error("入力内容に不備があります。ご確認ください。");
       return;
     }
     setIsSubmitting(true);
+
+    const dataToSubmit = { ...formData };
+
     try {
-      await updateUserProfile(formData);
+      if (imageFile) {
+        toast.info("画像をアップロード中...");
+        const downloadURL = await uploadImage(imageFile);
+        dataToSubmit.profileImageUrl = downloadURL;
+      }
+
+      await updateUserProfile(dataToSubmit);
       toast.success("設定を更新しました！");
     } catch (error) {
       console.error("更新に失敗しました", error);
@@ -274,13 +334,19 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="nickname">表示名</Label>
+                <Label htmlFor="nickname">表示名 *</Label>
                 <Input
                   id="nickname"
                   name="nickname"
                   value={formData.nickname || ""}
                   onChange={handleChange}
+                  maxLength={20} // Add maxLength attribute
                 />
+                {validationErrors.nickname && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {validationErrors.nickname}
+                  </p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="introduction">自己紹介</Label>
@@ -348,14 +414,35 @@ export default function ProfilePage() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="profileImageUrl">プロフィール画像URL</Label>
-                <Input
-                  id="profileImageUrl"
-                  name="profileImageUrl"
-                  type="text"
-                  value={formData.profileImageUrl || ""}
-                  onChange={handleChange}
-                />
+                <Label>プロフィール画像</Label>
+                <div className="mt-2 flex items-center gap-4">
+                  <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                    {imagePreview ? (
+                      <Image
+                        src={imagePreview}
+                        alt="プレビュー"
+                        width={96}
+                        height={96}
+                        style={{ objectFit: "cover" }}
+                      />
+                    ) : (
+                      <UploadCloudIcon className="w-10 h-10 text-gray-400" />
+                    )}
+                  </div>
+                  <Input
+                    id="profileImageUrl"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="w-full max-w-xs"
+                    disabled={uploading}
+                  />
+                </div>
+                {uploading && (
+                  <p className="text-sm text-blue-500 mt-2">
+                    アップロード中: {Math.round(progress)}%
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -410,7 +497,7 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle>アプリ設定</CardTitle>
               <CardDescription>
-                アプリケーションの表示や動作をカスタマイズします。
+                アプリケーションの表示や動作をカスタマイnズします。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -652,11 +739,11 @@ export default function ProfilePage() {
             ログアウト
           </Button>
         )}
-        <Button onClick={handleUpdateProfile} disabled={isSubmitting}>
-          {isSubmitting ? (
+        <Button onClick={handleUpdateProfile} disabled={isSubmitting || uploading}>
+          {isSubmitting || uploading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              更新中...
+              {uploading ? "アップロード中..." : "更新中..."}
             </>
           ) : (
             "保存する"

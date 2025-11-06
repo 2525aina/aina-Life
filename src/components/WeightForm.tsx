@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useWeights, Weight } from "@/hooks/useWeights";
+import { useWeights } from "@/hooks/useWeights";
+import type { Weight } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
