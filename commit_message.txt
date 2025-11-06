@@ -1,0 +1,15 @@
+fix: `@radix-ui/react-avatar` の依存関係を追加
+
+### 概要
+
+ビルド時に発生していた `Module not found: Can't resolve '@radix-ui/react-avatar'` エラーを解消するため、不足していた依存関係を `package.json` に追加する。
+
+### 変更点
+
+-   `npm install @radix-ui/react-avatar` を実行。
+-   `package.json` および `package-lock.json` に `@radix-ui/react-avatar` (v1.1.11) とその関連パッケージを追加・更新。
+
+### 目的
+
+-   Avatarコンポーネントのレンダリングに失敗し、ビルドエラーとなっていた問題を修正する。
+-   プロジェクトの依存関係を正常な状態に戻す。
