@@ -16,8 +16,8 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { format, differenceInSeconds } from "date-fns";
 import { ja } from "date-fns/locale";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { app } from "@/lib/firebase";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const MessageContent = ({ messageText, isUnsent }: { messageText: string, isUnsent?: boolean }) => {
   const [isExpanded, setIsExpanded] = useState(false);

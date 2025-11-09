@@ -1,0 +1,15 @@
+refactor(fcm)!: FCM実装を修正し、関連ファイルを整理
+
+チャットページにおけるFirebase Cloud Messaging (FCM) の実装を修正し、現在使用されていない関連コードを削除しました。
+
+### 主な変更点
+
+- **バグ修正:**
+  - `getMessaging is not defined` エラーを解決するため、`src/app/(chat)/pets/[petId]/chat/page.tsx` に `firebase/messaging` からのインポート文を追加しました。
+
+- **リファクタリング:**
+  - 未使用となっていた `functions` ディレクトリをプロジェクトから完全に削除しました。
+  - 古いService Workerの実装 (`public/firebase-messaging-sw.js` および `src/components/ServiceWorkerUpdater.tsx`) を削除しました。
+  - `src/lib/types.ts` の `UserProfile` 型から、関連しなくなった `fcmTokens` プロパティを削除しました。
+
+このコミットは、FCM関連機能の正常化と、プロジェクト全体のコードベースの健全性を向上させることを目的としています。

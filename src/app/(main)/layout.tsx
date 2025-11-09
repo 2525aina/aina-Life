@@ -3,7 +3,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { FooterNav } from "@/components/FooterNav";
 import { ToastProvider } from "@/components/ToastProvider";
-import { ServiceWorkerUpdater } from "@/components/ServiceWorkerUpdater";
 
 export default function MainLayout({
   children,
@@ -19,7 +18,6 @@ export default function MainLayout({
         </main>
         <FooterNav />
         <ToastProvider />
-        <ServiceWorkerUpdater />
       </PetSelectionProvider>
     </AuthProvider>
   );

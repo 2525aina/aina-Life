@@ -29,7 +29,7 @@
         "source": "/manifest.json",
         "headers": [
           {
-            "key": "Cache-Control",
+            "key": "Cache-control",
             "value": "no-cache, no-store, must-revalidate"
           }
         ]
@@ -38,7 +38,7 @@
         "source": "/",
         "headers": [
           {
-            "key": "Cache-Control",
+            "key": "Cache-control",
             "value": "no-cache, no-store, must-revalidate"
           }
         ]
@@ -82,22 +82,5 @@
   },
   "storage": {
     "rules": "storage.rules"
-  },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
-    }
-  ]
+  }
 }

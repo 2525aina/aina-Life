@@ -12,7 +12,6 @@ export interface UserProfile {
   primaryPetId?: string;
   lastLoginAt?: Timestamp;
   authProvider?: string | null;
-  fcmTokens?: string[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
       settings: {
