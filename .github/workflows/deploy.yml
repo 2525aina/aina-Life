@@ -47,6 +47,7 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcp-key.json
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}' > $GOOGLE_APPLICATION_CREDENTIALS
+          firebase experiments:enable webframeworks
           firebase use ${{ github.ref_name == 'main' && 'aina-life-prod' || github.ref_name == 'stg' && 'aina-life-stg' || 'aina-life-dev' }}
           firebase deploy \
             --only hosting,firestore,indexes,storage,functions \
