@@ -10,6 +10,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,7 +21,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Create .env.production file
         run: |
@@ -28,17 +29,23 @@ jobs:
             echo "${{ secrets.ENV_FILE_PROD }}" > .env.production
           elif [ "${{ github.ref_name }}" = "stg" ]; then
             echo "${{ secrets.ENV_FILE_STG }}" > .env.production
-          elif [ "${{ github.ref_name }}" = "dev" ]; then
+          else
             echo "${{ secrets.ENV_FILE_DEV }}" > .env.production
           fi
 
       - name: Build project
         run: npm run build
 
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}'
-          projectId: ${{ github.ref_name == 'main' && 'aina-life-prod' || (github.ref_name == 'stg' && 'aina-life-stg' || 'aina-life-dev') }}
-          channelId: live
+      - name: Install jq (for parsing JSON)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Deploy full Firebase project (SSR対応)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcp-key.json
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}' > $GOOGLE_APPLICATION_CREDENTIALS
+          firebase use ${{ github.ref_name == 'main' && 'aina-life-prod' || github.ref_name == 'stg' && 'aina-life-stg' || 'aina-life-dev' }}
+          firebase deploy \
+            --only hosting,firestore,indexes,storage,functions \
+            --project "$(jq -r '.project_id' $GOOGLE_APPLICATION_CREDENTIALS)" \
+            --non-interactive --force
