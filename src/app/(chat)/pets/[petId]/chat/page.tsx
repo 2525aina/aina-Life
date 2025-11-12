@@ -16,8 +16,6 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { format, differenceInSeconds } from "date-fns";
 import { ja } from "date-fns/locale";
-import { app } from "@/lib/firebase";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const MessageContent = ({ messageText, isUnsent }: { messageText: string, isUnsent?: boolean }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -83,7 +81,7 @@ export default function PetChatPage() {
   const { petId } = useParams<{ petId: string }>();
   const router = useRouter();
   const { user } = useAuth();
-  const { userProfile, updateUserProfile } = useUser();
+  const { userProfile } = useUser();
   const { messages, loading, error, sendMessage, unsendMessage, restoreMessage } = useChat(petId);
 
   const senderIds = useMemo(() => {
@@ -111,56 +109,7 @@ export default function PetChatPage() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!user || !updateUserProfile) return;
 
-    const requestPermissionAndSaveToken = async () => {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          const messaging = getMessaging(app);
-          const currentToken = await getToken(messaging, {
-            vapidKey: "BIPmppmNKFhoBYKGh0hHA6IqM_XCnFCk-Ac2BQPmFekuwiG2HhZrllyI5UVBtVvTv_9uA8WnPjRaCLC_2k-oTOY",
-          });
-
-          if (currentToken) {
-            // Save the token to user's profile in Firestore
-            const currentTokens = userProfile?.fcmTokens || [];
-            if (!currentTokens.includes(currentToken)) {
-              await updateUserProfile({ fcmTokens: [...currentTokens, currentToken] });
-              toast.success("プッシュ通知が有効になりました！");
-            }
-          } else {
-            console.log("No registration token available. Request permission to generate one.");
-          }
-        } else {
-          console.log("Notification permission denied.");
-        }
-      } catch (err) {
-        console.error("An error occurred while retrieving token.", err);
-        toast.error("プッシュ通知の登録に失敗しました。");
-      }
-    };
-
-    requestPermissionAndSaveToken();
-
-    // Handle foreground messages
-    const messaging = getMessaging(app);
-    const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("Message received. ", payload);
-      const url = payload.data?.url;
-      toast.info(payload.notification?.title || "新しい通知", {
-        description: payload.notification?.body,
-        duration: 5000,
-        action: url ? {
-          label: "開く",
-          onClick: () => window.open(url, "_blank"),
-        } : undefined,
-      });
-    });
-
-    return () => unsubscribe();
-  }, [user, userProfile, updateUserProfile]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
