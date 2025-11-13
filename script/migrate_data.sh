@@ -16,7 +16,7 @@ set -e
    gcloud auth application-default login
 3. 環境変数の設定:
    export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-key.json"
-   export GOOGLE_APPLICATION_CREDENTIALS="/Users/nakajimadaichi/.config/gcloud/aina-life-prod-ca954c2f6a31-service-account-key.json"
+   export GOOGLE_APPLICATION_CREDENTIALS="/Users/nakajimadaichi/.config/gcloud/00_migration-runner_aina-life.json"
 END_HELP
 
 echo "--- データ移行スクリプト ---"
