@@ -58,3 +58,6 @@ next-env.d.ts
 # Secret files
 serviceAccountKey.json
 setAdmin.js
+
+# temporary files
+commit_message.txt
