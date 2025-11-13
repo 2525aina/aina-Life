@@ -48,8 +48,19 @@ jobs:
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}' > $GOOGLE_APPLICATION_CREDENTIALS
           firebase experiments:enable webframeworks
-          firebase use ${{ github.ref_name == 'main' && 'aina-life-prod' || github.ref_name == 'stg' && 'aina-life-stg' || 'aina-life-dev' }}
+
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            firebase use prod
+            PROJECT_ID="aina-life-prod"
+          elif [ "${{ github.ref_name }}" = "stg" ]; then
+            firebase use stg
+            PROJECT_ID="aina-life-stg"
+          else
+            firebase use dev
+            PROJECT_ID="aina-life-dev"
+          fi
+
           firebase deploy \
             --only hosting,firestore,indexes,storage,functions \
-            --project "$(jq -r '.project_id' $GOOGLE_APPLICATION_CREDENTIALS)" \
+            --project $PROJECT_ID \
             --non-interactive --force
