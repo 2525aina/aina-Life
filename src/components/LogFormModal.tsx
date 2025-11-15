@@ -53,11 +53,8 @@ export function LogFormModal({
   const { tasks } = useTasks(selectedPet?.id || "");
   const { addLog, updateLog } = useLogActions();
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+  const [selectedDateTime, setSelectedDateTime] = useState<Date | undefined>(
     initialDate || new Date()
-  );
-  const [selectedTime, setSelectedTime] = useState<string>(
-    format(initialDate || new Date(), "HH:mm:ss")
   );
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(
     undefined
@@ -68,10 +65,9 @@ export function LogFormModal({
   useEffect(() => {
     if (isOpen) {
       if (logToEdit) {
-        setSelectedDate(logToEdit.timestamp.toDate());
+        setSelectedDateTime(logToEdit.timestamp.toDate());
         setSelectedTaskId(logToEdit.taskId);
         setNote(logToEdit.note || "");
-        setSelectedTime(format(logToEdit.timestamp.toDate(), "HH:mm:ss"));
       } else {
         const now = new Date();
         const dateWithCurrentTime = initialDate ? new Date(initialDate) : now;
@@ -79,10 +75,9 @@ export function LogFormModal({
         dateWithCurrentTime.setMinutes(now.getMinutes());
         dateWithCurrentTime.setSeconds(now.getSeconds());
 
-        setSelectedDate(dateWithCurrentTime);
+        setSelectedDateTime(dateWithCurrentTime);
         setSelectedTaskId(undefined);
         setNote("");
-        setSelectedTime(format(now, "HH:mm:ss"));
       }
     }
   }, [isOpen, logToEdit, initialDate]);
@@ -93,20 +88,6 @@ export function LogFormModal({
     }
   }, [isOpen, selectedPet, tasks, selectedTaskId]);
 
-  useEffect(() => {
-    if (!selectedTime) return;
-
-    const [hours, minutes, seconds = 0] = selectedTime.split(':').map(Number);
-
-    setSelectedDate(prevDate => {
-      if (!prevDate) return prevDate;
-
-      const newDate = new Date(prevDate);
-      newDate.setHours(hours, minutes, seconds);
-      return newDate;
-    });
-  }, [selectedTime]);
-
   const handleSubmit = async () => {
     if (!selectedPet) {
       toast.error("ログを記録するペットを選択してください。");
@@ -116,8 +97,8 @@ export function LogFormModal({
       toast.error("記録するタスクを選択してください。");
       return;
     }
-    if (!selectedDate) {
-      toast.error("ログを記録する日付を選択してください。");
+    if (!selectedDateTime) {
+      toast.error("ログを記録する日時を選択してください。");
       return;
     }
 
@@ -125,30 +106,24 @@ export function LogFormModal({
     try {
       const task = tasks.find((t) => t.id === selectedTaskId);
       if (task) {
-        const [hours, minutes, seconds] = selectedTime.split(":").map(Number);
-        const logDateTime = new Date(selectedDate);
-        logDateTime.setHours(hours);
-        logDateTime.setMinutes(minutes);
-        logDateTime.setSeconds(seconds);
-
         if (logToEdit) {
           await updateLog(logToEdit.id, {
             taskId: task.id,
             taskName: task.name,
-            timestamp: Timestamp.fromDate(selectedDate),
+            timestamp: Timestamp.fromDate(selectedDateTime),
             note,
           });
           toast.success(
             `ログを更新しました: ${task.name} (${format(
-              logDateTime,
+              selectedDateTime,
               "yyyy/MM/dd HH:mm:ss"
             )})`
           );
         } else {
-          await addLog(task, logDateTime, note);
+          await addLog(task, selectedDateTime, note);
           toast.success(
             `ログを記録しました: ${task.name} (${format(
-              logDateTime,
+              selectedDateTime,
               "yyyy/MM/dd HH:mm:ss"
             )})`
           );
@@ -195,7 +170,13 @@ export function LogFormModal({
             <Label htmlFor="date" className="text-right">
               日付
             </Label>
-            <DatePicker date={selectedDate} setDate={setSelectedDate} className="col-span-3" />
+            <DatePicker
+              selected={selectedDateTime}
+              onChange={setSelectedDateTime}
+              placeholderText="日付を選択"
+              id="log-date"
+              name="log-date"
+            />
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
@@ -203,9 +184,11 @@ export function LogFormModal({
               時刻
             </Label>
             <TimePicker
-              time={selectedTime}
-              setTime={setSelectedTime}
-              className="col-span-3"
+              selected={selectedDateTime}
+              onChange={setSelectedDateTime}
+              placeholderText="時刻を選択"
+              id="log-time"
+              name="log-time"
             />
           </div>
 
@@ -249,7 +232,7 @@ export function LogFormModal({
             type="submit"
             onClick={handleSubmit}
             disabled={
-              isSubmitting || !selectedPet || !selectedTaskId || !selectedDate
+              isSubmitting || !selectedPet || !selectedTaskId || !selectedDateTime
             }
           >
             {isSubmitting ? "保存中..." : "保存"}

@@ -1,122 +1,86 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
+import * as React from "react";
+import { format, setHours, setMinutes, setSeconds } from "date-fns";
+import { ja } from "date-fns/locale";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
 
-import { ja } from 'date-fns/locale';
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DatePicker } from "./DatePicker";
+import { TimePicker } from "./TimePicker";
 
 interface DateTimePickerProps {
-  date: Date;
-  setDate: (date: Date) => void;
-  onOpenChange?: (open: boolean) => void;
-  isManuallySet: boolean;
-  setIsManuallySet: (isManuallySet: boolean) => void;
+  selected: Date | undefined;
+  onChange: (date: Date | undefined) => void;
+  placeholderText?: string;
+  className?: string;
+  id?: string;
+  name?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function DateTimePicker({ date, setDate, onOpenChange, isManuallySet, setIsManuallySet }: DateTimePickerProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [time, setTime] = useState(format(date, 'HH:mm:ss'));
+export const DateTimePicker: React.FC<DateTimePickerProps> = ({
+  selected,
+  onChange,
+  placeholderText = "日時を選択",
+  className,
+  id,
+  name,
+}) => {
+  const [isOpen, setIsOpen] = React.useState(false);
 
-  useEffect(() => {
-    setTime(format(date, 'HH:mm:ss'));
-  }, [date]);
-
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (onOpenChange) {
-      onOpenChange(open);
+  const handleDateChange = (date: Date | undefined) => {
+    if (date && selected) {
+      // Preserve time if date changes
+      onChange(setHours(setMinutes(setSeconds(date, selected.getSeconds()), selected.getMinutes()), selected.getHours()));
+    } else {
+      onChange(date);
     }
   };
 
-  const handleDateSelect = (selectedDate: Date | undefined) => {
-    if (!selectedDate) return;
-    const [hours, minutes, seconds] = time.split(':').map(Number);
-    const newDate = new Date(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate(),
-      hours,
-      minutes,
-      seconds
-    );
-    setDate(newDate);
+  const handleTimeChange = (time: Date | undefined) => {
+    if (time && selected) {
+      // Preserve date if time changes
+      onChange(setHours(setMinutes(setSeconds(selected, time.getSeconds()), time.getMinutes()), time.getHours()));
+    } else {
+      onChange(time);
+    }
   };
 
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = e.target.value;
-    setTime(newTime);
-    // Robustly parse hours, minutes, and seconds
-    const timeParts = newTime.split(':').map(part => parseInt(part, 10));
-    const hours = timeParts[0] || 0;
-    const minutes = timeParts[1] || 0;
-    const seconds = timeParts[2] || 0; // Default to 0 if seconds are not provided
-
-    const newDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      hours,
-      minutes,
-      seconds
-    );
-    setDate(newDate);
-  };
-
-  const handleReset = () => {
-    setDate(new Date());
-    setTime(format(new Date(), 'HH:mm:ss'));
-    setIsManuallySet(false);
-  };
-
-  const handleOk = () => {
-    setIsManuallySet(true);
-    handleOpenChange(false);
-  }
+  const displayValue = selected ? format(selected, "yyyy/MM/dd HH:mm:ss", { locale: ja }) : placeholderText;
 
   return (
-    <Popover open={isOpen} onOpenChange={handleOpenChange}>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant={'outline'}
+          variant={"outline"}
           className={cn(
-            'justify-start text-left font-normal',
-            !date && 'text-muted-foreground'
+            "w-full justify-start text-left font-normal",
+            !selected && "text-muted-foreground",
+            className
           )}
+          id={id}
+          name={name}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {format(date, 'yyyy/MM/dd HH:mm:ss')}
+          {displayValue}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
-        <Calendar
-          locale={ja}
-          mode="single"
-          selected={date}
-          onSelect={handleDateSelect}
-          initialFocus
-        />
-        <div className="p-4 border-t">
-          <Input
-            id="time-input"
-            name="time-input"
-            type="time"
-            step="1"
-            value={time}
-            onChange={handleTimeChange}
+        <div className="flex flex-col gap-2 p-2">
+          <DatePicker
+            selected={selected}
+            onChange={handleDateChange}
+            placeholderText="日付を選択"
           />
-        </div>
-        <div className="flex justify-end gap-2 p-4 border-t">
-          <Button variant="outline" onClick={handleReset}>リセット</Button>
-          <Button onClick={handleOk}>OK</Button>
+          <TimePicker
+            selected={selected}
+            onChange={handleTimeChange}
+            placeholderText="時刻を選択"
+          />
         </div>
       </PopoverContent>
     </Popover>
   );
-}
+};

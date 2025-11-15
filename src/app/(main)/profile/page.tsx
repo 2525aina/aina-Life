@@ -37,6 +37,7 @@ import { useStorage } from "@/hooks/useStorage"; // Import useStorage
 import imageCompression from 'browser-image-compression'; // Import imageCompression
 import Image from "next/image"; // Import Image component
 import { UploadCloudIcon } from "lucide-react"; // Import UploadCloudIcon
+import { DatePicker } from "@/components/DatePicker";
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -360,12 +361,12 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="birthday">誕生日</Label>
-                  <Input
+                  <DatePicker
+                    selected={formData.birthday ? new Date(formData.birthday) : undefined}
+                    onChange={(date) => handleSelectChange("birthday", date ? format(date, "yyyy-MM-dd") : "")}
+                    placeholderText="誕生日を選択"
                     id="birthday"
                     name="birthday"
-                    type="date"
-                    value={formData.birthday || ""}
-                    onChange={handleChange}
                   />
                 </div>
                 <div className="grid gap-2">
