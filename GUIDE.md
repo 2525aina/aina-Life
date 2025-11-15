@@ -62,7 +62,7 @@
 
 1.  **古い依存・キャッシュ・構成を削除**
     ```bash
-    rm -rf node_modules package-lock.json .firebase
+    rm -rf node_modules package-lock.json .firebase  .next out
     npm cache clean --force
     ```
 

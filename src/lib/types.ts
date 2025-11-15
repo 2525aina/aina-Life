@@ -121,7 +121,7 @@ export interface Task {
 
 export interface Weight {
   id: string;
-  dogId: string;
+  petId: string;
   createdBy: string;
   date: Timestamp;
   unit: string;

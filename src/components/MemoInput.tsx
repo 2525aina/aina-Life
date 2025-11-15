@@ -10,6 +10,8 @@ interface MemoInputProps {
 export function MemoInput({ memo, setMemo }: MemoInputProps) {
   return (
     <Textarea
+      id="memo-input"
+      name="memo-input"
       value={memo}
       onChange={(e) => setMemo(e.target.value)}
       placeholder="メモ..."

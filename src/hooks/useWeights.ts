@@ -6,14 +6,14 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Weight } from '@/lib/types';
 
-export const useWeights = (dogId: string) => {
+export const useWeights = (petId: string) => {
   const { user } = useAuth();
   const [weights, setWeights] = useState<Weight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !dogId) {
+    if (!user || !petId) {
       setWeights([]);
       setLoading(false);
       return;
@@ -22,14 +22,14 @@ export const useWeights = (dogId: string) => {
     setLoading(true);
     setError(null);
 
-    const weightsCollectionRef = collection(db, `pets/${dogId}/weights`);
+    const weightsCollectionRef = collection(db, `pets/${petId}/weights`);
     const q = query(weightsCollectionRef, orderBy('date', 'desc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedWeights: Weight[] = snapshot.docs.map(doc => ({
         id: doc.id,
-        dogId: dogId,
-        ...doc.data() as Omit<Weight, 'id' | 'dogId'>
+        petId: petId,
+        ...doc.data() as Omit<Weight, 'id' | 'petId'>
       }));
       setWeights(fetchedWeights);
       setLoading(false);
@@ -40,18 +40,18 @@ export const useWeights = (dogId: string) => {
     });
 
     return () => unsubscribe();
-  }, [user, dogId]);
+  }, [user, petId]);
 
-  const addWeight = useCallback(async (newWeight: Omit<Weight, 'id' | 'createdBy' | 'updatedBy' | 'createdAt' | 'updatedAt' | 'dogId'>) => {
-    if (!user || !dogId) {
+  const addWeight = useCallback(async (newWeight: Omit<Weight, 'id' | 'createdBy' | 'updatedBy' | 'createdAt' | 'updatedAt' | 'petId'>) => {
+    if (!user || !petId) {
       setError("ユーザーが認証されていないか、犬が選択されていません。");
       return;
     }
     try {
-      const weightsCollectionRef = collection(db, `pets/${dogId}/weights`);
+      const weightsCollectionRef = collection(db, `pets/${petId}/weights`);
       await addDoc(weightsCollectionRef, {
         ...newWeight,
-        dogId: dogId,
+        petId: petId,
         createdBy: user.uid,
         updatedBy: user.uid,
         createdAt: Timestamp.now(),
@@ -61,15 +61,15 @@ export const useWeights = (dogId: string) => {
       console.error("Error adding weight: ", err);
       setError("体重の追加中にエラーが発生しました。");
     }
-  }, [user, dogId]);
+  }, [user, petId]);
 
-  const updateWeight = useCallback(async (weightId: string, updatedFields: Partial<Omit<Weight, 'id' | 'createdBy' | 'createdAt' | 'dogId'>>) => {
-    if (!user || !dogId) {
+  const updateWeight = useCallback(async (weightId: string, updatedFields: Partial<Omit<Weight, 'id' | 'createdBy' | 'createdAt' | 'petId'>>) => {
+    if (!user || !petId) {
       setError("ユーザーが認証されていないか、犬が選択されていません。");
       return;
     }
     try {
-      const weightDocRef = doc(db, `pets/${dogId}/weights`, weightId);
+      const weightDocRef = doc(db, `pets/${petId}/weights`, weightId);
       await updateDoc(weightDocRef, {
         ...updatedFields,
         updatedBy: user.uid,
@@ -79,21 +79,21 @@ export const useWeights = (dogId: string) => {
       console.error("Error updating weight: ", err);
       setError("体重の更新中にエラーが発生しました。");
     }
-  }, [user, dogId]);
+  }, [user, petId]);
 
   const deleteWeight = useCallback(async (weightId: string) => {
-    if (!user || !dogId) {
+    if (!user || !petId) {
       setError("ユーザーが認証されていないか、犬が選択されていません。");
       return;
     }
     try {
-      const weightDocRef = doc(db, `pets/${dogId}/weights`, weightId);
+      const weightDocRef = doc(db, `pets/${petId}/weights`, weightId);
       await deleteDoc(weightDocRef);
     } catch (err) {
       console.error("Error deleting weight: ", err);
       setError("体重の削除中にエラーが発生しました。");
     }
-  }, [user, dogId]);
+  }, [user, petId]);
 
   return { weights, loading, error, addWeight, updateWeight, deleteWeight };
 };
