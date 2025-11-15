@@ -6,6 +6,10 @@ on:
       - main
       - stg
       - dev
+    paths-ignore:
+      - '**/*.md'
+      - '**/.gitignore'
+      - 'script/**'
 
 jobs:
   deploy:
