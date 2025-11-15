@@ -104,6 +104,8 @@ export function DateTimePicker({ date, setDate, onOpenChange, isManuallySet, set
         />
         <div className="p-4 border-t">
           <Input
+            id="time-input"
+            name="time-input"
             type="time"
             step="1"
             value={time}
