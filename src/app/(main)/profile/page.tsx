@@ -38,6 +38,7 @@ import imageCompression from 'browser-image-compression'; // Import imageCompres
 import Image from "next/image"; // Import Image component
 import { UploadCloudIcon } from "lucide-react"; // Import UploadCloudIcon
 import { DatePicker } from "@/components/DatePicker";
+import { format } from "date-fns";
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();

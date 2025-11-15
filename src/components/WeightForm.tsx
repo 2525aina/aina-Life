@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Timestamp } from "firebase/firestore";
-import { format, parseISO } from "date-fns";
 import { DatePicker } from "@/components/DatePicker";
 import { TimePicker } from "@/components/TimePicker";
 
@@ -115,7 +114,7 @@ export function WeightForm({
           <Label htmlFor="weight-date">日付</Label>
           <DatePicker
             selected={selectedDateTime}
-            onChange={setSelectedDateTime}
+            onChange={(date) => date && setSelectedDateTime(date)}
             placeholderText="日付を選択"
             id="weight-date"
             name="weight-date"
@@ -125,7 +124,7 @@ export function WeightForm({
           <Label htmlFor="weight-time">時刻</Label>
           <TimePicker
             selected={selectedDateTime}
-            onChange={setSelectedDateTime}
+            onChange={(date) => date && setSelectedDateTime(date)}
             placeholderText="時刻を選択"
             id="weight-time"
             name="weight-time"

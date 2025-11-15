@@ -22,16 +22,15 @@ export function TaskSelector() {
   const { settings, loading: settingsLoading } = useTaskLoggerSettings();
   const [memo, setMemo] = useState("");
   const [dateTime, setDateTime] = useState(new Date());
-  const [isDateTimePickerOpen, setIsDateTimePickerOpen] = useState(false);
   const [isManuallySet, setIsManuallySet] = useState(false);
 
   useEffect(() => {
-    if (isDateTimePickerOpen || isManuallySet) return;
+    if (isManuallySet) return;
     const timer = setInterval(() => {
       setDateTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
-  }, [isDateTimePickerOpen, isManuallySet]);
+  }, [isManuallySet]);
 
 
   const handleReset = () => {

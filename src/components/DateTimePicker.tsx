@@ -3,7 +3,7 @@
 import * as React from "react";
 import { format, setHours, setMinutes, setSeconds } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
