@@ -25,6 +25,32 @@
 
 ---
 
+## Firebase Emulatorを使用した開発
+
+ローカル環境でFirebaseサービス（Authentication, Firestore, Storageなど）をエミュレートして開発を行うための手順です。これにより、本番環境のデータに影響を与えることなく、安全に開発・テストができます。
+
+1.  **Firebase Emulatorsを起動します:**
+    プロジェクトのルートディレクトリで、以下のコマンドを実行します。
+    ```bash
+    firebase emulators:start
+    ```
+    これにより、`firebase.json`で設定されているエミュレーター（Auth: 9099, Firestore: 8080, Storage: 9199）が起動します。
+
+2.  **アプリケーションをエミュレーターに接続します:**
+    `.env.local`ファイルに以下の環境変数を設定します。
+    ```ini
+    NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true
+    ```
+    この設定により、アプリケーションは起動しているエミュレーターに自動的に接続されます。
+
+3.  **開発サーバーを起動します:**
+    ```bash
+    npm run dev
+    ```
+    ブラウザで `http://localhost:3000` にアクセスすると、エミュレーターに接続されたアプリケーションが表示されます。
+
+---
+
 ## トラブルシューティング
 
 開発中に発生した問題とその解決策を記録します。

@@ -21,7 +21,7 @@ export const useChat = (petId: string) => {
     setLoading(true);
     setError(null);
 
-    const messagesRef = collection(db, 'dogs', petId, 'chats');
+    const messagesRef = collection(db, 'pets', petId, 'chats');
     const q = query(messagesRef, orderBy('timestamp', 'asc'), limit(50));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -47,7 +47,7 @@ export const useChat = (petId: string) => {
     }
 
     try {
-      await addDoc(collection(db, 'dogs', petId, 'chats'), {
+      await addDoc(collection(db, 'pets', petId, 'chats'), {
         senderId: user.uid,
         messageText: messageText.trim(),
         timestamp: serverTimestamp(),
@@ -66,7 +66,7 @@ export const useChat = (petId: string) => {
     }
 
     try {
-      const messageRef = doc(db, 'dogs', petId, 'chats', messageId);
+      const messageRef = doc(db, 'pets', petId, 'chats', messageId);
       await updateDoc(messageRef, {
         isUnsent: true,
       });
@@ -84,7 +84,7 @@ export const useChat = (petId: string) => {
     }
 
     try {
-      const messageRef = doc(db, 'dogs', petId, 'chats', messageId);
+      const messageRef = doc(db, 'pets', petId, 'chats', messageId);
       await updateDoc(messageRef, {
         isUnsent: false,
       });

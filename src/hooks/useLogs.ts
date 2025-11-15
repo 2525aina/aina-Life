@@ -41,13 +41,13 @@ export const useLogActions = () => {
       updatedAt: serverTimestamp(),
     };
 
-    const logsCollection = collection(db, 'dogs', selectedPet.id, 'logs');
+    const logsCollection = collection(db, 'pets', selectedPet.id, 'logs');
     await addDoc(logsCollection, logData);
   }, [user, selectedPet]);
 
   const updateLog = useCallback(async (logId: string, updatedData: Partial<Omit<Log, 'id' | 'petId' | 'createdBy' | 'createdAt'>>) => {
     if (!user || !selectedPet) throw new Error('ユーザーまたはペットが選択されていません。');
-    const logRef = doc(db, 'dogs', selectedPet.id, 'logs', logId);
+    const logRef = doc(db, 'pets', selectedPet.id, 'logs', logId);
     await updateDoc(logRef, {
       ...updatedData,
       updatedBy: user.uid,
@@ -59,7 +59,7 @@ export const useLogActions = () => {
   const deleteLog = useCallback(async (logId: string) => {
     if (!user || !selectedPet) throw new Error('ユーザーまたはペットが選択されていません。');
     try {
-      const logRef = doc(db, 'dogs', selectedPet.id, 'logs', logId);
+      const logRef = doc(db, 'pets', selectedPet.id, 'logs', logId);
       await deleteDoc(logRef);
       toast.success('ログを削除しました。');
     } catch (error) {
@@ -92,7 +92,7 @@ export const useLogs = (targetDate: Date) => {
     const endOfDay = new Date(targetDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const logsCollection = collection(db, 'dogs', petId, 'logs');
+    const logsCollection = collection(db, 'pets', petId, 'logs');
     const logsQuery = query(
       logsCollection,
       where('timestamp', '>=', startOfDay),
@@ -136,7 +136,7 @@ export const useLogs = (targetDate: Date) => {
           updatedByName = userProfileData.nickname || userProfileData.authName || userProfileData.authEmail;
         }
 
-        const taskRef = doc(db, 'dogs', petId, 'tasks', logData.taskId);
+        const taskRef = doc(db, 'pets', petId, 'tasks', logData.taskId);
         const taskSnap = await getDoc(taskRef);
         const task = taskSnap.exists() ? (taskSnap.data() as Task) : null;
         const isTaskDeleted = !taskSnap.exists() || (task?.deleted === true);

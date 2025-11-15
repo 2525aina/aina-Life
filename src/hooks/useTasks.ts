@@ -33,7 +33,7 @@ export const useTasks = (dogId: string) => {
 
     setLoading(true);
 
-    const tasksCollection = collection(db, 'dogs', dogId, 'tasks');
+    const tasksCollection = collection(db, 'pets', dogId, 'tasks');
     const tasksQuery = query(tasksCollection, orderBy('order'));
 
     const unsubscribe = onSnapshot(tasksQuery, (snapshot) => {
@@ -56,7 +56,7 @@ export const useTasks = (dogId: string) => {
       toast.error('ユーザーまたはペットが選択されていません。');
       throw new Error('ユーザーまたはペットが選択されていません。');
     }
-    const tasksCollection = collection(db, 'dogs', dogId, 'tasks');
+    const tasksCollection = collection(db, 'pets', dogId, 'tasks');
     await addDoc(tasksCollection, {
       ...taskData,
       deleted: false,
@@ -74,7 +74,7 @@ export const useTasks = (dogId: string) => {
     }
 
     const batch = writeBatch(db);
-    const taskRef = doc(db, 'dogs', dogId, 'tasks', taskId);
+    const taskRef = doc(db, 'pets', dogId, 'tasks', taskId);
 
     batch.update(taskRef, {
       ...updatedData,
@@ -84,7 +84,7 @@ export const useTasks = (dogId: string) => {
 
     if (updatedData.name) {
       const logsQuery = query(
-        collection(db, 'dogs', dogId, 'logs'),
+        collection(db, 'pets', dogId, 'logs'),
         where('taskId', '==', taskId)
       );
       const logsSnapshot = await getDocs(logsQuery);
@@ -108,7 +108,7 @@ export const useTasks = (dogId: string) => {
     }
 
     const batch = writeBatch(db);
-    const taskRef = doc(db, 'dogs', dogId, 'tasks', taskId);
+    const taskRef = doc(db, 'pets', dogId, 'tasks', taskId);
 
     batch.update(taskRef, {
       deleted: true,
@@ -118,7 +118,7 @@ export const useTasks = (dogId: string) => {
     });
 
     const logsQuery = query(
-      collection(db, 'dogs', dogId, 'logs'),
+      collection(db, 'pets', dogId, 'logs'),
       where('taskId', '==', taskId)
     );
     const logsSnapshot = await getDocs(logsQuery);
@@ -142,7 +142,7 @@ export const useTasks = (dogId: string) => {
     }
     try {
       for (const task of reorderedTasks) {
-        const taskRef = doc(db, 'dogs', dogId, 'tasks', task.id);
+        const taskRef = doc(db, 'pets', dogId, 'tasks', task.id);
         await updateDoc(taskRef, {
           order: task.order,
           updatedBy: user.uid,
@@ -165,7 +165,7 @@ export const useTasks = (dogId: string) => {
     const batch = writeBatch(db);
 
     for (const taskId of taskIds) {
-      const taskRef = doc(db, 'dogs', dogId, 'tasks', taskId);
+      const taskRef = doc(db, 'pets', dogId, 'tasks', taskId);
       batch.update(taskRef, {
         deleted: true,
         deletedAt: serverTimestamp(),
@@ -174,7 +174,7 @@ export const useTasks = (dogId: string) => {
       });
 
       const logsQuery = query(
-        collection(db, 'dogs', dogId, 'logs'),
+        collection(db, 'pets', dogId, 'logs'),
         where('taskId', '==', taskId)
       );
       const logsSnapshot = await getDocs(logsQuery);

@@ -63,7 +63,7 @@ export const usePets = () => {
       const initialFetches: Promise<void>[] = [];
 
       uniquePetIds.forEach(petId => {
-        const petDocRef = doc(db, 'dogs', petId);
+        const petDocRef = doc(db, 'pets', petId);
         const unsubscribePet = onSnapshot(petDocRef, (petSnapshot) => {
           if (petSnapshot.exists() && !petSnapshot.data()?.deleted) {
             currentPetsMap.set(petId, { id: petSnapshot.id, ...(petSnapshot.data() as Omit<Pet, 'id'>) });
@@ -104,13 +104,13 @@ export const usePets = () => {
       return;
     }
     try {
-      const newPetRef = await addDoc(collection(db, 'dogs'), {
+      const newPetRef = await addDoc(collection(db, 'pets'), {
         ...petData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      await addDoc(collection(db, 'dogs', newPetRef.id, 'members'), {
+      await addDoc(collection(db, 'pets', newPetRef.id, 'members'), {
         uid: user.uid,
         inviteEmail: user.email,
         role: 'owner',
@@ -132,7 +132,7 @@ export const usePets = () => {
       return;
     }
     try {
-      await updateDoc(doc(db, 'dogs', petId), {
+      await updateDoc(doc(db, 'pets', petId), {
         ...petData,
         updatedAt: serverTimestamp(),
       });
@@ -149,7 +149,7 @@ export const usePets = () => {
     }
     try {
       const batch = writeBatch(db);
-      const petRef = doc(db, 'dogs', petId);
+      const petRef = doc(db, 'pets', petId);
 
       batch.update(petRef, {
         deleted: true,
@@ -157,7 +157,7 @@ export const usePets = () => {
         updatedAt: serverTimestamp(),
       });
 
-      const tasksRef = collection(db, 'dogs', petId, 'tasks');
+      const tasksRef = collection(db, 'pets', petId, 'tasks');
       const taskDocs = await getDocs(tasksRef);
       taskDocs.docs.forEach(d => {
         batch.update(d.ref, {
@@ -167,7 +167,7 @@ export const usePets = () => {
         });
       });
 
-      const logsRef = collection(db, 'dogs', petId, 'logs');
+      const logsRef = collection(db, 'pets', petId, 'logs');
       const logDocs = await getDocs(logsRef);
       logDocs.docs.forEach(d => {
         batch.update(d.ref, {
@@ -191,7 +191,7 @@ export const usePets = () => {
       onMembersUpdate([]);
       return () => {};
     }
-    const membersCollection = collection(db, 'dogs', petId, 'members');
+    const membersCollection = collection(db, 'pets', petId, 'members');
     const unsubscribe = onSnapshot(membersCollection, (snapshot) => {
       const members = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -212,7 +212,7 @@ export const usePets = () => {
       throw new Error('ログインが必要です。');
     }
     try {
-      const membersCollection = collection(db, 'dogs', petId, 'members');
+      const membersCollection = collection(db, 'pets', petId, 'members');
       // TODO: 招待する前に、既にメンバーでないか、招待中でないかを確認する
       // TODO: 招待される側のUIDが不明なため、メールアドレスから検索し確認し、アプリユーザーであればそのUIDを使用し、アプリに存在しないユーザー場合は招待させないようにする
       await addDoc(membersCollection, {
@@ -268,7 +268,7 @@ export const usePets = () => {
       throw new Error('ログインが必要です。');
     }
     try {
-      const memberDocRef = doc(db, 'dogs', petId, 'members', memberId);
+      const memberDocRef = doc(db, 'pets', petId, 'members', memberId);
             const dataToUpdate: {
               status: 'active' | 'declined' | 'removed' | 'pending';
               updatedAt: FieldValue;
@@ -297,7 +297,7 @@ export const usePets = () => {
       throw new Error('ログインが必要です。');
     }
     try {
-      const memberDocRef = doc(db, 'dogs', petId, 'members', memberId);
+      const memberDocRef = doc(db, 'pets', petId, 'members', memberId);
       await deleteDoc(memberDocRef);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "不明なエラー";
@@ -313,7 +313,7 @@ export const usePets = () => {
       throw new Error('ログインが必要です。');
     }
     try {
-      const memberDocRef = doc(db, 'dogs', petId, 'members', memberId);
+      const memberDocRef = doc(db, 'pets', petId, 'members', memberId);
       await updateDoc(memberDocRef, {
         role: newRole,
         updatedAt: serverTimestamp(),
