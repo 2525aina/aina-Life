@@ -22,7 +22,7 @@ export const useWeights = (petId: string) => {
     setLoading(true);
     setError(null);
 
-    const weightsCollectionRef = collection(db, `pets/${dogId}/weights`);
+    const weightsCollectionRef = collection(db, `pets/${petId}/weights`);
     const q = query(weightsCollectionRef, orderBy('date', 'desc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -48,7 +48,7 @@ export const useWeights = (petId: string) => {
       return;
     }
     try {
-      const weightsCollectionRef = collection(db, `pets/${dogId}/weights`);
+      const weightsCollectionRef = collection(db, `pets/${petId}/weights`);
       await addDoc(weightsCollectionRef, {
         ...newWeight,
         petId: petId,
@@ -69,7 +69,7 @@ export const useWeights = (petId: string) => {
       return;
     }
     try {
-      const weightDocRef = doc(db, `pets/${dogId}/weights`, weightId);
+      const weightDocRef = doc(db, `pets/${petId}/weights`, weightId);
       await updateDoc(weightDocRef, {
         ...updatedFields,
         updatedBy: user.uid,
@@ -87,7 +87,7 @@ export const useWeights = (petId: string) => {
       return;
     }
     try {
-      const weightDocRef = doc(db, `pets/${dogId}/weights`, weightId);
+      const weightDocRef = doc(db, `pets/${petId}/weights`, weightId);
       await deleteDoc(weightDocRef);
     } catch (err) {
       console.error("Error deleting weight: ", err);
