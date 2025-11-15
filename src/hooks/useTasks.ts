@@ -19,13 +19,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { Task } from '@/lib/types';
 
-export const useTasks = (dogId: string) => {
+export const useTasks = (petId: string) => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || !dogId) {
+    if (!user || !petId) {
       setTasks([]);
       setLoading(false);
       return;
@@ -33,7 +33,7 @@ export const useTasks = (dogId: string) => {
 
     setLoading(true);
 
-    const tasksCollection = collection(db, 'pets', dogId, 'tasks');
+    const tasksCollection = collection(db, 'pets', petId, 'tasks');
     const tasksQuery = query(tasksCollection, orderBy('order'));
 
     const unsubscribe = onSnapshot(tasksQuery, (snapshot) => {
@@ -49,14 +49,14 @@ export const useTasks = (dogId: string) => {
     });
 
     return () => unsubscribe();
-  }, [user, dogId]);
+  }, [user, petId]);
 
   const addTask = async (taskData: Omit<Task, 'id'>) => {
-    if (!user || !dogId) {
+    if (!user || !petId) {
       toast.error('ユーザーまたはペットが選択されていません。');
       throw new Error('ユーザーまたはペットが選択されていません。');
     }
-    const tasksCollection = collection(db, 'pets', dogId, 'tasks');
+    const tasksCollection = collection(db, 'pets', petId, 'tasks');
     await addDoc(tasksCollection, {
       ...taskData,
       deleted: false,
@@ -68,13 +68,13 @@ export const useTasks = (dogId: string) => {
   };
 
   const updateTask = async (taskId: string, updatedData: Partial<Omit<Task, 'id' | 'createdBy' | 'createdAt'>>) => {
-    if (!user || !dogId) {
+    if (!user || !petId) {
       toast.error('ユーザーまたはペットが選択されていません。');
       throw new Error('ユーザーまたはペットが選択されていません。');
     }
 
     const batch = writeBatch(db);
-    const taskRef = doc(db, 'pets', dogId, 'tasks', taskId);
+    const taskRef = doc(db, 'pets', petId, 'tasks', taskId);
 
     batch.update(taskRef, {
       ...updatedData,
@@ -84,7 +84,7 @@ export const useTasks = (dogId: string) => {
 
     if (updatedData.name) {
       const logsQuery = query(
-        collection(db, 'pets', dogId, 'logs'),
+        collection(db, 'pets', petId, 'logs'),
         where('taskId', '==', taskId)
       );
       const logsSnapshot = await getDocs(logsQuery);
@@ -102,13 +102,13 @@ export const useTasks = (dogId: string) => {
   };
 
   const deleteTask = async (taskId: string) => {
-    if (!user || !dogId) {
+    if (!user || !petId) {
       toast.error('ユーザーまたはペットが選択されていません。');
       return;
     }
 
     const batch = writeBatch(db);
-    const taskRef = doc(db, 'pets', dogId, 'tasks', taskId);
+    const taskRef = doc(db, 'pets', petId, 'tasks', taskId);
 
     batch.update(taskRef, {
       deleted: true,
@@ -118,7 +118,7 @@ export const useTasks = (dogId: string) => {
     });
 
     const logsQuery = query(
-      collection(db, 'pets', dogId, 'logs'),
+      collection(db, 'pets', petId, 'logs'),
       where('taskId', '==', taskId)
     );
     const logsSnapshot = await getDocs(logsQuery);
@@ -136,13 +136,13 @@ export const useTasks = (dogId: string) => {
   };
 
   const reorderTasks = async (reorderedTasks: Task[]) => {
-    if (!user || !dogId) {
+    if (!user || !petId) {
       toast.error('ユーザーまたはペットが選択されていません。');
       throw new Error('ユーザーまたはペットが選択されていません。');
     }
     try {
       for (const task of reorderedTasks) {
-        const taskRef = doc(db, 'pets', dogId, 'tasks', task.id);
+        const taskRef = doc(db, 'pets', petId, 'tasks', task.id);
         await updateDoc(taskRef, {
           order: task.order,
           updatedBy: user.uid,
@@ -157,7 +157,7 @@ export const useTasks = (dogId: string) => {
   };
 
   const bulkDeleteTasks = async (taskIds: string[]) => {
-    if (!user || !dogId) {
+    if (!user || !petId) {
       toast.error('ユーザーまたはペットが選択されていません。');
       return;
     }
@@ -165,7 +165,7 @@ export const useTasks = (dogId: string) => {
     const batch = writeBatch(db);
 
     for (const taskId of taskIds) {
-      const taskRef = doc(db, 'pets', dogId, 'tasks', taskId);
+      const taskRef = doc(db, 'pets', petId, 'tasks', taskId);
       batch.update(taskRef, {
         deleted: true,
         deletedAt: serverTimestamp(),
@@ -174,7 +174,7 @@ export const useTasks = (dogId: string) => {
       });
 
       const logsQuery = query(
-        collection(db, 'pets', dogId, 'logs'),
+        collection(db, 'pets', petId, 'logs'),
         where('taskId', '==', taskId)
       );
       const logsSnapshot = await getDocs(logsQuery);
