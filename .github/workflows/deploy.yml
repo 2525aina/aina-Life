@@ -19,12 +19,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install Firebase CLI
-        run: npm install -g firebase-tools
+        run: npm install -g firebase-tools@14.20.0
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Create .env.production file
         run: |
@@ -39,9 +40,6 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Install jq (for parsing JSON)
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Deploy full Firebase project (SSR対応)
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcp-key.json
@@ -50,13 +48,10 @@ jobs:
           firebase experiments:enable webframeworks
 
           if [ "${{ github.ref_name }}" = "main" ]; then
-            firebase use prod
             PROJECT_ID="aina-life-prod"
           elif [ "${{ github.ref_name }}" = "stg" ]; then
-            firebase use stg
             PROJECT_ID="aina-life-stg"
           else
-            firebase use dev
             PROJECT_ID="aina-life-dev"
           fi
 
