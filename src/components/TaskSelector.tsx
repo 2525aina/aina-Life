@@ -8,7 +8,8 @@ import Link from "next/link";
 import { ClipboardListIcon } from "lucide-react";
 import { usePetSelection } from "@/contexts/PetSelectionContext";
 import { useState, useEffect } from "react";
-import { DateTimePicker } from "./DateTimePicker";
+import { DatePicker } from "./DatePicker";
+import { TimePicker } from "./TimePicker";
 import { MemoInput } from "./MemoInput";
 import { CollapsibleSection } from "./CollapsibleSection";
 
@@ -21,16 +22,15 @@ export function TaskSelector() {
   const { settings, loading: settingsLoading } = useTaskLoggerSettings();
   const [memo, setMemo] = useState("");
   const [dateTime, setDateTime] = useState(new Date());
-  const [isDateTimePickerOpen, setIsDateTimePickerOpen] = useState(false);
   const [isManuallySet, setIsManuallySet] = useState(false);
 
   useEffect(() => {
-    if (isDateTimePickerOpen || isManuallySet) return;
+    if (isManuallySet) return;
     const timer = setInterval(() => {
       setDateTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
-  }, [isDateTimePickerOpen, isManuallySet]);
+  }, [isManuallySet]);
 
 
   const handleReset = () => {
@@ -74,15 +74,29 @@ export function TaskSelector() {
       {settings?.showDateTime && (
         <CollapsibleSection title="日時" initialOpen={settings.initialDateTimeOpen}>
           <div className="flex items-center gap-2">
-            <DateTimePicker 
-              date={dateTime} 
-              setDate={setDateTime} 
-              onOpenChange={setIsDateTimePickerOpen}
-              isManuallySet={isManuallySet}
-              setIsManuallySet={setIsManuallySet}
-            />
-            <Button variant="outline" onClick={handleReset}>リセット</Button>
-          </div>
+                      <div className="flex flex-nowrap items-center gap-2">
+                        <DatePicker
+                          selected={dateTime}
+                          onChange={(date) => {
+                            setDateTime(date || new Date());
+                            setIsManuallySet(true);
+                          }}
+                          id="task-date-input"
+                          name="task-date-input"
+                          className="w-fit"
+                        />
+                        <TimePicker
+                          selected={dateTime}
+                          onChange={(date) => {
+                            setDateTime(date || new Date());
+                            setIsManuallySet(true);
+                          }}
+                          id="task-time-input"
+                          name="task-time-input"
+                          className="w-fit"
+                        />
+                        <Button variant="outline" onClick={handleReset}>リセット</Button>
+                      </div>          </div>
         </CollapsibleSection>
       )}
       {settings?.showMemo && (

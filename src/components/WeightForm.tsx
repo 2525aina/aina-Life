@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Timestamp } from "firebase/firestore";
-import { format, parseISO } from "date-fns";
+import { DatePicker } from "@/components/DatePicker";
+import { TimePicker } from "@/components/TimePicker";
 
 interface WeightFormProps {
   dogId: string;
@@ -28,15 +29,10 @@ export function WeightForm({
     initialWeight?.value || ""
   );
   const [unit, setUnit] = useState<string>(initialWeight?.unit || "kg");
-  const [date, setDate] = useState<string>(
+  const [selectedDateTime, setSelectedDateTime] = useState<Date>(
     initialWeight?.date
-      ? format(initialWeight.date.toDate(), "yyyy-MM-dd")
-      : format(new Date(), "yyyy-MM-dd")
-  );
-  const [time, setTime] = useState<string>(
-    initialWeight?.date
-      ? format(initialWeight.date.toDate(), "HH:mm")
-      : format(new Date(), "HH:mm")
+      ? initialWeight.date.toDate()
+      : new Date()
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,8 +40,7 @@ export function WeightForm({
     if (initialWeight) {
       setValue(initialWeight.value);
       setUnit(initialWeight.unit);
-      setDate(format(initialWeight.date.toDate(), "yyyy-MM-dd"));
-      setTime(format(initialWeight.date.toDate(), "HH:mm"));
+      setSelectedDateTime(initialWeight.date.toDate());
     }
   }, [initialWeight]);
 
@@ -60,8 +55,7 @@ export function WeightForm({
     }
 
     try {
-      const recordedAtDate = parseISO(`${date}T${time}`);
-      const recordedAtTimestamp = Timestamp.fromDate(recordedAtDate);
+      const recordedAtTimestamp = Timestamp.fromDate(selectedDateTime);
 
       if (initialWeight) {
         await updateWeight(initialWeight.id, {
@@ -118,22 +112,22 @@ export function WeightForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="weight-date">日付</Label>
-          <Input
+          <DatePicker
+            selected={selectedDateTime}
+            onChange={(date) => date && setSelectedDateTime(date)}
+            placeholderText="日付を選択"
             id="weight-date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
+            name="weight-date"
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="weight-time">時刻</Label>
-          <Input
+          <TimePicker
+            selected={selectedDateTime}
+            onChange={(date) => date && setSelectedDateTime(date)}
+            placeholderText="時刻を選択"
             id="weight-time"
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
+            name="weight-time"
           />
         </div>
       </div>
