@@ -123,17 +123,26 @@ HomebrewでNode.jsのバージョンをダウングレードするよりも、`n
     ```
 
 2.  **互換性のあるNode.jsバージョンのインストールと使用:**
-    `firebase-tools` がサポートするNode.js LTSバージョン（例: v20）をインストールし、使用します。
+    このプロジェクトでは、ルートディレクトリに `.nvmrc` ファイルを設置しています。これにより、プロジェクトで使用するNode.jsのバージョンが `v20` に固定されます。
+
+    以下のコマンドを実行することで、`.nvmrc` ファイルに記載されたバージョン（v20）のNode.jsをインストールし、使用することができます。
     ```bash
-    . ~/.nvm/nvm.sh && nvm install 20
-    . ~/.nvm/nvm.sh && nvm use 20
+    nvm install
+    nvm use
     ```
-    `nvm install 20` は、最新のNode.js v20系をインストールします。すでにインストールされている場合は、そのバージョンを使用します。
+    `nvm install` は、`.nvmrc` に記載されたバージョンが未インストールの場合にインストールを実行します。
+    `nvm use` は、現在のシェルのNode.jsバージョンを `.nvmrc` のバージョンに切り替えます。
+
+    *ヒント: `zsh` などのシェルと `nvm` の設定を組み合わせることで、ディレクトリ移動時に自動で `nvm use` を実行させることも可能です。*
 
 3.  **`firebase-tools` コマンドの実行:**
-    `firebase-tools` や関連する `npm` コマンドを実行する際は、必ず `nvm` で適切なNode.jsバージョンを指定してから実行してください。
+    `nvm use` を実行してNode.jsのバージョンを `v20` に切り替えた後、通常通り `npm` や `firebase` コマンドを実行してください。
     ```bash
-    . ~/.nvm/nvm.sh && nvm use 20 && npm install -g firebase-tools
-    . ~/.nvm/nvm.sh && nvm use 20 && firebase deploy
+    # 最初にバージョンを切り替える
+    nvm use
+
+    # その後、通常通りコマンドを実行
+    npm install -g firebase-tools
+    firebase deploy
     ```
     これにより、`EBADENGINE` 警告を回避し、`firebase-tools` を安定して利用できます。
