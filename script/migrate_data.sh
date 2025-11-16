@@ -49,6 +49,7 @@ set -e
 3. 環境変数の設定:
    export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-key.json"
    export GOOGLE_APPLICATION_CREDENTIALS="/Users/nakajimadaichi/.config/gcloud/00_migration-runner_aina-life.json"
+   ./script/migrate_data.sh
 END_HELP
 
 echo "--- データ移行スクリプト ---"

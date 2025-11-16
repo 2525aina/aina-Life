@@ -99,3 +99,41 @@ firebase deploy --only functions
 - `package-lock.json` の整合性不一致
 - SSR自動生成Functionsの`npm ci`失敗
 - Cloud Buildの`EUSAGE`エラー
+
+### Node.jsバージョンに関する警告 (`npm warn EBADENGINE`)
+
+`npm install -g firebase-tools` などのコマンド実行時に、`npm warn EBADENGINE Unsupported engine` の警告が表示される場合があります。これは、インストールしようとしているパッケージ（例: `superstatic`）が、現在使用しているNode.jsのバージョンをサポートしていないために発生します。
+
+**原因:**
+`firebase-tools` の一部の依存関係は、特定のNode.js LTSバージョン（例: v20, v22, v24）での動作を想定しています。しかし、システムにインストールされているNode.jsのバージョンがそれよりも新しい場合（例: v25.x.x）、この警告が表示されます。
+
+**解決策: `nvm` (Node Version Manager) を使用したバージョン管理**
+HomebrewでNode.jsのバージョンをダウングレードするよりも、`nvm` を使用してNode.jsのバージョンを管理する方が、柔軟性があり推奨されます。`nvm` を使うことで、プロジェクトやツールごとに異なるNode.jsバージョンを簡単に切り替えることができます。
+
+1.  **`nvm` のインストール:**
+    以下の公式スクリプトを使用して `nvm` をインストールします。
+    ```bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    ```
+    インストール後、ターミナルを再起動するか、以下のコマンドを実行して `nvm` を現在のセッションに読み込みます。
+    ```bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+    ```
+
+2.  **互換性のあるNode.jsバージョンのインストールと使用:**
+    `firebase-tools` がサポートするNode.js LTSバージョン（例: v20）をインストールし、使用します。
+    ```bash
+    . ~/.nvm/nvm.sh && nvm install 20
+    . ~/.nvm/nvm.sh && nvm use 20
+    ```
+    `nvm install 20` は、最新のNode.js v20系をインストールします。すでにインストールされている場合は、そのバージョンを使用します。
+
+3.  **`firebase-tools` コマンドの実行:**
+    `firebase-tools` や関連する `npm` コマンドを実行する際は、必ず `nvm` で適切なNode.jsバージョンを指定してから実行してください。
+    ```bash
+    . ~/.nvm/nvm.sh && nvm use 20 && npm install -g firebase-tools
+    . ~/.nvm/nvm.sh && nvm use 20 && firebase deploy
+    ```
+    これにより、`EBADENGINE` 警告を回避し、`firebase-tools` を安定して利用できます。
