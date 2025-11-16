@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "collectionGroup": "logs",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "deleted", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "members",
       "queryScope": "COLLECTION_GROUP",
       "fields": [

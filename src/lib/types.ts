@@ -65,6 +65,8 @@ export interface Log {
   isTaskDeleted?: boolean;
   createdByName?: string;
   updatedByName?: string;
+  creatorProfileImageUrl?: string;
+  updaterProfileImageUrl?: string;
   creatorNameBgColor?: string;
   creatorNameTextColor?: string;
   timeBgColor?: string;
