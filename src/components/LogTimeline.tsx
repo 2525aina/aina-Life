@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogFormModal } from "@/components/LogFormModal";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
 interface LogTimelineProps {
   targetDate: Date;
@@ -30,6 +31,8 @@ export function LogTimeline({ targetDate, timeFormat = "HH:mm:ss" }: LogTimeline
   const { deleteLog } = useLogActions();
   const [isLogFormOpen, setIsLogFormOpen] = useState(false);
   const [logToEdit, setLogToEdit] = useState<Log | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedUserUid, setSelectedUserUid] = useState<string | null>(null);
 
   const emptyMessageText = "この日の記録はありません。";
 
@@ -41,6 +44,11 @@ export function LogTimeline({ targetDate, timeFormat = "HH:mm:ss" }: LogTimeline
   const handleEditLog = (log: Log) => {
     setLogToEdit(log);
     setIsLogFormOpen(true);
+  };
+
+  const handleViewProfile = (uid: string) => {
+    setSelectedUserUid(uid);
+    setIsProfileModalOpen(true);
   };
 
   if (!selectedPet) {
@@ -92,10 +100,14 @@ export function LogTimeline({ targetDate, timeFormat = "HH:mm:ss" }: LogTimeline
                 const displayName = hasBeenUpdated ? log.updatedByName : log.createdByName;
                 const profileImageUrl = hasBeenUpdated ? log.updaterProfileImageUrl : log.creatorProfileImageUrl;
                 const primaryName = displayName || "unknown";
+                const userUid = hasBeenUpdated ? log.updatedBy : log.createdBy; // Get the UID of the user to display
                 const truncatedPrimaryName = primaryName.substring(0, 6);
 
                 return (
-                  <>
+                  <div
+                    className="flex items-center cursor-pointer" // Make the whole block clickable
+                    onClick={() => userUid && handleViewProfile(userUid)}
+                  >
                     <Avatar className="h-8 w-8 mr-2">
                       <AvatarImage src={profileImageUrl} alt={primaryName} />
                       <AvatarFallback>{primaryName.charAt(0)}</AvatarFallback>
@@ -120,7 +132,7 @@ export function LogTimeline({ targetDate, timeFormat = "HH:mm:ss" }: LogTimeline
                         {format(log.timestamp.toDate(), timeFormat, { locale: ja })}
                       </span>{" "}
                     </div>
-                  </>
+                  </div>
                 );
               })()}
               <span
@@ -170,6 +182,13 @@ export function LogTimeline({ targetDate, timeFormat = "HH:mm:ss" }: LogTimeline
           initialDate={targetDate}
         />
       )}
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        uid={selectedUserUid}
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
     </div>
   );
 }

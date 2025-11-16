@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { format, differenceInSeconds } from "date-fns";
 import { ja } from "date-fns/locale";
+import { UserProfileModal } from "@/components/UserProfileModal"; // Import UserProfileModal
 
 const MessageContent = ({ messageText, isUnsent }: { messageText: string, isUnsent?: boolean }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -101,6 +102,8 @@ export default function PetChatPage() {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // State for profile modal
+  const [selectedUserUid, setSelectedUserUid] = useState<string | null>(null); // State for selected user UID
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -148,6 +151,11 @@ export default function PetChatPage() {
       console.error("Failed to copy message:", err);
       toast.error("メッセージのコピーに失敗しました。");
     }
+  };
+
+  const handleViewProfile = (uid: string) => {
+    setSelectedUserUid(uid);
+    setIsProfileModalOpen(true);
   };
 
   if (loading || userProfilesLoading) {
@@ -228,7 +236,7 @@ export default function PetChatPage() {
                   }`}
                 >
                   {msg.senderId !== user?.uid && (
-                    <div className="relative">
+                    <div className="relative cursor-pointer" onClick={() => handleViewProfile(msg.senderId)}>
                       <Avatar className="h-8 w-8">
                         <AvatarImage
                           src={senderProfileImageUrl}
@@ -298,15 +306,17 @@ export default function PetChatPage() {
                   </div>
 
                   {msg.senderId === user?.uid && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={senderProfileImageUrl}
-                        alt={senderName}
-                      />
-                      <AvatarFallback>
-                        {senderName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="cursor-pointer" onClick={() => user?.uid && handleViewProfile(user.uid)}>
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={senderProfileImageUrl}
+                          alt={senderName}
+                        />
+                        <AvatarFallback>
+                          {senderName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
                   )}
                 </div>
               </div>
@@ -335,6 +345,13 @@ export default function PetChatPage() {
           <span className="sr-only">送信</span>
         </Button>
       </div>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        uid={selectedUserUid}
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
     </div>
   );
 }
