@@ -58,6 +58,19 @@ import { TaskForm } from "@/components/TaskForm";
 import { TaskHistory } from "@/components/TaskHistory";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import Link from "next/link";
+import { UserProfileModal } from "@/components/UserProfileModal"; // Import UserProfileModal
+
+interface MemberDisplayProps { // Define props for MemberDisplay
+  member: Member;
+  petId: string;
+  currentUserId: string | undefined;
+  petOwnerUid: string | null;
+  onRemoveMember: (memberId: string) => Promise<void>;
+  onUpdateMemberRole: (petId: string, memberId: string, newRole: 'owner' | 'editor' | 'viewer') => Promise<void>;
+  isOnlyOwner: boolean;
+  canManage: boolean;
+  onViewProfile: (uid: string) => void; // New prop for viewing profile
+}
 
 
 interface PetCardProps {
@@ -69,6 +82,8 @@ interface PetCardProps {
   setOpenWeightFormForPetId: (petId: string | null) => void;
 }
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import Avatar components
+
 function MemberDisplay({
   member,
   petId,
@@ -79,16 +94,8 @@ function MemberDisplay({
   onUpdateMemberRole,
   isOnlyOwner,
   canManage,
-}: {
-  member: Member;
-  petId: string;
-  currentUserId: string | undefined;
-  petOwnerUid: string | null;
-  onRemoveMember: (memberId: string) => Promise<void>;
-  onUpdateMemberRole: (petId: string, memberId: string, newRole: 'owner' | 'editor' | 'viewer') => Promise<void>;
-  isOnlyOwner: boolean;
-  canManage: boolean;
-}) {
+  onViewProfile, // Destructure new prop
+}: MemberDisplayProps) { // Use new interface
   const { userProfile } = useUserProfile(member.uid);
 
   // Define roleTranslations here
@@ -140,20 +147,31 @@ function MemberDisplay({
 
   return (
     <div className="flex items-center justify-between p-2 border rounded-md">
-      <div>
-        <p className="font-medium">{displayName}</p>
-        {displayEmail && (
-          <p className="text-sm text-gray-500">{displayEmail}</p>
+      <div
+        className="flex items-center gap-2 cursor-pointer" // Make clickable
+        onClick={() => member.uid && onViewProfile(member.uid)} // Call onViewProfile
+      >
+        {userProfile && ( // Only show avatar if userProfile is available
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={userProfile.profileImageUrl} alt={displayName} />
+            <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+          </Avatar>
         )}
-        <p className="text-sm text-gray-500">
-          ステータス: {
-            member.status === "pending" ? "招待中" :
-            member.status === "active" ? "有効" :
-            member.status === "removed" ? "削除済" :
-            member.status === "declined" ? "拒否済" :
-            member.status
-          }
-        </p>
+        <div>
+          <p className="font-medium">{displayName}</p>
+          {displayEmail && (
+            <p className="text-sm text-gray-500">{displayEmail}</p>
+          )}
+          <p className="text-sm text-gray-500">
+            ステータス: {
+              member.status === "pending" ? "招待中" :
+              member.status === "active" ? "有効" :
+              member.status === "removed" ? "削除済" :
+              member.status === "declined" ? "拒否済" :
+              member.status
+            }
+          </p>
+        </div>
       </div>
       <div className="flex flex-col items-end space-y-2">
         {canManage ? (
@@ -211,6 +229,13 @@ export function PetCard({
     null
   );
   const [isAddTaskFormOpen, setIsAddTaskFormOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // State for profile modal
+  const [selectedUserUid, setSelectedUserUid] = useState<string | null>(null); // State for selected user UID
+
+  const handleViewProfile = (uid: string) => { // Function to open profile modal
+    setSelectedUserUid(uid);
+    setIsProfileModalOpen(true);
+  };
 
   useEffect(() => {
     const unsubscribe = getSharedMembers(pet.id, (members) => {
@@ -283,7 +308,8 @@ export function PetCard({
   };
 
   return (
-    <Collapsible key={pet.id} asChild>
+    <>
+      <Collapsible key={pet.id} asChild>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
         <div className="relative">
           <Link href={`/pets/${pet.id}/chat`} className="absolute top-2 left-2 z-20"> {/* Chat icon link */}
@@ -555,6 +581,7 @@ export function PetCard({
                         onUpdateMemberRole={updateMemberRole}
                         isOnlyOwner={isOnlyOwner}
                         canManage={canManage}
+                        onViewProfile={handleViewProfile} // Pass the new function
                       />
                     ))}
                   </div>
@@ -565,5 +592,12 @@ export function PetCard({
         </CollapsibleContent>
       </Card>
     </Collapsible>
+      {/* User Profile Modal */}
+      <UserProfileModal
+        uid={selectedUserUid}
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
+    </>
   );
 }

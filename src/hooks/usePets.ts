@@ -148,37 +148,13 @@ export const usePets = () => {
       return;
     }
     try {
-      const batch = writeBatch(db);
       const petRef = doc(db, 'pets', petId);
-
-      batch.update(petRef, {
+      await updateDoc(petRef, {
         deleted: true,
         deletedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-
-      const tasksRef = collection(db, 'pets', petId, 'tasks');
-      const taskDocs = await getDocs(tasksRef);
-      taskDocs.docs.forEach(d => {
-        batch.update(d.ref, {
-          deleted: true,
-          deletedAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      });
-
-      const logsRef = collection(db, 'pets', petId, 'logs');
-      const logDocs = await getDocs(logsRef);
-      logDocs.docs.forEach(d => {
-        batch.update(d.ref, {
-          deleted: true,
-          deletedAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      });
-
-      await batch.commit();
-      toast.success('ペットと関連データが論理削除されました。');
+      toast.success('ペットが論理削除されました。');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "不明なエラー";
       console.error('usePets: ペットの論理削除に失敗しました:', errorMessage);

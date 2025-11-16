@@ -1,3 +1,5 @@
+// export GOOGLE_APPLICATION_CREDENTIALS="/Users/nakajimadaichi/.config/gcloud/00_migration-runner_aina-life.json" && . ~/.nvm/nvm.sh && nvm use 20 && node script/migrate_members.js aina-life-stg
+
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 

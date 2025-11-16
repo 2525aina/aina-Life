@@ -150,7 +150,7 @@ export default function PetsPage() {
         isOpen={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
         title="ペットの削除確認"
-        message="本当にこのペットを削除しますか？この操作は元に戻せません。関連するタスクやログも全て論理削除されます。"
+        message="本当にこのペットを削除しますか？この操作は元に戻せません。ペットは論理削除されますが、関連するタスクやログは削除されません。"
         onConfirm={handleConfirmDeletePet}
         confirmButtonText="削除する"
         cancelButtonText="キャンセル"
