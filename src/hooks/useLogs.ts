@@ -39,6 +39,7 @@ export const useLogActions = () => {
       updatedBy: user.uid,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
+      deleted: false,
     };
 
     const logsCollection = collection(db, 'pets', selectedPet.id, 'logs');
@@ -60,11 +61,16 @@ export const useLogActions = () => {
     if (!user || !selectedPet) throw new Error('ユーザーまたはペットが選択されていません。');
     try {
       const logRef = doc(db, 'pets', selectedPet.id, 'logs', logId);
-      await deleteDoc(logRef);
-      toast.success('ログを削除しました。');
+      await updateDoc(logRef, {
+        deleted: true,
+        deletedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        updatedBy: user.uid,
+      });
+      toast.success('ログを論理削除しました。');
     } catch (error) {
-      console.error('ログの削除に失敗しました:', error);
-      toast.error('ログの削除に失敗しました。');
+      console.error('ログの論理削除に失敗しました:', error);
+      toast.error('ログの論理削除に失敗しました。');
     }
   }, [user, selectedPet]);
 
@@ -95,6 +101,7 @@ export const useLogs = (targetDate: Date) => {
     const logsCollection = collection(db, 'pets', petId, 'logs');
     const logsQuery = query(
       logsCollection,
+      where('deleted', '==', false),
       where('timestamp', '>=', startOfDay),
       where('timestamp', '<=', endOfDay),
       orderBy('timestamp', 'desc')
@@ -125,15 +132,19 @@ export const useLogs = (targetDate: Date) => {
 
       const enrichedLogsPromises = fetchedLogs.map(async (logData) => {
         let createdByName: string | undefined;
+        let creatorProfileImageUrl: string | undefined;
         if (logData.createdBy && userProfilesCache[logData.createdBy]) {
           const userProfileData = userProfilesCache[logData.createdBy];
           createdByName = userProfileData.nickname || userProfileData.authName || userProfileData.authEmail;
+          creatorProfileImageUrl = userProfileData.profileImageUrl;
         }
 
         let updatedByName: string | undefined;
+        let updaterProfileImageUrl: string | undefined;
         if (logData.updatedBy && userProfilesCache[logData.updatedBy]) {
           const userProfileData = userProfilesCache[logData.updatedBy];
           updatedByName = userProfileData.nickname || userProfileData.authName || userProfileData.authEmail;
+          updaterProfileImageUrl = userProfileData.profileImageUrl;
         }
 
         const taskRef = doc(db, 'pets', petId, 'tasks', logData.taskId);
@@ -206,7 +217,9 @@ export const useLogs = (targetDate: Date) => {
           taskTextColor: isTaskDeleted ? deletedTextColor : (task?.textColor || '#000000'),
           isTaskDeleted: isTaskDeleted,
           createdByName: createdByName,
+          creatorProfileImageUrl: creatorProfileImageUrl,
           updatedByName: updatedByName,
+          updaterProfileImageUrl: updaterProfileImageUrl,
           creatorNameBgColor: isTaskDeleted ? deletedBgColor : creatorNameBgColor, 
           creatorNameTextColor: isTaskDeleted ? deletedTextColor : creatorNameTextColor,
           timeBgColor: isTaskDeleted ? deletedBgColor : timeBgColor,

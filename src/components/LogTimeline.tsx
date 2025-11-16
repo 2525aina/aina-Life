@@ -16,6 +16,7 @@ import {
 
 
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogFormModal } from "@/components/LogFormModal";
 
 interface LogTimelineProps {
@@ -86,38 +87,42 @@ export function LogTimeline({ targetDate, timeFormat = "HH:mm:ss" }: LogTimeline
                 color: log.isTaskDeleted ? undefined : log.taskTextColor,
               }}
             >
-              <div className="flex flex-col items-center">
-                {/* 作成者/更新者名 */}
-                {(() => {
-                  const primaryName = log.createdByName || "unknown";
-                  const truncatedPrimaryName = primaryName.substring(0, 6);
-                  return (
-                    <span
-                      className="font-mono text-sm mb-1 px-2 py-1 rounded"
-                      style={{
-                        backgroundColor: log.creatorNameBgColor,
-                        color: log.creatorNameTextColor,
-                      }}
-                    >
-                      {truncatedPrimaryName}
-                      {log.updatedByName &&
-                        log.createdByName !== log.createdByName && (
-                          <span> (更新者: {log.updatedByName})</span>
-                        )}
-                    </span>
-                  );
-                })()}
-                {/* 時刻表示 */}
-                <span
-                  className="font-mono text-sm px-2 py-1 rounded"
-                  style={{
-                    backgroundColor: log.timeBgColor,
-                    color: log.timeTextColor,
-                  }}
-                >
-                  {format(log.timestamp.toDate(), timeFormat, { locale: ja })}
-                </span>{" "}
-              </div>
+              {(() => {
+                const hasBeenUpdated = log.updatedBy && log.createdBy !== log.updatedBy;
+                const displayName = hasBeenUpdated ? log.updatedByName : log.createdByName;
+                const profileImageUrl = hasBeenUpdated ? log.updaterProfileImageUrl : log.creatorProfileImageUrl;
+                const primaryName = displayName || "unknown";
+                const truncatedPrimaryName = primaryName.substring(0, 6);
+
+                return (
+                  <>
+                    <Avatar className="h-8 w-8 mr-2">
+                      <AvatarImage src={profileImageUrl} alt={primaryName} />
+                      <AvatarFallback>{primaryName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-center">
+                      <span
+                        className="font-mono text-sm mb-1 px-2 py-1 rounded"
+                        style={{
+                          backgroundColor: log.creatorNameBgColor,
+                          color: log.creatorNameTextColor,
+                        }}
+                      >
+                        {truncatedPrimaryName}
+                      </span>
+                      <span
+                        className="font-mono text-sm px-2 py-1 rounded"
+                        style={{
+                          backgroundColor: log.timeBgColor,
+                          color: log.timeTextColor,
+                        }}
+                      >
+                        {format(log.timestamp.toDate(), timeFormat, { locale: ja })}
+                      </span>{" "}
+                    </div>
+                  </>
+                );
+              })()}
               <span
                 className="ml-1 font-medium text-base break-all block overflow-y-auto"
                 style={{
