@@ -117,6 +117,12 @@ export default function ProfilePage() {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp'];
+      if (!supportedTypes.includes(file.type)) {
+        toast.error("このファイル形式には対応していません。JPEG, PNG, WebP, BMP形式の画像を選択してください。");
+        return;
+      }
+
       const options = {
         maxSizeMB: 0.25,
         maxWidthOrHeight: 1024,

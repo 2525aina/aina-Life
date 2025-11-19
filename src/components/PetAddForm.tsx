@@ -128,6 +128,12 @@ export function PetAddForm({
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp'];
+      if (!supportedTypes.includes(file.type)) {
+        toast.error("このファイル形式には対応していません。JPEG, PNG, WebP, BMP形式の画像を選択してください。");
+        return;
+      }
+      
       // Option for image compression
       const options = {
         maxSizeMB: 0.25,        // (max file size in MB, aiming for 250KB)
