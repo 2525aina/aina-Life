@@ -11,39 +11,7 @@ set -e
 
 事前準備:
 1. Firebase CLIのインストール
-    # 1. Node.js 20 を Homebrew でインストール
-    brew install node@20
-    # 2. PATH に Node.js 20 を追加（bash/zsh 共通）
-    SHELL_RC=""
-    if [ -n "$ZSH_VERSION" ]; then
-      SHELL_RC="$HOME/.zshrc"
-    elif [ -n "$BASH_VERSION" ]; then
-      SHELL_RC="$HOME/.bashrc"
-    fi
-    echo 'export PATH="/opt/homebrew/opt/node@20/bin:$PATH"' >> $SHELL_RC
-    export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
-    hash -r  # コマンドキャッシュをクリア
-    # 3. Node / npm バージョン確認
-    node -v   # v20.x.x
-    npm -v
-    # 4. npm global prefix を Homebrew 配下に変更（衝突防止）
-    npm config set prefix /opt/homebrew/opt/node@20
-    # 5. 古い firebase-tools をアンインストール（存在する場合）
-    if command -v firebase >/dev/null 2>&1; then
-      echo "古い firebase-tools をアンインストールします"
-      npm uninstall -g firebase-tools
-    fi
-    # 6. PATH 上の古い firebase バイナリを確認
-    if command -v firebase >/dev/null 2>&1; then
-      echo "古い firebase バイナリがまだ存在します:"
-      which firebase
-      ls -l $(which firebase)
-      echo "必要に応じて手動で削除してください"
-    fi
-    # 7. 最新版 Firebase CLI をインストール
-    npm install -g firebase-tools
-    # 8. バージョン確認
-    firebase --version   # 14.24.2 以上になっていれば成功
+   . ~/.nvm/nvm.sh && nvm use 20 && npm install -g firebase-tools
 2. Google Cloud SDK (gcloud CLI) のインストールと認証
    gcloud auth application-default login
 3. 環境変数の設定:

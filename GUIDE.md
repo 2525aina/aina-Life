@@ -1,148 +1,47 @@
-# プロジェクトガイド
+# `aina-Life` 開発ガイド - コマンドチートシート
 
-このドキュメントは、`aina-Life`プロジェクトの利用方法と、開発中に発生する可能性のある一般的な問題の解決策をまとめたものです。
-
----
-
-## アプリケーションの使い方
-
-このセクションでは、`aina-Life`アプリケーションの基本的な使い方を説明します。
-
-1.  **ログイン/アカウント作成**
-    ログインページから新しいアカウントを作成するか、既存のGoogleアカウントでログインします。
-
-2.  **ペットの登録**
-    ログイン後、ヘッダーのナビゲーションから「ペット管理」ページへ移動し、新しいペットを登録します。
-
-3.  **タスクの登録**
-    「タスク管理」ページで、登録したペットに日々のタスク（例: ご飯、散歩）を登録します。
-
-4.  **ログの記録**
-    ホーム画面に戻ると、選択中のペットのタスクボタンが表示されます。タスクボタンをクリックすると、そのタスクの実行ログが記録されます。
-
-5.  **ログの確認と編集**
-    ホーム画面の日付ナビゲーションを使って、過去の記録を確認したり、手動でログを追加・編集・削除したりできます。
+このドキュメントは、`aina-Life`プロジェクトの開発でよく使うコマンドをまとめたチートシートです。
 
 ---
 
-## Firebase Emulatorを使用した開発
+## コマンドチートシート
 
-ローカル環境でFirebaseサービス（Authentication, Firestore, Storageなど）をエミュレートして開発を行うための手順です。これにより、本番環境のデータに影響を与えることなく、安全に開発・テストができます。
-
-1.  **Firebase Emulatorsを起動します:**
-    プロジェクトのルートディレクトリで、以下のコマンドを実行します。
-    ```bash
-    firebase emulators:start
-    ```
-    これにより、`firebase.json`で設定されているエミュレーター（Auth: 9099, Firestore: 8080, Storage: 9199）が起動します。
-
-2.  **アプリケーションをエミュレーターに接続します:**
-    `.env.local`ファイルに以下の環境変数を設定します。
-    ```ini
-    NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true
-    ```
-    この設定により、アプリケーションは起動しているエミュレーターに自動的に接続されます。
-
-3.  **開発サーバーを起動します:**
-    ```bash
-    npm run dev
-    ```
-    ブラウザで `http://localhost:3000` にアクセスすると、エミュレーターに接続されたアプリケーションが表示されます。
-
----
-
-## トラブルシューティング
-
-開発中に発生した問題とその解決策を記録します。
-
-### Firebaseデプロイ関連のエラー
-
-`npm ci`の失敗や、Firebase Functionsのデプロイ時に`EUSAGE`エラーなどが発生した場合の対処法です。
-以下のコマンドはプロジェクトのルートディレクトリで実行してください。
-
-1.  **古い依存・キャッシュ・構成を削除**
-    ```bash
-    rm -rf node_modules package-lock.json .firebase  .next out
-    npm cache clean --force
-    ```
-
-2.  **不足している可能性のある依存を再インストール**
-    ```bash
-    npm install markdown-it @types/markdown-it
-    ```
-
-3.  **依存関係を再構築**
-    ```bash
-    npm install
-    ```
-
-4.  **ビルド確認**
-    ```bash
-    npm run build
-    ```
-
-5.  **Firebaseへ再デプロイ**
-    ```bash
-    firebase deploy
-    ```
-
-### `npm ci` エラーが再発した場合
-
-上記手順でも`npm ci`関連のエラーが解消しない場合、以下のコマンドを試してください。
-
+### 初回セットアップ
 ```bash
-rm -rf .firebase
-firebase deploy --only functions
+# Node.jsのバージョンを合わせて依存関係をインストール
+nvm install && nvm use
+. ~/.nvm/nvm.sh && nvm use && npm install
+# firebase-toolsのインストール
+. ~/.nvm/nvm.sh && nvm use && npm install -g firebase-tools
 ```
 
-これらの手順により、以下の問題が解消される可能性があります。
-- `package-lock.json` の整合性不一致
-- SSR自動生成Functionsの`npm ci`失敗
-- Cloud Buildの`EUSAGE`エラー
+### ローカル開発
+```bash
+# Emulatorを起動 (ターミナル1)
+. ~/.nvm/nvm.sh && nvm use && firebase emulators:start
+. ~/.nvm/nvm.sh && nvm use && ./script/sync_data.sh
 
-### Node.jsバージョンに関する警告 (`npm warn EBADENGINE`)
+# 開発サーバーを起動 (ターミナル2)
+. ~/.nvm/nvm.sh && nvm use && npm run dev
+```
 
-`npm install -g firebase-tools` などのコマンド実行時に、`npm warn EBADENGINE Unsupported engine` の警告が表示される場合があります。これは、インストールしようとしているパッケージ（例: `superstatic`）が、現在使用しているNode.jsのバージョンをサポートしていないために発生します。
+### デプロイ
+```bash
+# ビルドしてデプロイ
+. ~/.nvm/nvm.sh && nvm use && npm run build && firebase deploy
+```
 
-**原因:**
-`firebase-tools` の一部の依存関係は、特定のNode.js LTSバージョン（例: v20, v22, v24）での動作を想定しています。しかし、システムにインストールされているNode.jsのバージョンがそれよりも新しい場合（例: v25.x.x）、この警告が表示されます。
+### トラブルシューティング
+```bash
+# 依存関係をクリーンアップして再インストール
+rm -rf node_modules package-lock.json .firebase .next out && npm cache clean --force
+. ~/.nvm/nvm.sh && nvm use && npm install
+```
 
-**解決策: `nvm` (Node Version Manager) を使用したバージョン管理**
-HomebrewでNode.jsのバージョンをダウングレードするよりも、`nvm` を使用してNode.jsのバージョンを管理する方が、柔軟性があり推奨されます。`nvm` を使うことで、プロジェクトやツールごとに異なるNode.jsバージョンを簡単に切り替えることができます。
-
-1.  **`nvm` のインストール:**
-    以下の公式スクリプトを使用して `nvm` をインストールします。
-    ```bash
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-    ```
-    インストール後、ターミナルを再起動するか、以下のコマンドを実行して `nvm` を現在のセッションに読み込みます。
-    ```bash
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-    ```
-
-2.  **互換性のあるNode.jsバージョンのインストールと使用:**
-    このプロジェクトでは、ルートディレクトリに `.nvmrc` ファイルを設置しています。これにより、プロジェクトで使用するNode.jsのバージョンが `v20` に固定されます。
-
-    以下のコマンドを実行することで、`.nvmrc` ファイルに記載されたバージョン（v20）のNode.jsをインストールし、使用することができます。
-    ```bash
-    nvm install
-    nvm use
-    ```
-    `nvm install` は、`.nvmrc` に記載されたバージョンが未インストールの場合にインストールを実行します。
-    `nvm use` は、現在のシェルのNode.jsバージョンを `.nvmrc` のバージョンに切り替えます。
-
-    *ヒント: `zsh` などのシェルと `nvm` の設定を組み合わせることで、ディレクトリ移動時に自動で `nvm use` を実行させることも可能です。*
-
-3.  **`firebase-tools` コマンドの実行:**
-    `nvm use` を実行してNode.jsのバージョンを `v20` に切り替えた後、通常通り `npm` や `firebase` コマンドを実行してください。
-    ```bash
-    # 最初にバージョンを切り替える
-    nvm use
-
-    # その後、通常通りコマンドを実行
-    npm install -g firebase-tools
-    firebase deploy
-    ```
-    これにより、`EBADENGINE` 警告を回避し、`firebase-tools` を安定して利用できます。
+### エミュレーター起動
+```bash
+firebase experiments:enable webframeworks
+npm run build
+export GOOGLE_APPLICATION_CREDENTIALS="/Users/nakajimadaichi/.config/gcloud/00_migration-runner_aina-life.json"
+./script/sync_data.sh
+```

@@ -62,5 +62,8 @@ setAdmin.js
 # temporary files
 commit_message.txt
 
-# メモ
+# Project documentation
 MEMO.md
+
+# Firebase Realtime Database and Firestore export data
+/script/firebase-data*/**

@@ -1,4 +1,4 @@
-// export GOOGLE_APPLICATION_CREDENTIALS="/Users/nakajimadaichi/.config/gcloud/00_migration-runner_aina-life.json" && . ~/.nvm/nvm.sh && nvm use 20 && node  script/migrate_dogs_to_pets.js aina-life-stg
+// export GOOGLE_APPLICATION_CREDENTIALS="/Users/nakajimadaichi/.config/gcloud/00_migration-runner_aina-life.json" && . ~/.nvm/nvm.sh && nvm use 20 && node script/migrate_dogs_to_pets.js aina-life-stg
 
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
