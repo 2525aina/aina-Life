@@ -33,10 +33,11 @@ import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { AccountLinker } from "@/components/ui/AccountLinker";
 import { TaskLoggerSettings } from "@/components/TaskLoggerSettings";
-import { useStorage } from "@/hooks/useStorage"; // Import useStorage
-import imageCompression from 'browser-image-compression'; // Import imageCompression
-import Image from "next/image"; // Import Image component
-import { UploadCloudIcon } from "lucide-react"; // Import UploadCloudIcon
+import { useStorage } from "@/hooks/useStorage";
+import { useAppSettings } from "@/hooks/useAppSettings";
+import { processImage } from "@/lib/imageProcessor";
+import Image from "next/image";
+import { UploadCloudIcon } from "lucide-react";
 import { DatePicker } from "@/components/DatePicker";
 import { format } from "date-fns";
 
@@ -49,11 +50,13 @@ export default function ProfilePage() {
   } = useUser();
   const { pets, loading: petsLoading } = usePets();
   const router = useRouter();
-  const { uploadImage, uploading, progress } = useStorage(); // Initialize useStorage
+  const { uploadFile, uploading } = useStorage();
+  const { settings: appSettings, loading: settingsLoading } = useAppSettings();
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null); // State for the selected image file
-  const [imagePreview, setImagePreview] = useState<string | null>(null); // State for image preview URL
+  const [originalFileName, setOriginalFileName] = useState<string | null>(null);
+  const [processedImageBlob, setProcessedImageBlob] = useState<Blob | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -98,9 +101,18 @@ export default function ProfilePage() {
           },
         },
       });
-      setImagePreview(userProfile.profileImageUrl || null); // Set image preview
+      setImagePreview(userProfile.profileImageUrl || null);
     }
   }, [authLoading, user, router, userProfile, pets]);
+
+  useEffect(() => {
+    // Clean up the object URL on component unmount
+    return () => {
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -116,31 +128,25 @@ export default function ProfilePage() {
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp'];
-      if (!supportedTypes.includes(file.type)) {
-        toast.error("このファイル形式には対応していません。JPEG, PNG, WebP, BMP形式の画像を選択してください。");
-        return;
-      }
-
-      const options = {
-        maxSizeMB: 0.25,
-        maxWidthOrHeight: 1024,
-        useWebWorker: true,
-        fileType: 'image/webp',
-        quality: 0.8,
-      };
+    if (file && !settingsLoading) {
+      toast.info("画像の処理を開始します...");
+      setOriginalFileName(file.name);
       try {
-        toast.info("画像を圧縮中...");
-        const compressedFile = await imageCompression(file, options);
-        toast.success("画像の圧縮が完了しました。");
-
-        setImageFile(compressedFile);
-        const previewUrl = URL.createObjectURL(compressedFile);
+        const blob = await processImage(file, appSettings);
+        setProcessedImageBlob(blob);
+        
+        if (imagePreview && imagePreview.startsWith('blob:')) {
+          URL.revokeObjectURL(imagePreview);
+        }
+        
+        const previewUrl = URL.createObjectURL(blob);
         setImagePreview(previewUrl);
+        toast.success("画像の準備が完了しました。");
       } catch (error) {
-        console.error("画像圧縮に失敗しました:", error);
-        toast.error("画像の圧縮に失敗しました。");
+        console.error("画像処理に失敗しました:", error);
+        toast.error((error as Error).message || "画像処理に失敗しました。");
+        setProcessedImageBlob(null);
+        setOriginalFileName(null);
       }
     }
   };
@@ -275,9 +281,9 @@ export default function ProfilePage() {
     const dataToSubmit = { ...formData };
 
     try {
-      if (imageFile) {
+      if (processedImageBlob && originalFileName) {
         toast.info("画像をアップロード中...");
-        const downloadURL = await uploadImage(imageFile);
+        const downloadURL = await uploadFile(processedImageBlob, originalFileName);
         dataToSubmit.profileImageUrl = downloadURL;
       }
 
@@ -288,6 +294,8 @@ export default function ProfilePage() {
       toast.error("更新に失敗しました。");
     } finally {
       setIsSubmitting(false);
+      setProcessedImageBlob(null);
+      setOriginalFileName(null);
     }
   };
 
@@ -302,7 +310,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (authLoading || userProfileLoading || petsLoading) {
+  if (authLoading || userProfileLoading || petsLoading || settingsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -443,12 +451,12 @@ export default function ProfilePage() {
                     accept="image/*"
                     onChange={handleImageChange}
                     className="w-full max-w-xs"
-                    disabled={uploading}
+                    disabled={uploading || settingsLoading}
                   />
                 </div>
                 {uploading && (
                   <p className="text-sm text-blue-500 mt-2">
-                    アップロード中: {Math.round(progress)}%
+                    アップロード中...
                   </p>
                 )}
               </div>

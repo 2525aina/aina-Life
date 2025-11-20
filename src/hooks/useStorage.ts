@@ -1,60 +1,58 @@
 'use client';
 
 import { useState } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useStorage = () => {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
 
-  const uploadImage = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (!user) {
-        const authError = new Error('User is not authenticated.');
-        setError(authError);
-        reject(authError);
-        return;
-      }
+  const uploadFile = async (
+    file: Blob | File,
+    baseFileName: string,
+    directory: string = 'images'
+  ): Promise<string> => {
+    if (!user) {
+      const authError = new Error('User is not authenticated.');
+      setError(authError);
+      throw authError;
+    }
 
-      if (!file) {
-        const fileError = new Error('No file provided.');
-        setError(fileError);
-        reject(fileError);
-        return;
-      }
+    if (!file) {
+      const fileError = new Error('No file provided.');
+      setError(fileError);
+      throw fileError;
+    }
 
-      const storageRef = ref(storage, `images/${user.uid}/${Date.now()}_${file.name}`);
+    setUploading(true);
+    setError(null);
 
-      const uploadTask = uploadBytesResumable(storageRef, file);
+    try {
+      // Create a unique file name
+      const fileName = `${Date.now()}_${baseFileName}.webp`;
+      const storageRef = ref(storage, `${directory}/${user.uid}/${fileName}`);
 
-      setUploading(true);
-      setError(null);
+      // Upload the file using uploadBytes
+      const snapshot = await uploadBytes(storageRef, file, {
+        contentType: 'image/webp',
+      });
 
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setProgress(progress);
-        },
-        (error) => {
-          console.error("Image upload failed:", error);
-          setError(error);
-          setUploading(false);
-          reject(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setUploading(false);
-            resolve(downloadURL);
-          });
-        }
-      );
-    });
+      // Get the download URL
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      setUploading(false);
+      return downloadURL;
+    } catch (e) {
+      const uploadError = e instanceof Error ? e : new Error('File upload failed');
+      console.error("File upload failed:", uploadError);
+      setError(uploadError);
+      setUploading(false);
+      throw uploadError;
+    }
   };
 
-  return { uploadImage, uploading, progress, error };
+  return { uploadFile, uploading, error };
 };
