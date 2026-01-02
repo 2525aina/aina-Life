@@ -25,15 +25,20 @@ const USE_EMULATOR = process.env.NEXT_PUBLIC_USE_EMULATOR === 'true';
 
 if (typeof window !== 'undefined' && USE_EMULATOR) {
     // Auth Emulator
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    // Note: connecting to 127.0.0.1 avoids issues with localhost resolving to IPv6
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
 
     // Firestore Emulator
-    connectFirestoreEmulator(db, 'localhost', 8080);
+    connectFirestoreEmulator(db, '127.0.0.1', 8080);
 
     // Storage Emulator
-    connectStorageEmulator(storage, 'localhost', 9199);
+    connectStorageEmulator(storage, '127.0.0.1', 9199);
 
-    console.log('🔧 Firebase Emulator に接続しました');
+    console.log('🔧 Firebase Emulator に接続しました', {
+        projectId: firebaseConfig.projectId,
+        authDomain: firebaseConfig.authDomain,
+        keyLength: firebaseConfig.apiKey?.length
+    });
 }
 
 export { app };

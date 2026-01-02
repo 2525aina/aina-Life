@@ -66,11 +66,32 @@ cp .env.example .env.local
 
 ### 開発サーバー起動
 
+Next.js の開発サーバーと Firebase Emulators を同時に起動する場合（推奨）：
+
+```bash
+# 開発サーバーとエミュレータを同時起動（データ永続化あり）
+npm run dev:full
+```
+
+- Next.js: http://localhost:3000
+- Emulator UI: http://localhost:4000
+
+上記コマンドを実行すると、`firebase-data` ディレクトリにデータが保存され、次回起動時にもデータが引き継がれます（`Ctrl+C` で終了時に自動保存されます）。
+
+エミュレータなしで Next.js のみ起動する場合：
+
 ```bash
 npm run dev
 ```
 
-http://localhost:3000 でアプリにアクセスできます。
+### Node.js バージョン管理 (.nvmrc)
+
+プロジェクトルートにある `.nvmrc` ファイルは、このプロジェクトで推奨される Node.js のバージョン（v22）を指定しています。
+`nvm` (Node Version Manager) を導入している環境では、以下のコマンドを実行するだけで適切なバージョンに切り替わります。
+
+```bash
+nvm use
+```
 
 ### ビルド
 
