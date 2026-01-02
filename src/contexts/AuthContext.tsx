@@ -38,14 +38,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (userSnap.exists()) {
                     setUserProfile({ uid: firebaseUser.uid, ...userSnap.data() } as User);
                 } else {
-                    const newUser: Omit<User, 'uid'> = {
+                    // Firestore は undefined を許可しないので、値がある場合のみ設定
+                    const newUser: Record<string, unknown> = {
                         displayName: firebaseUser.displayName || 'ユーザー',
-                        avatarUrl: firebaseUser.photoURL || undefined,
-                        email: firebaseUser.email || undefined,
                         settings: { theme: 'system' },
-                        createdAt: serverTimestamp() as User['createdAt'],
-                        updatedAt: serverTimestamp() as User['updatedAt'],
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
                     };
+                    if (firebaseUser.photoURL) {
+                        newUser.avatarUrl = firebaseUser.photoURL;
+                    }
+                    if (firebaseUser.email) {
+                        newUser.email = firebaseUser.email;
+                    }
                     await setDoc(userRef, newUser);
                     setUserProfile({ uid: firebaseUser.uid, ...newUser } as User);
                 }
