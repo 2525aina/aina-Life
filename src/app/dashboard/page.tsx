@@ -70,7 +70,7 @@ export default function DashboardPage() {
                             ) : (
                                 <div className="space-y-3">
                                     {todayEntries.map((entry) => (
-                                        <Link key={entry.id} href={`/entry/${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                                        <Link key={entry.id} href={`/entry/detail?id=${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                                             <div className="flex flex-wrap gap-1">{entry.tags.map((tag) => { const tagInfo = ENTRY_TAGS.find((t) => t.value === tag); return <span key={tag} className="text-lg">{tagInfo?.emoji}</span>; })}</div>
                                             <div className="flex-1 min-w-0">
                                                 {entry.title && <p className="font-medium truncate">{entry.title}</p>}
@@ -95,7 +95,7 @@ export default function DashboardPage() {
                             {loading ? <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />)}</div>
                                 : recentEntries.length === 0 ? <p className="text-center text-muted-foreground py-6">まだ記録がありません</p>
                                     : <div className="space-y-3">{recentEntries.map((entry) => (
-                                        <Link key={entry.id} href={`/entry/${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                                        <Link key={entry.id} href={`/entry/detail?id=${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                                             <div className="flex flex-wrap gap-1 flex-shrink-0">{entry.tags.slice(0, 2).map((tag) => { const tagInfo = ENTRY_TAGS.find((t) => t.value === tag); return <span key={tag} className="text-lg">{tagInfo?.emoji}</span>; })}{entry.tags.length > 2 && <span className="text-xs text-muted-foreground">+{entry.tags.length - 2}</span>}</div>
                                             <div className="flex-1 min-w-0">{entry.title && <p className="font-medium truncate">{entry.title}</p>}{entry.body && <p className="text-sm text-muted-foreground line-clamp-1">{entry.body}</p>}<p className="text-xs text-muted-foreground mt-1">{format(entry.date.toDate(), 'M/d H:mm', { locale: ja })}</p></div>
                                             {entry.imageUrls.length > 0 && <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0"><img src={entry.imageUrls[0]} alt="" className="w-full h-full object-cover" /></div>}

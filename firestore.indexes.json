@@ -13,6 +13,40 @@
                     "order": "ASCENDING"
                 }
             ]
+        },
+        {
+            "collectionGroup": "members",
+            "queryScope": "COLLECTION_GROUP",
+            "fields": [
+                {
+                    "fieldPath": "inviteEmail",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "entries",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "date",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "weights",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "date",
+                    "order": "DESCENDING"
+                }
+            ]
         }
     ],
     "fieldOverrides": []
