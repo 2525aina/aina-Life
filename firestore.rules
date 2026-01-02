@@ -29,11 +29,24 @@ service cloud.firestore {
       }
 
       match /members/{memberId} {
-        allow read: if request.auth != null && canAccessPet(petId);
-        // Allow write if user is the pet owner (on pet doc) or an 'owner' member
-        allow write: if request.auth != null && (
-           get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid ||
-           isOwnerInMembers(petId)
+        // 読み取り: ペットにアクセスできるメンバー
+        allow read: if request.auth != null && (
+          exists(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid)) ||
+          (exists(/databases/$(database)/documents/pets/$(petId)) && 
+           get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid)
+        );
+        // 作成: ペット作成時にオーナーがメンバーを追加するケース
+        // request.resource.data.userId がリクエストしているユーザーと一致すればOK
+        allow create: if request.auth != null && (
+          request.resource.data.userId == request.auth.uid ||
+          (exists(/databases/$(database)/documents/pets/$(petId)) && 
+           get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid)
+        );
+        // 更新・削除: ペットのオーナーのみ
+        allow update, delete: if request.auth != null && (
+          (exists(/databases/$(database)/documents/pets/$(petId)) && 
+           get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid) ||
+          isOwnerInMembers(petId)
         );
       }
 
