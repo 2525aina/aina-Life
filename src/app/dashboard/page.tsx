@@ -1,13 +1,14 @@
 'use client';
 
 import { AppLayout } from '@/components/features/AppLayout';
+import { PendingInvitations } from '@/components/features/PendingInvitations';
 import { usePetContext } from '@/contexts/PetContext';
 import { useEntries } from '@/hooks/useEntries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Plus, Calendar, PawPrint, ChevronRight } from 'lucide-react';
+import { Plus, Calendar, PawPrint, ChevronRight, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ENTRY_TAGS } from '@/lib/types';
@@ -41,9 +42,20 @@ export default function DashboardPage() {
     return (
         <AppLayout>
             <div className="p-4 space-y-6">
+                <PendingInvitations />
+
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-                    <p className="text-sm text-muted-foreground">{format(today, 'yyyy年M月d日（E）', { locale: ja })}</p>
-                    <h1 className="text-2xl font-bold">{selectedPet.name}の日記</h1>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-muted-foreground">{format(today, 'yyyy年M月d日（E）', { locale: ja })}</p>
+                            <h1 className="text-2xl font-bold">{selectedPet.name}の日記</h1>
+                        </div>
+                        <Link href={`/pets/settings?id=${selectedPet.id}`}>
+                            <Button variant="ghost" size="icon">
+                                <Settings className="w-5 h-5" />
+                            </Button>
+                        </Link>
+                    </div>
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
