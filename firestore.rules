@@ -46,7 +46,12 @@ service cloud.firestore {
     }
 
     match /{path=**}/members/{memberId} {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.inviteEmail == request.auth.token.email);
+      // 自分宛の招待（inviteEmail）または自分がメンバー（userId）の場合に読み取り可能
+      // 注意: inviteEmailは小文字で保存されているので、token.emailも小文字化して比較
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.inviteEmail == request.auth.token.email.lower()
+      );
     }
 
     // Helper functions
