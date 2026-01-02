@@ -41,13 +41,21 @@ export function useEntries(petId: string | null) {
     }) => {
         if (!petId || !user) throw new Error('ペットが選択されていません');
 
-        await addDoc(collection(db, 'pets', petId, 'entries'), {
-            ...entryData,
+        // Firestore は undefined を許可しないので、値がある場合のみ設定
+        const docData: Record<string, unknown> = {
+            type: entryData.type,
+            tags: entryData.tags,
+            imageUrls: entryData.imageUrls,
             date: Timestamp.fromDate(entryData.date),
             createdBy: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-        });
+        };
+        if (entryData.title) docData.title = entryData.title;
+        if (entryData.body) docData.body = entryData.body;
+        if (entryData.friendIds && entryData.friendIds.length > 0) docData.friendIds = entryData.friendIds;
+
+        await addDoc(collection(db, 'pets', petId, 'entries'), docData);
     }, [petId, user]);
 
     const updateEntry = useCallback(async (entryId: string, entryData: Partial<{
@@ -61,8 +69,15 @@ export function useEntries(petId: string | null) {
     }>) => {
         if (!petId) throw new Error('ペットが選択されていません');
 
-        const updateData: Record<string, unknown> = { ...entryData, updatedAt: serverTimestamp() };
-        if (entryData.date) updateData.date = Timestamp.fromDate(entryData.date);
+        // undefined を除外
+        const updateData: Record<string, unknown> = { updatedAt: serverTimestamp() };
+        if (entryData.type !== undefined) updateData.type = entryData.type;
+        if (entryData.title !== undefined) updateData.title = entryData.title;
+        if (entryData.body !== undefined) updateData.body = entryData.body;
+        if (entryData.tags !== undefined) updateData.tags = entryData.tags;
+        if (entryData.imageUrls !== undefined) updateData.imageUrls = entryData.imageUrls;
+        if (entryData.date !== undefined) updateData.date = Timestamp.fromDate(entryData.date);
+        if (entryData.friendIds !== undefined) updateData.friendIds = entryData.friendIds;
 
         const entryRef = doc(db, 'pets', petId, 'entries', entryId);
         await updateDoc(entryRef, updateData);
