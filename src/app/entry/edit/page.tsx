@@ -63,17 +63,35 @@ function EditEntryContent() {
     const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0 || !selectedPet) return;
-        const file = files[0];
-        if (file.size > 10 * 1024 * 1024) { toast.error('10MB以下の画像を選択してください'); return; }
-        if (imageUrls.length >= 5) { toast.error('画像は最大5枚までです'); return; }
-        try {
-            const url = await uploadEntryImage(file, selectedPet.id);
-            setImageUrls((prev) => [...prev, url]);
-            toast.success('画像をアップロードしました');
-        } catch (error) {
-            console.error(error);
-            toast.error('画像のアップロードに失敗しました');
+
+        const remainingSlots = 5 - imageUrls.length;
+        if (remainingSlots <= 0) {
+            toast.error('画像は最大5枚までです');
+            return;
         }
+
+        const filesToUpload = Array.from(files).slice(0, remainingSlots);
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const file of filesToUpload) {
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error(`${file.name}: 10MB以下の画像を選択してください`);
+                errorCount++;
+                continue;
+            }
+            try {
+                const url = await uploadEntryImage(file, selectedPet.id);
+                setImageUrls((prev) => [...prev, url]);
+                successCount++;
+            } catch (error) {
+                console.error(error);
+                errorCount++;
+            }
+        }
+
+        if (successCount > 0) toast.success(`${successCount}枚の画像をアップロードしました`);
+        if (errorCount > 0) toast.error(`${errorCount}枚のアップロードに失敗しました`);
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -188,7 +206,7 @@ function EditEntryContent() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
                                 <div className="flex flex-wrap gap-3">
                                     {imageUrls.map((url, i) => (
                                         <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden">

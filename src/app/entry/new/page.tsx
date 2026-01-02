@@ -43,27 +43,39 @@ export default function NewEntryPage() {
         const files = e.target.files;
         if (!files || files.length === 0 || !selectedPet) return;
 
-        const file = files[0];
-
-        // ファイルサイズチェック（10MB以下）
-        if (file.size > 10 * 1024 * 1024) {
-            toast.error('10MB以下の画像を選択してください');
-            return;
-        }
-
-        // 画像数チェック（最大5枚）
-        if (imageUrls.length >= 5) {
+        const remainingSlots = 5 - imageUrls.length;
+        if (remainingSlots <= 0) {
             toast.error('画像は最大5枚までです');
             return;
         }
 
-        try {
-            const url = await uploadEntryImage(file, selectedPet.id);
-            setImageUrls((prev) => [...prev, url]);
-            toast.success('画像をアップロードしました');
-        } catch (error) {
-            console.error(error);
-            toast.error('画像のアップロードに失敗しました');
+        const filesToUpload = Array.from(files).slice(0, remainingSlots);
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const file of filesToUpload) {
+            // ファイルサイズチェック（10MB以下）
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error(`${file.name}: 10MB以下の画像を選択してください`);
+                errorCount++;
+                continue;
+            }
+
+            try {
+                const url = await uploadEntryImage(file, selectedPet.id);
+                setImageUrls((prev) => [...prev, url]);
+                successCount++;
+            } catch (error) {
+                console.error(error);
+                errorCount++;
+            }
+        }
+
+        if (successCount > 0) {
+            toast.success(`${successCount}枚の画像をアップロードしました`);
+        }
+        if (errorCount > 0) {
+            toast.error(`${errorCount}枚のアップロードに失敗しました`);
         }
 
         // input をリセット
@@ -183,6 +195,7 @@ export default function NewEntryPage() {
                                     ref={fileInputRef}
                                     type="file"
                                     accept="image/*"
+                                    multiple
                                     className="hidden"
                                     onChange={handleImageSelect}
                                 />

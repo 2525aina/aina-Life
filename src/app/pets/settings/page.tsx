@@ -175,11 +175,29 @@ function PetSettingsContent() {
                                 <div><CardTitle className="text-base">メンバー</CardTitle><CardDescription className="text-sm">ペット情報を共有するメンバー</CardDescription></div>
                                 {canManageMembers && (
                                     <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-                                        <DialogTrigger asChild><Button size="sm" className="gap-1 gradient-primary"><UserPlus className="w-4 h-4" />招待</Button></DialogTrigger>
+                                        <DialogTrigger asChild>
+                                            <Button size="sm" className="gap-1 gradient-primary">
+                                                <UserPlus className="w-4 h-4" />招待
+                                            </Button>
+                                        </DialogTrigger>
                                         <DialogContent>
-                                            <DialogHeader><DialogTitle>メンバーを招待</DialogTitle><DialogDescription>招待したい人のメールアドレスと権限を選択してください。</DialogDescription></DialogHeader>
+                                            <DialogHeader>
+                                                <DialogTitle>メンバーを招待</DialogTitle>
+                                                <DialogDescription>招待したい人のメールアドレスと権限を選択してください。</DialogDescription>
+                                            </DialogHeader>
                                             <form onSubmit={handleInvite} className="space-y-4 pt-4">
-                                                <div><Label htmlFor="email">メールアドレス</Label><Input id="email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="example@gmail.com" className="mt-1" /></div>
+                                                <div>
+                                                    <Label htmlFor="invite-email">メールアドレス</Label>
+                                                    <Input
+                                                        id="invite-email"
+                                                        type="email"
+                                                        value={inviteEmail}
+                                                        onChange={(e) => setInviteEmail(e.target.value)}
+                                                        placeholder="example@gmail.com"
+                                                        className="mt-1"
+                                                        autoComplete="email"
+                                                    />
+                                                </div>
                                                 <div>
                                                     <Label>権限</Label>
                                                     <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as MemberRole)}>
@@ -190,14 +208,18 @@ function PetSettingsContent() {
                                                                     <div className="flex items-center gap-2">
                                                                         {getRoleIcon(role.value)}
                                                                         <span>{role.label}</span>
-                                                                        <span className="text-xs text-muted-foreground ml-2">{role.description}</span>
                                                                     </div>
                                                                 </SelectItem>
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        {MEMBER_ROLES.find((r) => r.value === inviteRole)?.description}
+                                                    </p>
                                                 </div>
-                                                <Button type="submit" disabled={isSubmitting || !inviteEmail.trim()} className="w-full gradient-primary">{isSubmitting ? '送信中...' : '招待を送信'}</Button>
+                                                <Button type="submit" disabled={isSubmitting || !inviteEmail.trim()} className="w-full gradient-primary">
+                                                    {isSubmitting ? '送信中...' : '招待を送信'}
+                                                </Button>
                                             </form>
                                         </DialogContent>
                                     </Dialog>
