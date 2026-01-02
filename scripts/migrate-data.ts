@@ -139,10 +139,14 @@ async function migratePets() {
 
             const newMember = {
                 userId: memberData.uid || '',
-                role: memberData.role === 'owner' ? 'owner' : 'member',
+                // 権限をそのまま移行（owner, editor, viewer）
+                role: memberData.role,
                 inviteEmail: memberData.inviteEmail?.toLowerCase() || null,
                 status: memberData.status,
+                invitedBy: memberData.invitedBy || null,
+                invitedAt: memberData.invitedAt || null,
                 createdAt: memberData.createdAt || Timestamp.now(),
+                updatedAt: memberData.updatedAt || Timestamp.now(),
             };
 
             const cleanMember = Object.fromEntries(

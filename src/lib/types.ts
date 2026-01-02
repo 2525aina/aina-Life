@@ -31,11 +31,22 @@ export interface Pet {
 export interface Member {
     id: string;
     userId: string;
-    role: 'owner' | 'member';
+    role: 'owner' | 'editor' | 'viewer';
     inviteEmail?: string;
-    status: 'pending' | 'active';
+    status: 'pending' | 'active' | 'removed' | 'declined';
+    invitedBy?: string;
+    invitedAt?: Timestamp;
     createdAt: Timestamp;
+    updatedAt?: Timestamp;
 }
+
+export type MemberRole = 'owner' | 'editor' | 'viewer';
+
+export const MEMBER_ROLES: { value: MemberRole; label: string; description: string }[] = [
+    { value: 'owner', label: 'オーナー', description: 'すべての権限（メンバー管理・削除可能）' },
+    { value: 'editor', label: '編集者', description: '記録の追加・編集が可能' },
+    { value: 'viewer', label: '閲覧者', description: '閲覧のみ' },
+];
 
 // 日記エントリー
 export interface Entry {

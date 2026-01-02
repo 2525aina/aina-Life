@@ -76,7 +76,9 @@ export function usePets() {
             userId: user.uid,
             role: 'owner',
             status: 'active',
+            inviteEmail: user.email?.toLowerCase() || '',
             createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         });
 
         return petRef.id;
