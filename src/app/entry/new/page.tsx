@@ -13,10 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ENTRY_TAGS, type EntryTag } from '@/lib/types';
+import { Switch } from '@/components/ui/switch';
+import { ENTRY_TAGS, type EntryTag, type TimeType } from '@/lib/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { CalendarIcon, Clock, ImagePlus, X, ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { CalendarIcon, Clock, ImagePlus, X, ArrowLeft, Save, Loader2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -37,6 +38,11 @@ export default function NewEntryPage() {
     const [imageUrls, setImageUrls] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // 範囲日時対応
+    const [timeType, setTimeType] = useState<TimeType>('point');
+    const [endDate, setEndDate] = useState<Date>(new Date());
+    const [endTime, setEndTime] = useState(format(new Date(), 'HH:mm'));
+
     const toggleTag = (tag: EntryTag) => setTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
 
     const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +60,6 @@ export default function NewEntryPage() {
         let errorCount = 0;
 
         for (const file of filesToUpload) {
-            // ファイルサイズチェック（10MB以下）
             if (file.size > 10 * 1024 * 1024) {
                 toast.error(`${file.name}: 10MB以下の画像を選択してください`);
                 errorCount++;
@@ -71,17 +76,9 @@ export default function NewEntryPage() {
             }
         }
 
-        if (successCount > 0) {
-            toast.success(`${successCount}枚の画像をアップロードしました`);
-        }
-        if (errorCount > 0) {
-            toast.error(`${errorCount}枚のアップロードに失敗しました`);
-        }
-
-        // input をリセット
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        if (successCount > 0) toast.success(`${successCount}枚の画像をアップロードしました`);
+        if (errorCount > 0) toast.error(`${errorCount}枚のアップロードに失敗しました`);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleRemoveImage = (index: number) => {
@@ -95,19 +92,42 @@ export default function NewEntryPage() {
         setIsSubmitting(true);
         try {
             const [hours, minutes] = time.split(':').map(Number);
-            const entryDate = new Date(date); entryDate.setHours(hours, minutes, 0, 0);
-            await addEntry({ type, title: title.trim() || undefined, body: body.trim() || undefined, tags, imageUrls, date: entryDate });
+            const entryDate = new Date(date);
+            entryDate.setHours(hours, minutes, 0, 0);
+
+            let entryEndDate: Date | undefined;
+            if (timeType === 'range') {
+                const [endHours, endMinutes] = endTime.split(':').map(Number);
+                entryEndDate = new Date(endDate);
+                entryEndDate.setHours(endHours, endMinutes, 0, 0);
+            }
+
+            await addEntry({
+                type,
+                timeType,
+                title: title.trim() || undefined,
+                body: body.trim() || undefined,
+                tags,
+                imageUrls,
+                date: entryDate,
+                endDate: entryEndDate,
+                isCompleted: type === 'schedule' ? false : undefined,
+            });
             toast.success(type === 'diary' ? '記録しました' : '予定を追加しました');
             router.push('/dashboard');
-        } catch (error) { console.error(error); toast.error('エラーが発生しました'); }
-        finally { setIsSubmitting(false); }
+        } catch (error) {
+            console.error(error);
+            toast.error('エラーが発生しました');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (!selectedPet) return <AppLayout><div className="p-4 text-center py-12"><p className="text-muted-foreground">ペットを選択してください</p></div></AppLayout>;
 
     return (
         <AppLayout>
-            <div className="p-4">
+            <div className="p-4 pb-24">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div className="flex items-center gap-3 mb-6">
                         <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft className="w-5 h-5" /></Button>
@@ -121,26 +141,66 @@ export default function NewEntryPage() {
                             </TabsList>
                         </Tabs>
 
+                        {/* 日時カード */}
                         <Card>
-                            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">日時</CardTitle></CardHeader>
-                            <CardContent className="flex gap-3">
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button variant="outline" className={cn('flex-1 justify-start text-left font-normal')}>
-                                            <CalendarIcon className="mr-2 h-4 w-4" />{format(date, 'M月d日（E）', { locale: ja })}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={ja} />
-                                    </PopoverContent>
-                                </Popover>
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-muted-foreground" />
-                                    <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-28" />
+                            <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-sm font-medium">日時</CardTitle>
+                                    <div className="flex items-center gap-2">
+                                        <Label htmlFor="time-type" className="text-xs text-muted-foreground">範囲で記録</Label>
+                                        <Switch
+                                            id="time-type"
+                                            checked={timeType === 'range'}
+                                            onCheckedChange={(checked) => setTimeType(checked ? 'range' : 'point')}
+                                        />
+                                    </div>
                                 </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {/* 開始日時 */}
+                                <div className="flex gap-3 items-center">
+                                    {timeType === 'range' && <span className="text-xs text-muted-foreground">開始</span>}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" className="flex-1 justify-start text-left font-normal">
+                                                <CalendarIcon className="mr-2 h-4 w-4" />{format(date, 'M月d日（E）', { locale: ja })}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={ja} />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="w-4 h-4 text-muted-foreground" />
+                                        <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-28" />
+                                    </div>
+                                </div>
+
+                                {/* 終了日時（範囲の場合のみ） */}
+                                {timeType === 'range' && (
+                                    <div className="flex gap-3 items-center">
+                                        <span className="text-xs text-muted-foreground">終了</span>
+                                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" className="flex-1 justify-start text-left font-normal">
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />{format(endDate, 'M月d日（E）', { locale: ja })}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar mode="single" selected={endDate} onSelect={(d) => d && setEndDate(d)} locale={ja} />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4 text-muted-foreground" />
+                                            <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-28" />
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
+                        {/* カテゴリ */}
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">カテゴリ</CardTitle></CardHeader>
                             <CardContent>
@@ -162,6 +222,7 @@ export default function NewEntryPage() {
                             </CardContent>
                         </Card>
 
+                        {/* 内容 */}
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">内容</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
@@ -183,6 +244,7 @@ export default function NewEntryPage() {
                             </CardContent>
                         </Card>
 
+                        {/* 写真 */}
                         <Card>
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-sm font-medium flex items-center justify-between">
@@ -191,14 +253,7 @@ export default function NewEntryPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={handleImageSelect}
-                                />
+                                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
                                 <div className="flex flex-wrap gap-3">
                                     {imageUrls.map((url, i) => (
                                         <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden">
