@@ -96,8 +96,9 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
     };
 
     return (
-        <Card className="border-none shadow-none">
-            <CardHeader className="px-0 pt-0 pb-4">
+
+        <Card>
+            <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                     <div>
                         <CardTitle className="text-base">カスタムタスク</CardTitle>
@@ -142,7 +143,7 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
                     )}
                 </div>
             </CardHeader>
-            <CardContent className="px-0">
+            <CardContent>
                 {loading ? (
                     <div className="space-y-2">{[...Array(3)].map((_, i) => <div key={i} className="h-14 bg-muted animate-pulse rounded-lg" />)}</div>
                 ) : tasks.length === 0 ? (
