@@ -73,7 +73,7 @@ export function usePets() {
             updatedAt: serverTimestamp(),
         });
 
-        await addDoc(collection(db, 'pets', petRef.id, 'members'), {
+        const memberData: any = {
             userId: user.uid,
             role: 'owner',
             status: 'active',
@@ -85,8 +85,13 @@ export function usePets() {
             updatedAt: serverTimestamp(),
             // 表示用（非正規化）
             petName: petData.name,
-            petAvatarUrl: petData.avatarUrl,
-        });
+        };
+
+        if (petData.avatarUrl) {
+            memberData.petAvatarUrl = petData.avatarUrl;
+        }
+
+        await addDoc(collection(db, 'pets', petRef.id, 'members'), memberData);
 
         return petRef.id;
     }, [user]);
