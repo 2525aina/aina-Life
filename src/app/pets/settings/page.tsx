@@ -248,45 +248,91 @@ function PetSettingsContent() {
         );
     }
 
+    // 年齢計算
+    const calculateAge = (birthday: string) => {
+        const birthDate = new Date(birthday);
+        const today = new Date();
+        let years = today.getFullYear() - birthDate.getFullYear();
+        let months = today.getMonth() - birthDate.getMonth();
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+        return `${years}歳${months}ヶ月`;
+    };
+
     const activeMembers = members.filter((m) => m.status === 'active');
     const pendingMembers = members.filter((m) => m.status === 'pending');
 
     return (
         <AppLayout>
-            <div className="p-4 space-y-6 pb-24 max-w-2xl mx-auto">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <div className="flex items-center gap-3 mb-6">
-                        <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft className="w-5 h-5" /></Button>
-                        <h1 className="text-xl font-bold">{pet.name}の設定</h1>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-4 mb-8">
-                        <div className="relative">
-                            <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-                                <AvatarImage src={avatarPreview || (removeAvatar ? undefined : pet.avatarUrl)} alt={pet.name} className="object-cover" />
-                                <AvatarFallback className="bg-primary/10 text-4xl"><PawPrint className="w-12 h-12 text-primary" /></AvatarFallback>
+            <div className="pb-24">
+                {/* ヘッダーエリア */}
+                <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 pb-8 pt-6 px-4 -mx-4 md:mx-0 md:rounded-b-3xl">
+                    <div className="md:container max-w-2xl mx-auto flex flex-col items-center text-center">
+                        <div className="relative group mb-4">
+                            <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
+                                <AvatarImage src={pet.avatarUrl} alt={pet.name} className="object-cover" />
+                                <AvatarFallback className="bg-primary/10"><PawPrint className="w-8 h-8 text-primary" /></AvatarFallback>
                             </Avatar>
                             {canEdit && (
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={uploading}
-                                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
                                 >
                                     <Camera className="w-4 h-4" />
                                 </button>
                             )}
                             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                         </div>
-                        <div className="text-center">
-                            <h2 className="text-lg font-bold">{pet.name}</h2>
-                            <p className="text-sm text-muted-foreground">{pet.breed || '犬種未設定'}</p>
+
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
+                                {pet.name}
+                                {pet.gender && (
+                                    <span className={cn(
+                                        "inline-flex items-center justify-center w-6 h-6 rounded-full text-xs",
+                                        pet.gender === 'male' ? "bg-blue-100 text-blue-600" :
+                                            pet.gender === 'female' ? "bg-pink-100 text-pink-600" :
+                                                "bg-gray-100 text-gray-600"
+                                    )}>
+                                        {pet.gender === 'male' ? '♂' : pet.gender === 'female' ? '♀' : '?'}
+                                    </span>
+                                )}
+                            </h1>
+                            <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+                                {pet.breed && <span>{pet.breed}</span>}
+                                {pet.birthday && (
+                                    <>
+                                        <span className="w-1 h-1 bg-muted-foreground rounded-full" />
+                                        <span>{calculateAge(pet.birthday)}</span>
+                                    </>
+                                )}
+                            </div>
                         </div>
-                        {canEdit && (avatarPreview || pet.avatarUrl) && !removeAvatar && (
-                            <Button variant="ghost" size="sm" onClick={handleRemoveAvatar} className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 h-8">
-                                画像を削除
-                            </Button>
-                        )}
+
+                        {/* Image Cropper Component */}
+                        <ImageCropper
+                            open={cropperOpen}
+                            imageSrc={originalImageSrc}
+                            onCropComplete={handleCropComplete}
+                            onCancel={handleCropCancel}
+                        />
                     </div>
+                </div>
+
+                <div className="px-4 md:container max-w-2xl mx-auto mt-6">
+                    <div className="flex items-center gap-3 mb-6">
+                        <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft className="w-5 h-5" /></Button>
+                        <h1 className="text-xl font-bold">{pet.name}の設定</h1>
+                    </div>
+
+                    {canEdit && (avatarPreview || pet.avatarUrl) && !removeAvatar && (
+                        <Button variant="ghost" size="sm" onClick={handleRemoveAvatar} className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 h-8">
+                            画像を削除
+                        </Button>
+                    )}
 
                     <Tabs defaultValue="general" className="w-full">
                         <TabsList className="grid w-full grid-cols-4 mb-6">
@@ -581,7 +627,7 @@ function PetSettingsContent() {
                             </Card>
                         </TabsContent>
                     </Tabs>
-                </motion.div>
+                </div>
                 <ImageCropper
                     open={cropperOpen}
                     imageSrc={originalImageSrc}
