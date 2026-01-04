@@ -416,7 +416,7 @@ function PetSettingsContent() {
                             </Card>
 
                             {canEdit && (
-                                <div className="sticky bottom-4 z-10">
+                                <div className="sticky bottom-20 z-10">
                                     <Button onClick={handleUpdatePet} className="w-full shadow-lg gradient-primary h-12 text-base font-medium">変更を保存</Button>
                                 </div>
                             )}
