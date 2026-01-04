@@ -83,6 +83,9 @@ export function usePets() {
             updatedBy: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
+            // 表示用（非正規化）
+            petName: petData.name,
+            petAvatarUrl: petData.avatarUrl,
         });
 
         return petRef.id;
