@@ -489,7 +489,7 @@ function PetSettingsContent() {
                                                     {canManageMembers && member.userId !== user?.uid && (
                                                         <div className="flex gap-1 flex-shrink-0">
                                                             <Select value={member.role} onValueChange={(v) => handleRoleChange(member.id, v as MemberRole)}>
-                                                                <SelectTrigger className="w-[85px] h-8 text-xs px-2"><SelectValue /></SelectTrigger>
+                                                                <SelectTrigger className="w-[100px] h-8 text-xs px-2"><SelectValue /></SelectTrigger>
                                                                 <SelectContent>
                                                                     {MEMBER_ROLES.map((role) => (
                                                                         <SelectItem key={role.value} value={role.value}>
