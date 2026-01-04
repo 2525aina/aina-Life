@@ -150,10 +150,8 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
         });
     };
 
-    // タグリストの結合 (デフォルトタグ + カスタムタグ)
-    const allTags = [...ENTRY_TAGS, ...tasks.map(t => ({ value: t.name, label: t.name, emoji: t.emoji }))];
-    // 重複除外 (名前で判定)
-    const uniqueTags = Array.from(new Map(allTags.map(item => [item.label, item])).values());
+    // タグリスト (カスタムタスクを使用)
+    const uniqueTags = tasks.map(t => ({ value: t.name, label: t.name, emoji: t.emoji }));
 
     return (
         <div className="p-4 pb-24">

@@ -14,6 +14,7 @@ import { ja } from 'date-fns/locale';
 import { ArrowLeft, Trash2, Edit, Calendar, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useCustomTasks } from '@/hooks/useCustomTasks';
 
 function EntryDetailContent() {
     const router = useRouter();
@@ -22,6 +23,7 @@ function EntryDetailContent() {
 
     const { selectedPet } = usePetContext();
     const { entries, deleteEntry, loading } = useEntries(selectedPet?.id || null);
+    const { tasks } = useCustomTasks(selectedPet?.id || null);
 
     const entry = entries.find((e) => e.id === entryId);
 
@@ -114,11 +116,11 @@ function EntryDetailContent() {
                             {/* タグ */}
                             <div className="flex flex-wrap gap-2 mb-4">
                                 {entry.tags.map((tag) => {
-                                    const tagInfo = ENTRY_TAGS.find((t) => t.value === tag);
+                                    const tagInfo = tasks.find((t) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag);
                                     return (
                                         <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-sm">
                                             <span>{tagInfo?.emoji}</span>
-                                            <span>{tagInfo?.label}</span>
+                                            <span>{(tagInfo as any)?.name || (tagInfo as any)?.label}</span>
                                         </span>
                                     );
                                 })}

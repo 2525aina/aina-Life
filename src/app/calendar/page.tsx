@@ -14,12 +14,14 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useCustomTasks } from '@/hooks/useCustomTasks';
 
 type ViewMode = 'month' | 'week' | 'day';
 
 export default function CalendarPage() {
     const { selectedPet } = usePetContext();
     const { entries, loading } = useEntries(selectedPet?.id || null);
+    const { tasks } = useCustomTasks(selectedPet?.id || null);
     const [viewMode, setViewMode] = useState<ViewMode>('month');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -86,7 +88,7 @@ export default function CalendarPage() {
                                 : <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">{selectedDateEntries.sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()).map((entry) => (
                                     <Link key={entry.id} href={`/entry/detail?id=${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-card border hover:bg-muted/50 transition-colors">
                                         <div className="flex-shrink-0 text-sm font-medium text-muted-foreground w-12">{format(entry.date.toDate(), 'H:mm')}</div>
-                                        <div className="flex gap-1 flex-shrink-0">{entry.tags.map((tag) => <span key={tag} className="text-lg">{ENTRY_TAGS.find((t) => t.value === tag)?.emoji}</span>)}</div>
+                                        <div className="flex gap-1 flex-shrink-0">{entry.tags.map((tag) => <span key={tag} className="text-lg">{(tasks.find((t) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag))?.emoji}</span>)}</div>
                                         <div className="flex-1 min-w-0">{entry.title && <p className="font-medium truncate">{entry.title}</p>}{entry.body && <p className="text-sm text-muted-foreground line-clamp-1">{entry.body}</p>}{entry.type === 'schedule' && <span className="inline-block text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded mt-1">予定</span>}</div>
                                         {entry.imageUrls.length > 0 && <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0"><img src={entry.imageUrls[0]} alt="" className="w-full h-full object-cover" /></div>}
                                     </Link>

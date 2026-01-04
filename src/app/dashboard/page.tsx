@@ -14,10 +14,12 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ENTRY_TAGS } from '@/lib/types';
 import { toast } from 'sonner';
+import { useCustomTasks } from '@/hooks/useCustomTasks';
 
 export default function DashboardPage() {
     const { selectedPet } = usePetContext();
     const { entries, loading, updateEntry } = useEntries(selectedPet?.id || null);
+    const { tasks } = useCustomTasks(selectedPet?.id || null);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -114,7 +116,7 @@ export default function DashboardPage() {
                                                             )}
                                                         </span>
                                                         {schedule.tags.map((tag) => {
-                                                            const tagInfo = ENTRY_TAGS.find((t) => t.value === tag);
+                                                            const tagInfo = tasks.find((t) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag);
                                                             return <span key={tag}>{tagInfo?.emoji}</span>;
                                                         })}
                                                     </div>
@@ -144,7 +146,7 @@ export default function DashboardPage() {
                                 <div className="space-y-3">
                                     {todayDiaries.map((entry) => (
                                         <Link key={entry.id} href={`/entry/detail?id=${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                                            <div className="flex flex-wrap gap-1">{entry.tags.map((tag) => { const tagInfo = ENTRY_TAGS.find((t) => t.value === tag); return <span key={tag} className="text-lg">{tagInfo?.emoji}</span>; })}</div>
+                                            <div className="flex flex-wrap gap-1">{entry.tags.map((tag) => { const tagInfo = tasks.find((t) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag); return <span key={tag} className="text-lg">{tagInfo?.emoji}</span>; })}</div>
                                             <div className="flex-1 min-w-0">
                                                 {entry.title && <p className="font-medium truncate">{entry.title}</p>}
                                                 {entry.body && <p className="text-sm text-muted-foreground line-clamp-2">{entry.body}</p>}
@@ -175,7 +177,7 @@ export default function DashboardPage() {
                                 : recentEntries.length === 0 ? <p className="text-center text-muted-foreground py-6">まだ記録がありません</p>
                                     : <div className="space-y-3">{recentEntries.map((entry) => (
                                         <Link key={entry.id} href={`/entry/detail?id=${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                                            <div className="flex flex-wrap gap-1 flex-shrink-0">{entry.tags.slice(0, 2).map((tag) => { const tagInfo = ENTRY_TAGS.find((t) => t.value === tag); return <span key={tag} className="text-lg">{tagInfo?.emoji}</span>; })}{entry.tags.length > 2 && <span className="text-xs text-muted-foreground">+{entry.tags.length - 2}</span>}</div>
+                                            <div className="flex flex-wrap gap-1 flex-shrink-0">{entry.tags.slice(0, 2).map((tag) => { const tagInfo = tasks.find((t) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag); return <span key={tag} className="text-lg">{tagInfo?.emoji}</span>; })}{entry.tags.length > 2 && <span className="text-xs text-muted-foreground">+{entry.tags.length - 2}</span>}</div>
                                             <div className="flex-1 min-w-0">
                                                 {entry.title && <p className="font-medium truncate">{entry.title}</p>}
                                                 {entry.body && <p className="text-sm text-muted-foreground line-clamp-1">{entry.body}</p>}

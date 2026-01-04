@@ -7,21 +7,87 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, GripVertical, Edit2 } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Edit2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Reorder } from 'framer-motion';
 import { toast } from 'sonner';
 import type { CustomTask } from '@/lib/types';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
+import { cn } from '@/lib/utils';
 
-const EMOJI_OPTIONS = Array.from(new Set([
-    '📝', '🍚', '🍗', '🥦', '🥕', '🦴', '🥛', '🍪', // 食事
-    '🚶', '🐕', '🐩', '🦮', '🐕‍🦺', '🌳', '💩', '🚽', // 散歩・排泄
-    '💊', '🏥', '💉', '🩹', '🩺', '🌡️', '👀', '👂', // 医療
-    '✂️', '🛁', '🚿', '🧼', '🧴', '💅', // ケア
-    '💤', '🛌', '🏠', '🚗', '👜', // 生活
-    '🎾', '🧸', '⚽', '🧶', '🎀', '👓', '👕', // 遊び・アイテム
-    '❤️', '⭐', '🌟', '✨', '💡', '⚠️', '❓', '✅', '📌', '🎉' // その他
-]));
+const EMOJI_CATEGORIES = [
+    { label: '食事', emojis: ['🍚', '🍗', '🥦', '🥕', '🍎', '🍌', '🥛', '🍪', '🦴', '🐟', '🥩', '🥣'] },
+    { label: 'トイレ', emojis: ['💩', '🚽', '🧻', '🚾', '💧'] },
+    { label: '散歩・行動', emojis: ['🚶', '🐕', '🐩', '🦮', '🐕‍🦺', '💨', '🏠', '🚗', '💤', '🛌', '🌞', '🌙'] },
+    { label: 'ケア', emojis: ['✂️', '🛁', '🚿', '🧼', '🧴', '💅', '🦷', '👀', '👂', '💆'] },
+    { label: '医療', emojis: ['💊', '🏥', '💉', '🩹', '🩺', '🌡️', '📝', '⚖️'] },
+    { label: '遊び・物', emojis: ['🎾', '🧸', '⚽', '🧶', '🎀', '👓', '👕', '🎒', '👟', '📷'] },
+    { label: 'その他', emojis: ['❤️', '⭐', '🌟', '✨', '💡', '⚠️', '❓', '✅', '📌', '🎉', '㊗️', '💮'] },
+];
+
+interface EmojiPickerProps {
+    value: string;
+    onChange: (emoji: string) => void;
+}
+
+function EmojiPicker({ value, onChange }: EmojiPickerProps) {
+    const [openCategory, setOpenCategory] = useState<string>('食事');
+
+    const toggleCategory = (label: string) => {
+        setOpenCategory(prev => prev === label ? '' : label);
+    };
+
+    return (
+        <div className="mt-2 h-64 border rounded-md overflow-hidden flex flex-col bg-background">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {EMOJI_CATEGORIES.map((category) => {
+                    const isOpen = openCategory === category.label;
+                    return (
+                        <div key={category.label} className="border-b last:border-0 border-muted">
+                            <button
+                                type="button"
+                                onClick={() => toggleCategory(category.label)}
+                                className={cn(
+                                    "w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted/50",
+                                    isOpen ? "bg-muted/30 text-foreground" : "text-muted-foreground"
+                                )}
+                            >
+                                <span className="flex items-center gap-2">
+                                    {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                    {category.label}
+                                </span>
+                                <span className="text-xs bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                                    {category.emojis.length}
+                                </span>
+                            </button>
+
+                            {isOpen && (
+                                <div className="p-2 bg-background/50 animate-in slide-in-from-top-1 fade-in duration-200">
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {category.emojis.map((emoji) => (
+                                            <button
+                                                key={emoji}
+                                                type="button"
+                                                onClick={() => onChange(emoji)}
+                                                className={cn(
+                                                    'w-9 h-9 text-lg rounded-md transition-all flex items-center justify-center flex-shrink-0',
+                                                    value === emoji
+                                                        ? 'bg-primary/10 ring-2 ring-primary scale-110 shadow-sm z-10'
+                                                        : 'hover:bg-muted hover:scale-105'
+                                                )}
+                                            >
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
 
 interface CustomTaskEditorProps {
     petId: string;
@@ -109,30 +175,19 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
                             <DialogTrigger asChild>
                                 <Button size="sm" className="gap-1 gradient-primary"><Plus className="w-4 h-4" />追加</Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="max-h-[90vh] flex flex-col">
                                 <DialogHeader>
                                     <DialogTitle>タスクを追加</DialogTitle>
                                     <DialogDescription>新しいカスタムタスクを作成します</DialogDescription>
                                 </DialogHeader>
-                                <form onSubmit={handleAddTask} className="space-y-4 pt-4">
+                                <form onSubmit={handleAddTask} className="flex-1 overflow-y-auto space-y-4 pt-4 px-1">
                                     <div>
                                         <Label htmlFor="task-name">タスク名</Label>
                                         <Input id="task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} placeholder="例：おやつ" className="mt-1" />
                                     </div>
                                     <div>
                                         <Label>絵文字</Label>
-                                        <div className="flex flex-wrap gap-2 mt-2 max-h-40 overflow-y-auto p-1">
-                                            {EMOJI_OPTIONS.map((emoji) => (
-                                                <button
-                                                    key={emoji}
-                                                    type="button"
-                                                    onClick={() => setTaskEmoji(emoji)}
-                                                    className={`w-10 h-10 text-xl rounded-lg border-2 transition-colors flex-shrink-0 ${taskEmoji === emoji ? 'border-primary bg-primary/10' : 'border-muted hover:border-muted-foreground/50'}`}
-                                                >
-                                                    {emoji}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        <EmojiPicker value={taskEmoji} onChange={setTaskEmoji} />
                                     </div>
                                     <Button type="submit" disabled={isSubmitting || !taskName.trim()} className="w-full gradient-primary">
                                         {isSubmitting ? '追加中...' : '追加する'}
@@ -164,30 +219,19 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
                                                         <Edit2 className="w-4 h-4" />
                                                     </Button>
                                                 </DialogTrigger>
-                                                <DialogContent>
+                                                <DialogContent className="max-h-[90vh] flex flex-col">
                                                     <DialogHeader>
                                                         <DialogTitle>タスクを編集</DialogTitle>
                                                         <DialogDescription>タスクの内容を変更します</DialogDescription>
                                                     </DialogHeader>
-                                                    <form onSubmit={handleUpdateTask} className="space-y-4 pt-4">
+                                                    <form onSubmit={handleUpdateTask} className="flex-1 overflow-y-auto space-y-4 pt-4 px-1">
                                                         <div>
                                                             <Label htmlFor="edit-task-name">タスク名</Label>
                                                             <Input id="edit-task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} className="mt-1" />
                                                         </div>
                                                         <div>
                                                             <Label>絵文字</Label>
-                                                            <div className="flex flex-wrap gap-2 mt-2 max-h-40 overflow-y-auto p-1">
-                                                                {EMOJI_OPTIONS.map((emoji) => (
-                                                                    <button
-                                                                        key={emoji}
-                                                                        type="button"
-                                                                        onClick={() => setTaskEmoji(emoji)}
-                                                                        className={`w-10 h-10 text-xl rounded-lg border-2 transition-colors flex-shrink-0 ${taskEmoji === emoji ? 'border-primary bg-primary/10' : 'border-muted hover:border-muted-foreground/50'}`}
-                                                                    >
-                                                                        {emoji}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
+                                                            <EmojiPicker value={taskEmoji} onChange={setTaskEmoji} />
                                                         </div>
                                                         <Button type="submit" disabled={isSubmitting || !taskName.trim()} className="w-full gradient-primary">
                                                             {isSubmitting ? '更新中...' : '更新する'}
