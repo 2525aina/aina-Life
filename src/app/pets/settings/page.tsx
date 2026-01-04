@@ -25,6 +25,7 @@ import { MEMBER_ROLES, type MemberRole, type VetInfo } from '@/lib/types';
 import { format, parse } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { deleteField } from 'firebase/firestore';
 
 function PetSettingsContent() {
     const router = useRouter();
@@ -114,11 +115,11 @@ function PetSettingsContent() {
             return;
         }
         try {
-            let avatarUrl = pet?.avatarUrl;
+            let avatarUrl: any = pet?.avatarUrl;
 
             // 画像削除
             if (removeAvatar) {
-                avatarUrl = undefined;
+                avatarUrl = deleteField();
             }
             // 新しい画像をアップロード
             else if (pendingAvatarFile) {
@@ -488,13 +489,13 @@ function PetSettingsContent() {
                                             <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
                                                 <Avatar className="w-10 h-10 flex-shrink-0"><AvatarFallback className="bg-primary/10">{getRoleIcon(member.role)}</AvatarFallback></Avatar>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="font-medium flex items-center gap-2 truncate">
-                                                        <span className="truncate">{member.userId === user?.uid ? 'あなた' : member.inviteEmail || 'メンバー'}</span>
+                                                    <p className="font-medium flex items-center gap-2 flex-wrap">
+                                                        <span className="break-all">{member.userId === user?.uid ? 'あなた' : member.inviteEmail || 'メンバー'}</span>
                                                         <span className={cn('text-xs px-1.5 py-0.5 rounded flex-shrink-0', member.role === 'owner' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : member.role === 'editor' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300')}>
                                                             {getRoleLabel(member.role)}
                                                         </span>
                                                     </p>
-                                                    <p className="text-sm text-muted-foreground truncate">{member.inviteEmail}</p>
+                                                    <p className="text-sm text-muted-foreground break-all">{member.inviteEmail}</p>
                                                 </div>
                                             </div>
                                             {canManageMembers && member.userId !== user?.uid && (
@@ -530,8 +531,8 @@ function PetSettingsContent() {
                                                     <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
                                                         <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0"><Mail className="w-5 h-5 text-muted-foreground" /></div>
                                                         <div className="min-w-0 flex-1">
-                                                            <p className="font-medium text-muted-foreground flex items-center gap-2 truncate">
-                                                                <span className="truncate">{member.inviteEmail}</span>
+                                                            <p className="font-medium text-muted-foreground flex items-center gap-2 flex-wrap">
+                                                                <span className="break-all">{member.inviteEmail}</span>
                                                                 <span className="text-xs bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{getRoleLabel(member.role)}</span>
                                                             </p>
                                                             <p className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />承認待ち</p>
