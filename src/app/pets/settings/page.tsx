@@ -133,7 +133,10 @@ function PetSettingsContent() {
         if (!inviteEmail.trim()) return;
         setIsSubmitting(true);
         try {
-            await inviteMember(inviteEmail.trim(), inviteRole);
+            await inviteMember(inviteEmail.trim(), inviteRole, {
+                name: petName.trim(), // 現在入力中の名前を使用
+                avatarUrl: pet?.avatarUrl,
+            });
             toast.success('招待を送信しました');
             setInviteEmail('');
             setInviteRole('editor');

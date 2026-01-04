@@ -2,9 +2,10 @@
 
 import { usePendingInvitations } from '@/hooks/usePendingInvitations';
 import { useMembers } from '@/hooks/useMembers';
+import type { Pet } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PawPrint, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -52,7 +53,7 @@ function InvitationItem({
     processingId,
     setProcessingId
 }: {
-    invitation: { pet: { id: string; name: string }; member: { id: string } };
+    invitation: { pet: Pet; member: { id: string } };
     processingId: string | null;
     setProcessingId: (id: string | null) => void;
 }) {
@@ -92,6 +93,7 @@ function InvitationItem({
         >
             <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
+                    <AvatarImage src={invitation.pet.avatarUrl} alt={invitation.pet.name} />
                     <AvatarFallback className="bg-primary/10">
                         <PawPrint className="w-5 h-5 text-primary" />
                     </AvatarFallback>

@@ -39,7 +39,7 @@ export function useMembers(petId: string | null) {
     }, [petId, user]);
 
     // メンバーを招待（メールアドレスで）
-    const inviteMember = useCallback(async (email: string, role: MemberRole = 'editor') => {
+    const inviteMember = useCallback(async (email: string, role: MemberRole = 'editor', petInfo?: { name: string; avatarUrl?: string }) => {
         if (!petId || !user) throw new Error('ペットが選択されていません');
         if (currentUserRole !== 'owner') throw new Error('オーナーのみ招待できます');
 
@@ -59,7 +59,7 @@ export function useMembers(petId: string | null) {
             throw new Error('このメールアドレスは既に招待済みまたはメンバーです');
         }
 
-        await addDoc(collection(db, 'pets', petId, 'members'), {
+        const data: any = {
             userId: '', // 承諾時に設定
             inviteEmail: emailLower,
             role: role,
@@ -69,7 +69,14 @@ export function useMembers(petId: string | null) {
             updatedBy: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-        });
+        };
+
+        if (petInfo) {
+            data.petName = petInfo.name;
+            if (petInfo.avatarUrl) data.petAvatarUrl = petInfo.avatarUrl;
+        }
+
+        await addDoc(collection(db, 'pets', petId, 'members'), data);
     }, [petId, user, currentUserRole]);
 
     // 招待を承諾

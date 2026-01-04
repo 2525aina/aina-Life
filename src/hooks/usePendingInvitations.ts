@@ -30,28 +30,29 @@ export function usePendingInvitations() {
             where('status', '==', 'pending')
         );
 
-        const unsubscribe = onSnapshot(invitationsQuery, async (snapshot) => {
+        const unsubscribe = onSnapshot(invitationsQuery, (snapshot) => {
             const pendingInvitations: PendingInvitation[] = [];
 
-            for (const docSnap of snapshot.docs) {
+            snapshot.docs.forEach((docSnap) => {
                 const member = { id: docSnap.id, ...docSnap.data() } as Member;
                 const petRef = docSnap.ref.parent.parent;
 
                 if (petRef) {
-                    // ペット情報を取得するためにリスナーを設定
-                    const petId = petRef.id;
-                    const petDocSnap = await import('firebase/firestore').then(({ getDoc, doc }) =>
-                        getDoc(doc(db, 'pets', petId))
-                    );
-
-                    if (petDocSnap.exists()) {
-                        pendingInvitations.push({
-                            pet: { id: petDocSnap.id, ...petDocSnap.data() } as Pet,
-                            member,
-                        });
-                    }
+                    pendingInvitations.push({
+                        pet: {
+                            id: petRef.id,
+                            name: member.petName || '不明なペット',
+                            avatarUrl: member.petAvatarUrl,
+                            // 他の必須フィールドは適当に埋めるか、Partialにする
+                            createdAt: member.createdAt,
+                            updatedAt: member.updatedAt,
+                            createdBy: '',
+                            updatedBy: '',
+                        } as Pet,
+                        member,
+                    });
                 }
-            }
+            });
 
             setInvitations(pendingInvitations);
             setLoading(false);

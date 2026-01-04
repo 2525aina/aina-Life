@@ -70,7 +70,7 @@ export interface Pet extends AuditDocument {
 export type MemberRole = 'owner' | 'editor' | 'viewer';
 export type MemberStatus = 'pending' | 'active' | 'removed' | 'declined';
 
-export interface Member {
+export interface Member extends AuditDocument {
     id: string;
     userId: string;
     inviteEmail: string;
@@ -78,9 +78,9 @@ export interface Member {
     status: MemberStatus;
     invitedBy: string;
     invitedAt: Timestamp;
-    createdAt: Timestamp;
-    updatedAt: Timestamp;
-    updatedBy: string;
+    // 表示用（非正規化）
+    petName?: string;
+    petAvatarUrl?: string;
 }
 
 export const MEMBER_ROLES: { value: MemberRole; label: string; description: string }[] = [
