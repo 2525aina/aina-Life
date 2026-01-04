@@ -7,6 +7,7 @@ import { useMembers } from '@/hooks/useMembers';
 import { usePets } from '@/hooks/usePets';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { ImageCropper } from '@/components/ui/image-cropper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -74,12 +75,31 @@ function PetSettingsContent() {
         }
     }, [pet]);
 
+    const [cropperOpen, setCropperOpen] = useState(false);
+    const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
+
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0]) return;
         const file = e.target.files[0];
+        const url = URL.createObjectURL(file);
+        setOriginalImageSrc(url);
+        setCropperOpen(true);
+        e.target.value = '';
+    };
+
+    const handleCropComplete = (croppedBlob: Blob) => {
+        const file = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
         setPendingAvatarFile(file);
         setAvatarPreview(URL.createObjectURL(file));
         setRemoveAvatar(false);
+        setCropperOpen(false);
+    };
+
+    const handleCropCancel = () => {
+        setCropperOpen(false);
+        if (!pendingAvatarFile) {
+            setOriginalImageSrc(null);
+        }
     };
 
     const handleRemoveAvatar = () => {
@@ -240,9 +260,9 @@ function PetSettingsContent() {
                     {/* プロフィール画像 */}
                     <div className="flex flex-col items-center gap-2 mb-6">
                         <div className="relative">
-                            <Avatar className="w-24 h-24">
-                                <AvatarImage src={avatarPreview || (removeAvatar ? undefined : pet.avatarUrl)} alt={pet.name} />
-                                <AvatarFallback className="bg-primary/10 text-2xl"><PawPrint className="w-10 h-10 text-primary" /></AvatarFallback>
+                            <Avatar className="w-48 h-48 border-4 border-background shadow-xl">
+                                <AvatarImage src={avatarPreview || (removeAvatar ? undefined : pet.avatarUrl)} alt={pet.name} className="object-cover" />
+                                <AvatarFallback className="bg-primary/10 text-4xl"><PawPrint className="w-16 h-16 text-primary" /></AvatarFallback>
                             </Avatar>
                             {canEdit && (
                                 <button
@@ -525,6 +545,12 @@ function PetSettingsContent() {
                         </CardContent>
                     </Card>
                 </motion.div>
+                <ImageCropper
+                    open={cropperOpen}
+                    imageSrc={originalImageSrc}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                />
             </div>
         </AppLayout>
     );

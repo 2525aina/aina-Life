@@ -14,6 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ImageCropper } from '@/components/ui/image-cropper';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { ArrowLeft, CalendarIcon, PawPrint, Save, Camera, X } from 'lucide-react';
@@ -38,6 +39,8 @@ export default function NewPetPage() {
     // 画像
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [cropperOpen, setCropperOpen] = useState(false);
+    const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,13 +48,30 @@ export default function NewPetPage() {
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0]) return;
         const file = e.target.files[0];
+        const url = URL.createObjectURL(file);
+        setOriginalImageSrc(url);
+        setCropperOpen(true);
+        e.target.value = ''; // Reset for re-selection
+    };
+
+    const handleCropComplete = (croppedBlob: Blob) => {
+        const file = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
         setAvatarFile(file);
         setAvatarPreview(URL.createObjectURL(file));
+        setCropperOpen(false);
+    };
+
+    const handleCropCancel = () => {
+        setCropperOpen(false);
+        if (!avatarFile) {
+            setOriginalImageSrc(null);
+        }
     };
 
     const handleRemoveImage = () => {
         setAvatarFile(null);
         setAvatarPreview(null);
+        setOriginalImageSrc(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -112,15 +132,15 @@ export default function NewPetPage() {
                         {/* 画像アップロード */}
                         <div className="flex flex-col items-center gap-3">
                             <div className="relative">
-                                <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
+                                <Avatar className="w-48 h-48 border-4 border-background shadow-xl">
                                     <AvatarImage src={avatarPreview || undefined} className="object-cover" />
-                                    <AvatarFallback className="bg-primary/10 text-2xl"><PawPrint className="w-12 h-12 text-primary" /></AvatarFallback>
+                                    <AvatarFallback className="bg-primary/10 text-4xl"><PawPrint className="w-16 h-16 text-primary" /></AvatarFallback>
                                 </Avatar>
                                 <Button
                                     type="button"
                                     size="icon"
                                     variant="secondary"
-                                    className="absolute bottom-0 right-0 rounded-full shadow-lg"
+                                    className="absolute bottom-2 right-2 w-10 h-10 rounded-full shadow-lg"
                                     onClick={() => fileInputRef.current?.click()}
                                 >
                                     <Camera className="w-5 h-5" />
@@ -206,6 +226,13 @@ export default function NewPetPage() {
                             {isSubmitting ? '登録中...' : '登録する'}
                         </Button>
                     </form>
+
+                    <ImageCropper
+                        open={cropperOpen}
+                        imageSrc={originalImageSrc}
+                        onCropComplete={handleCropComplete}
+                        onCancel={handleCropCancel}
+                    />
                 </motion.div>
             </div>
         </AppLayout>
