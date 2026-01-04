@@ -14,8 +14,21 @@ export function PetSwitcher() {
     const { selectedPet, setSelectedPet } = usePetContext();
 
     useEffect(() => {
-        if (!loading && pets.length > 0 && !selectedPet) {
-            setSelectedPet(pets[0]);
+        if (loading) return;
+
+        if (pets.length > 0) {
+            // 選択中のペットがリストに存在するか確認
+            const isSelectedPetValid = selectedPet && pets.some(p => p.id === selectedPet.id);
+
+            if (!selectedPet || !isSelectedPetValid) {
+                // 未選択、または選択中のペットが削除された場合は最初のペットを選択
+                setSelectedPet(pets[0]);
+            }
+        } else {
+            // ペットが1匹もいない場合は選択解除
+            if (selectedPet) {
+                setSelectedPet(null);
+            }
         }
     }, [pets, loading, selectedPet, setSelectedPet]);
 

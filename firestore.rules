@@ -36,7 +36,11 @@ service cloud.firestore {
              exists(/databases/$(database)/documents/pets/$(petId)) &&
              get(/databases/$(database)/documents/pets/$(petId)).data.createdBy == request.auth.uid;
     }
-    
+    // ペットメンバーか（サブコレクションに自分のIDのドキュメントがあるか）
+    function isPetMember(petId) {
+      return isAuthenticated() && exists(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid));
+    }
+
     // ============================================
     // users コレクション
     // ============================================
@@ -59,10 +63,11 @@ service cloud.firestore {
     // ============================================
     match /pets/{petId} {
       // 読み取り: 作成者、またはメンバー
-      // 注意: サブコレクションのクエリはここでは使えないので、createdByで判定
+      // memberUids配列ではなく、サブコレクションの存在確認を行う
       allow read: if isAuthenticated() && (
-        resource.data.createdBy == request.auth.uid ||
-        request.auth.uid in resource.data.get('memberUids', [])
+        exists(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid)) ||
+        resource == null ||
+        ('createdBy' in resource.data && resource.data.createdBy == request.auth.uid)
       );
       
       // 作成: 認証済みユーザー
@@ -98,50 +103,56 @@ service cloud.firestore {
           isPetCreator(petId)
         );
         
-        // 削除: ペット作成者のみ（自分以外）
-        allow delete: if isAuthenticated() && isPetCreator(petId);
+        // 削除: ペット作成者、または自分宛ての招待
+        allow delete: if isAuthenticated() && (
+          isPetCreator(petId) ||
+          resource.data.inviteEmail == request.auth.token.email.lower()
+        );
       }
       
       // ----------------------------------------
       // entries サブコレクション
       // ----------------------------------------
+      // ----------------------------------------
+      // entries サブコレクション
+      // ----------------------------------------
       match /entries/{entryId} {
-        allow read: if isAuthenticated();
-        allow create: if isAuthenticated() && hasValidCreator() && hasValidUpdater();
-        allow update: if isAuthenticated() && hasValidUpdater();
-        allow delete: if isAuthenticated();
+        allow read: if isPetMember(petId);
+        allow create: if isPetMember(petId) && hasValidCreator() && hasValidUpdater();
+        allow update: if isPetMember(petId) && hasValidUpdater();
+        allow delete: if isPetMember(petId);
       }
       
       // ----------------------------------------
       // weights サブコレクション
       // ----------------------------------------
       match /weights/{weightId} {
-        allow read: if isAuthenticated();
-        allow create: if isAuthenticated() && hasValidCreator() && hasValidUpdater();
-        allow update: if isAuthenticated() && hasValidUpdater();
-        allow delete: if isAuthenticated();
+        allow read: if isPetMember(petId);
+        allow create: if isPetMember(petId) && hasValidCreator() && hasValidUpdater();
+        allow update: if isPetMember(petId) && hasValidUpdater();
+        allow delete: if isPetMember(petId);
       }
       
       // ----------------------------------------
       // tasks サブコレクション
       // ----------------------------------------
       match /tasks/{taskId} {
-        allow read: if isAuthenticated();
-        allow create: if isAuthenticated() && hasValidCreator() && hasValidUpdater();
-        allow update: if isAuthenticated() && hasValidUpdater();
-        allow delete: if isAuthenticated();
+        allow read: if isPetMember(petId);
+        allow create: if isPetMember(petId) && hasValidCreator() && hasValidUpdater();
+        allow update: if isPetMember(petId) && hasValidUpdater();
+        allow delete: if isPetMember(petId);
       }
       
       // ----------------------------------------
       // friends サブコレクション
       // ----------------------------------------
       match /friends/{friendId} {
-        allow read: if isAuthenticated();
-        allow create, update: if isAuthenticated();
-        allow delete: if isAuthenticated();
+        allow read: if isPetMember(petId);
+        allow create, update: if isPetMember(petId);
+        allow delete: if isPetMember(petId);
         
         match /encounters/{encounterId} {
-          allow read, write: if isAuthenticated();
+          allow read, write: if isPetMember(petId);
         }
       }
     }

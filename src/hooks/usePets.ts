@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-    collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, collectionGroup,
+    collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, collectionGroup, setDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,29 +20,42 @@ export function usePets() {
             return;
         }
 
+        let petUnsubscribes: (() => void)[] = [];
+
         const membersQuery = query(
             collectionGroup(db, 'members'),
             where('userId', '==', user.uid),
             where('status', '==', 'active')
         );
 
-        const unsubscribe = onSnapshot(membersQuery, async (snapshot) => {
-            const petIds = snapshot.docs.map((doc) => doc.ref.parent.parent?.id).filter(Boolean) as string[];
+        const unsubscribeMembers = onSnapshot(membersQuery, (snapshot) => {
+            // 既存のペットリスナーを解除
+            petUnsubscribes.forEach(unsub => unsub());
+            petUnsubscribes = [];
 
-            if (petIds.length === 0) {
+            const petIds = snapshot.docs.map((doc) => doc.ref.parent.parent?.id).filter(Boolean) as string[];
+            const uniquePetIds = Array.from(new Set(petIds));
+
+            if (uniquePetIds.length === 0) {
                 setPets([]);
                 setLoading(false);
                 return;
             }
 
-            const petUnsubscribes = petIds.map((petId) => {
+            // 新しいペットリストに基づいてStateを初期化（削除されたペットを除去）
+            setPets(prev => prev.filter(p => uniquePetIds.includes(p.id)));
+
+            // 各ペットのリスナーを設定
+            uniquePetIds.forEach((petId) => {
                 const petRef = doc(db, 'pets', petId);
-                return onSnapshot(petRef, (petSnap) => {
+                const unsub = onSnapshot(petRef, (petSnap) => {
                     if (petSnap.exists()) {
                         const petData = { id: petSnap.id, ...petSnap.data() } as Pet;
                         setPets((prev) => {
                             const index = prev.findIndex((p) => p.id === petId);
                             if (index >= 0) {
+                                // 変更がない場合は更新しない（レンダリング最適化）
+                                if (JSON.stringify(prev[index]) === JSON.stringify(petData)) return prev;
                                 const updated = [...prev];
                                 updated[index] = petData;
                                 return updated;
@@ -50,24 +63,32 @@ export function usePets() {
                             return [...prev, petData];
                         });
                     } else {
+                        // ペット自体が削除された場合
                         setPets((prev) => prev.filter((p) => p.id !== petId));
                     }
+                }, (error) => {
+                    console.error(`Error fetching pet ${petId}:`, error);
+                    // 権限エラーなどで読めなくなった場合も削除
+                    setPets((prev) => prev.filter((p) => p.id !== petId));
                 });
+                petUnsubscribes.push(unsub);
             });
 
             setLoading(false);
-            return () => petUnsubscribes.forEach((unsub) => unsub());
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribeMembers();
+            petUnsubscribes.forEach(unsub => unsub());
+        };
     }, [user]);
 
     const addPet = useCallback(async (petData: Omit<Pet, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy' | 'memberUids'>) => {
         if (!user) throw new Error('認証が必要です');
 
+        // 1. ペット作成 (memberUidsは不要)
         const petRef = await addDoc(collection(db, 'pets'), {
             ...petData,
-            memberUids: [user.uid],
             createdBy: user.uid,
             updatedBy: user.uid,
             createdAt: serverTimestamp(),
@@ -92,7 +113,8 @@ export function usePets() {
             memberData.petAvatarUrl = petData.avatarUrl;
         }
 
-        await addDoc(collection(db, 'pets', petRef.id, 'members'), memberData);
+        // 2. メンバー作成 (IDをUIDにする)
+        await setDoc(doc(db, 'pets', petRef.id, 'members', user.uid), memberData);
 
         return petRef.id;
     }, [user]);

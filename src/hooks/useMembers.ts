@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-    collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, where, getDocs, arrayUnion, arrayRemove,
+    collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, where, getDocs, arrayUnion, arrayRemove, writeBatch, setDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -83,20 +83,44 @@ export function useMembers(petId: string | null) {
     const acceptInvitation = useCallback(async (memberId: string) => {
         if (!petId || !user) throw new Error('エラーが発生しました');
 
+        // 既存の招待データを取得
+        // memberId はランダムID
         const memberRef = doc(db, 'pets', petId, 'members', memberId);
-        await updateDoc(memberRef, {
+
+        // Batchで処理：
+        // 1. 新しいドキュメント作成（ID: user.uid）
+        // 2. 古いドキュメント削除
+        const batch = writeBatch(db);
+
+        // 新しいドキュメントのデータ (既存データはサーバー側で取れないので、フックの外でデータを渡す設計の方がキレイだが、
+        // ここでは updateDoc の代わりに setDoc で既存項目を上書きするイメージで、
+        // ただしデータ移行が必要なので、一旦クライアントで読み取る必要があるか、
+        // あるいは useMembers の members state から探す。)
+
+        const invitation = members.find(m => m.id === memberId);
+        if (!invitation) throw new Error('招待データが見つかりません');
+
+        const newMemberRef = doc(db, 'pets', petId, 'members', user.uid);
+
+        const newData = {
+            ...invitation, // 既存データをコピー
+            id: user.uid, // ID上書き（念のため）
             userId: user.uid,
             status: 'active',
             updatedBy: user.uid,
             updatedAt: serverTimestamp(),
-        });
+        };
 
-        // ペットのメンバー配列に追加
-        const petRef = doc(db, 'pets', petId);
-        await updateDoc(petRef, {
-            memberUids: arrayUnion(user.uid),
-        });
-    }, [petId, user]);
+        // 不要なフィールドがあれば削除すべきだが、とりあえず上書き
+        batch.set(newMemberRef, newData);
+        batch.delete(memberRef); // 古い招待を削除
+
+        // ペット自体の更新 (memberUidsは廃止なので不要だが、タイムスタンプ更新などあれば)
+        // const petRef = doc(db, 'pets', petId);
+        // batch.update(petRef, { updatedAt: serverTimestamp() });
+
+        await batch.commit();
+    }, [petId, user, members]);
 
     // 招待を辞退
     const declineInvitation = useCallback(async (memberId: string) => {
@@ -177,18 +201,13 @@ export function useMembers(petId: string | null) {
             throw new Error('オーナーは削除できません。先に権限を変更してください');
         }
 
-        // 物理削除
+        const batch = writeBatch(db);
+
         // 物理削除
         const memberRef = doc(db, 'pets', petId, 'members', memberId);
-        await deleteDoc(memberRef);
+        batch.delete(memberRef);
 
-        // メンバー配列から削除（ユーザーIDが設定されている場合）
-        if (member.userId) {
-            const petRef = doc(db, 'pets', petId);
-            await updateDoc(petRef, {
-                memberUids: arrayRemove(member.userId),
-            });
-        }
+        await batch.commit();
     }, [petId, user, currentUserRole, members]);
 
     // 自分が脱退
@@ -204,16 +223,13 @@ export function useMembers(petId: string | null) {
         const currentMember = members.find((m) => m.userId === user.uid);
         if (!currentMember) throw new Error('メンバーが見つかりません');
 
-        // 物理削除
+        const batch = writeBatch(db);
+
         // 物理削除
         const memberRef = doc(db, 'pets', petId, 'members', currentMember.id);
-        await deleteDoc(memberRef);
+        batch.delete(memberRef);
 
-        // メンバー配列から削除
-        const petRef = doc(db, 'pets', petId);
-        await updateDoc(petRef, {
-            memberUids: arrayRemove(user.uid),
-        });
+        await batch.commit();
     }, [petId, user, currentUserRole, members]);
 
     // 権限に応じた操作可否
