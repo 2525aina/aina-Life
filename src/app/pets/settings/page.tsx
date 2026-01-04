@@ -50,6 +50,11 @@ function PetSettingsContent() {
     const [petMedicalNotes, setPetMedicalNotes] = useState('');
     const [petVetInfo, setPetVetInfo] = useState<VetInfo[]>([]);
 
+    // 画像関連
+    const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [removeAvatar, setRemoveAvatar] = useState(false);
+
     // 招待
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteRole, setInviteRole] = useState<MemberRole>('editor');
@@ -69,15 +74,18 @@ function PetSettingsContent() {
         }
     }, [pet]);
 
-    const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.[0] || !petId) return;
-        try {
-            const url = await uploadPetAvatar(e.target.files[0], petId);
-            await updatePet(petId, { avatarUrl: url });
-            toast.success('画像を更新しました');
-        } catch {
-            toast.error('画像のアップロードに失敗しました');
-        }
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files?.[0]) return;
+        const file = e.target.files[0];
+        setPendingAvatarFile(file);
+        setAvatarPreview(URL.createObjectURL(file));
+        setRemoveAvatar(false);
+    };
+
+    const handleRemoveAvatar = () => {
+        setPendingAvatarFile(null);
+        setAvatarPreview(null);
+        setRemoveAvatar(true);
     };
 
     const handleUpdatePet = async () => {
@@ -86,6 +94,17 @@ function PetSettingsContent() {
             return;
         }
         try {
+            let avatarUrl = pet?.avatarUrl;
+
+            // 画像削除
+            if (removeAvatar) {
+                avatarUrl = undefined;
+            }
+            // 新しい画像をアップロード
+            else if (pendingAvatarFile) {
+                avatarUrl = await uploadPetAvatar(pendingAvatarFile, petId);
+            }
+
             await updatePet(petId, {
                 name: petName.trim(),
                 breed: petBreed.trim() || undefined,
@@ -95,7 +114,14 @@ function PetSettingsContent() {
                 microchipId: petMicrochipId.trim() || undefined,
                 medicalNotes: petMedicalNotes.trim() || undefined,
                 vetInfo: petVetInfo.length > 0 ? petVetInfo : undefined,
+                avatarUrl,
             });
+
+            // 状態リセット
+            setPendingAvatarFile(null);
+            setAvatarPreview(null);
+            setRemoveAvatar(false);
+
             toast.success('更新しました');
         } catch {
             toast.error('エラーが発生しました');
@@ -209,10 +235,10 @@ function PetSettingsContent() {
                     </div>
 
                     {/* プロフィール画像 */}
-                    <div className="flex justify-center mb-6">
+                    <div className="flex flex-col items-center gap-2 mb-6">
                         <div className="relative">
                             <Avatar className="w-24 h-24">
-                                <AvatarImage src={pet.avatarUrl} alt={pet.name} />
+                                <AvatarImage src={avatarPreview || (removeAvatar ? undefined : pet.avatarUrl)} alt={pet.name} />
                                 <AvatarFallback className="bg-primary/10 text-2xl"><PawPrint className="w-10 h-10 text-primary" /></AvatarFallback>
                             </Avatar>
                             {canEdit && (
@@ -226,6 +252,14 @@ function PetSettingsContent() {
                             )}
                             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                         </div>
+                        {canEdit && (avatarPreview || pet.avatarUrl) && !removeAvatar && (
+                            <Button variant="ghost" size="sm" onClick={handleRemoveAvatar} className="text-muted-foreground hover:text-destructive">
+                                画像を削除
+                            </Button>
+                        )}
+                        {(pendingAvatarFile || removeAvatar) && (
+                            <span className="text-xs text-muted-foreground">（保存ボタンで反映されます）</span>
+                        )}
                     </div>
 
                     {/* 基本情報 */}

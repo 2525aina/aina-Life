@@ -19,17 +19,28 @@ export interface AuditDocument extends BaseDocument {
 export interface User extends BaseDocument {
     uid: string;
     email: string;
+    authEmail?: string;
+    authName?: string;
     displayName: string;
     nickname?: string;
     avatarUrl?: string;
+    profileImageUrl?: string;
     birthday?: string;
     gender?: 'male' | 'female' | 'other';
     introduction?: string;
+    primaryPetId?: string;
+    lastLoginAt?: Timestamp;
+    authProvider?: string | null;
     settings: UserSettings;
 }
 
 export interface UserSettings {
     theme: 'system' | 'light' | 'dark';
+    notifications?: {
+        dailySummary: boolean;
+    };
+    timeFormat?: 'HH:mm:ss' | 'H:m:s' | 'HH:mm' | 'H:m';
+    toastPosition?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
 }
 
 // ============================================
