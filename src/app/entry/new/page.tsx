@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
 import { useEntries } from '@/hooks/useEntries';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useCustomTasks } from '@/hooks/useCustomTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,6 +28,7 @@ export default function NewEntryPage() {
     const { selectedPet } = usePetContext();
     const { addEntry } = useEntries(selectedPet?.id || null);
     const { uploadEntryImage, uploading } = useImageUpload();
+    const { tasks, loading: tasksLoading } = useCustomTasks(selectedPet?.id || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [type, setType] = useState<'diary' | 'schedule'>('diary');
@@ -204,21 +206,27 @@ export default function NewEntryPage() {
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">カテゴリ</CardTitle></CardHeader>
                             <CardContent>
-                                <div className="flex flex-wrap gap-2">
-                                    {ENTRY_TAGS.map((tag) => (
-                                        <Button
-                                            key={tag.value}
-                                            type="button"
-                                            variant={tags.includes(tag.value) ? 'default' : 'outline'}
-                                            size="sm"
-                                            onClick={() => toggleTag(tag.value)}
-                                            className={cn('gap-1.5', tags.includes(tag.value) && 'gradient-primary')}
-                                        >
-                                            <span>{tag.emoji}</span>
-                                            <span>{tag.label}</span>
-                                        </Button>
-                                    ))}
-                                </div>
+                                {tasksLoading ? (
+                                    <div className="flex gap-2">
+                                        {[...Array(3)].map((_, i) => <div key={i} className="h-8 w-20 bg-muted animate-pulse rounded-md" />)}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        {tasks.map((task) => (
+                                            <Button
+                                                key={task.id}
+                                                type="button"
+                                                variant={tags.includes(task.name as any) ? 'default' : 'outline'}
+                                                size="sm"
+                                                onClick={() => toggleTag(task.name as any)}
+                                                className={cn('gap-1.5', tags.includes(task.name as any) && 'gradient-primary')}
+                                            >
+                                                <span>{task.emoji}</span>
+                                                <span>{task.name}</span>
+                                            </Button>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 

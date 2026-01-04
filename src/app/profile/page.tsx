@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { useTheme } from 'next-themes';
-import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, CalendarIcon, Save, User } from 'lucide-react';
+import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, CalendarIcon, Save, User, Bell, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePets } from '@/hooks/usePets';
@@ -38,6 +38,9 @@ export default function ProfilePage() {
     const [birthday, setBirthday] = useState<Date | undefined>(undefined);
     const [gender, setGender] = useState<'male' | 'female' | 'other' | ''>('');
     const [introduction, setIntroduction] = useState('');
+    const [notifications, setNotifications] = useState({ dailySummary: false });
+    const [timeFormat, setTimeFormat] = useState('HH:mm');
+    const [toastPosition, setToastPosition] = useState('bottom-right');
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -48,8 +51,33 @@ export default function ProfilePage() {
             setBirthday(userProfile.birthday ? parse(userProfile.birthday, 'yyyy-MM-dd', new Date()) : undefined);
             setGender(userProfile.gender || '');
             setIntroduction(userProfile.introduction || '');
+            if (userProfile.settings) {
+                setNotifications(userProfile.settings.notifications || { dailySummary: false });
+                setTimeFormat(userProfile.settings.timeFormat || 'HH:mm');
+                setToastPosition(userProfile.settings.toastPosition || 'bottom-right');
+            }
         }
     }, [userProfile]);
+
+    const handleUpdateSettings = async (key: string, value: any) => {
+        if (!user) return;
+
+        // Optimistic update
+        if (key === 'notifications') setNotifications(value);
+        if (key === 'timeFormat') setTimeFormat(value);
+        if (key === 'toastPosition') setToastPosition(value);
+
+        try {
+            await updateDoc(doc(db, 'users', user.uid), {
+                [`settings.${key}`]: value,
+                updatedAt: serverTimestamp()
+            });
+            // toast.success('設定を保存しました'); // いちいち出すとうるさいかも？
+        } catch (error) {
+            console.error(error);
+            toast.error('設定の保存に失敗しました');
+        }
+    };
 
     const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0] || !user) return;
@@ -215,13 +243,61 @@ export default function ProfilePage() {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                     <Card>
                         <CardHeader className="pb-2"><CardTitle className="text-base">設定</CardTitle></CardHeader>
-                        <CardContent>
+                        <CardContent className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                                     <Label htmlFor="dark-mode">ダークモード</Label>
                                 </div>
                                 <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Bell className="w-5 h-5" />
+                                    <Label htmlFor="daily-summary">毎日のサマリー通知</Label>
+                                </div>
+                                <Switch
+                                    id="daily-summary"
+                                    checked={notifications.dailySummary}
+                                    onCheckedChange={(checked) => handleUpdateSettings('notifications', { ...notifications, dailySummary: checked })}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <Clock className="w-5 h-5" />
+                                    <Label>時刻表示フォーマット</Label>
+                                </div>
+                                <Select value={timeFormat} onValueChange={(v) => handleUpdateSettings('timeFormat', v)}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="HH:mm">24時間表記 (13:00)</SelectItem>
+                                        <SelectItem value="h:mm aa">12時間表記 (1:00 PM)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <MessageSquare className="w-5 h-5" />
+                                    <Label>通知の表示位置</Label>
+                                </div>
+                                <Select value={toastPosition} onValueChange={(v) => handleUpdateSettings('toastPosition', v)}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="top-right">右上</SelectItem>
+                                        <SelectItem value="top-center">上部中央</SelectItem>
+                                        <SelectItem value="top-left">左上</SelectItem>
+                                        <SelectItem value="bottom-right">右下</SelectItem>
+                                        <SelectItem value="bottom-center">下部中央</SelectItem>
+                                        <SelectItem value="bottom-left">左下</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </CardContent>
                     </Card>
