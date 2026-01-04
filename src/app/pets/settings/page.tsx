@@ -310,31 +310,67 @@ function PetSettingsContent() {
                             </div>
                             <div>
                                 <Label>誕生日</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button variant="outline" disabled={!canEdit} className={cn('w-full mt-1 justify-start text-left font-normal', !petBirthday && 'text-muted-foreground')}>
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {petBirthday ? format(petBirthday, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={petBirthday} onSelect={setPetBirthday} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
-                                    </PopoverContent>
-                                </Popover>
+                                <div className="relative">
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" disabled={!canEdit} className={cn('w-full mt-1 justify-start text-left font-normal pr-10', !petBirthday && 'text-muted-foreground')}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {petBirthday ? format(petBirthday, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={petBirthday} onSelect={setPetBirthday} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
+                                        </PopoverContent>
+                                    </Popover>
+                                    {canEdit && petBirthday && (
+                                        <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setPetBirthday(undefined);
+                                                }}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <Label>お迎え日</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button variant="outline" disabled={!canEdit} className={cn('w-full mt-1 justify-start text-left font-normal', !petAdoptionDate && 'text-muted-foreground')}>
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {petAdoptionDate ? format(petAdoptionDate, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={petAdoptionDate} onSelect={setPetAdoptionDate} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
-                                    </PopoverContent>
-                                </Popover>
+                                <div className="relative">
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" disabled={!canEdit} className={cn('w-full mt-1 justify-start text-left font-normal pr-10', !petAdoptionDate && 'text-muted-foreground')}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {petAdoptionDate ? format(petAdoptionDate, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={petAdoptionDate} onSelect={setPetAdoptionDate} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
+                                        </PopoverContent>
+                                    </Popover>
+                                    {canEdit && petAdoptionDate && (
+                                        <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setPetAdoptionDate(undefined);
+                                                }}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

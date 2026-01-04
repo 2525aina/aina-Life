@@ -186,31 +186,67 @@ export default function NewPetPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <Label>誕生日</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" className={cn('w-full mt-1 justify-start text-left font-normal pl-3', !birthday && 'text-muted-foreground')}>
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {birthday ? format(birthday, 'yyyy/MM/dd') : '選択'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar mode="single" selected={birthday} onSelect={setBirthday} locale={ja} disabled={(date) => date > new Date()} initialFocus />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <div className="relative">
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" className={cn('w-full mt-1 justify-start text-left font-normal pl-3 pr-10', !birthday && 'text-muted-foreground')}>
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {birthday ? format(birthday, 'yyyy/MM/dd') : '選択'}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar mode="single" selected={birthday} onSelect={setBirthday} locale={ja} disabled={(date) => date > new Date()} initialFocus />
+                                                </PopoverContent>
+                                            </Popover>
+                                            {birthday && (
+                                                <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setBirthday(undefined);
+                                                        }}
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     <div>
                                         <Label>お迎え日</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" className={cn('w-full mt-1 justify-start text-left font-normal pl-3', !adoptionDate && 'text-muted-foreground')}>
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {adoptionDate ? format(adoptionDate, 'yyyy/MM/dd') : '選択'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar mode="single" selected={adoptionDate} onSelect={setAdoptionDate} locale={ja} disabled={(date) => date > new Date()} initialFocus />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <div className="relative">
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" className={cn('w-full mt-1 justify-start text-left font-normal pl-3 pr-10', !adoptionDate && 'text-muted-foreground')}>
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {adoptionDate ? format(adoptionDate, 'yyyy/MM/dd') : '選択'}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar mode="single" selected={adoptionDate} onSelect={setAdoptionDate} locale={ja} disabled={(date) => date > new Date()} initialFocus />
+                                                </PopoverContent>
+                                            </Popover>
+                                            {adoptionDate && (
+                                                <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setAdoptionDate(undefined);
+                                                        }}
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
