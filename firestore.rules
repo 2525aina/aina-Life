@@ -113,9 +113,7 @@ service cloud.firestore {
       // ----------------------------------------
       // entries サブコレクション
       // ----------------------------------------
-      // ----------------------------------------
-      // entries サブコレクション
-      // ----------------------------------------
+
       match /entries/{entryId} {
         allow read: if isPetMember(petId);
         allow create: if isPetMember(petId) && hasValidCreator() && hasValidUpdater();
