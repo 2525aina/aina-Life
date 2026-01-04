@@ -475,10 +475,17 @@ function PetSettingsContent() {
                                             {activeMembers.map((member) => (
                                                 <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-card border shadow-sm">
                                                     <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
-                                                        <Avatar className="w-10 h-10 flex-shrink-0"><AvatarFallback className="bg-primary/10">{getRoleIcon(member.role)}</AvatarFallback></Avatar>
+                                                        <Avatar className="w-10 h-10 flex-shrink-0">
+                                                            <AvatarImage src={member.userProfile?.avatarUrl} alt={member.userProfile?.displayName} />
+                                                            <AvatarFallback className="bg-primary/10">{getRoleIcon(member.role)}</AvatarFallback>
+                                                        </Avatar>
                                                         <div className="min-w-0 flex-1">
                                                             <p className="font-medium flex items-center gap-2 flex-wrap text-sm">
-                                                                <span className="break-all">{member.userId === user?.uid ? 'あなた' : member.inviteEmail || 'メンバー'}</span>
+                                                                <span className="break-all">
+                                                                    {member.userId === user?.uid
+                                                                        ? `あなた (${member.userProfile?.nickname || member.userProfile?.displayName || '未設定'})`
+                                                                        : (member.userProfile?.nickname || member.userProfile?.displayName || member.inviteEmail || 'メンバー')}
+                                                                </span>
                                                                 <span className={cn('text-[10px] px-1.5 py-0.5 rounded flex-shrink-0', member.role === 'owner' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : member.role === 'editor' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300')}>
                                                                     {getRoleLabel(member.role)}
                                                                 </span>

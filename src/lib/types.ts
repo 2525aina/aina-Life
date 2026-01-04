@@ -82,6 +82,11 @@ export interface Member extends AuditDocument {
     // 表示用（非正規化）
     petName?: string;
     petAvatarUrl?: string;
+    userProfile?: {
+        displayName: string;
+        nickname?: string;
+        avatarUrl?: string;
+    };
 }
 
 export const MEMBER_ROLES: { value: MemberRole; label: string; description: string }[] = [

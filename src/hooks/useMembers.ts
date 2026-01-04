@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-    collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, where, getDocs, arrayUnion, arrayRemove, writeBatch, setDoc,
+    collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, where, getDocs, arrayUnion, arrayRemove, writeBatch, setDoc, documentId,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Member, MemberRole } from '@/lib/types';
+import type { Member, MemberRole, User } from '@/lib/types';
 
 export function useMembers(petId: string | null) {
     const { user } = useAuth();
@@ -22,10 +22,45 @@ export function useMembers(petId: string | null) {
         }
 
         const membersQuery = query(collection(db, 'pets', petId, 'members'));
-        const unsubscribe = onSnapshot(membersQuery, (snapshot) => {
+        const unsubscribe = onSnapshot(membersQuery, async (snapshot) => {
             const membersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Member[];
+
+            // ユーザー情報を取得
+            const userIds = Array.from(new Set(membersData.map(m => m.userId).filter(id => id)));
+            let usersMap: Record<string, Partial<User>> = {};
+
+            if (userIds.length > 0) {
+                try {
+                    // Firestore 'in' query limitation is 30 (previously 10). handling consistently.
+                    const chunks = [];
+                    for (let i = 0; i < userIds.length; i += 30) {
+                        chunks.push(userIds.slice(i, i + 30));
+                    }
+
+                    for (const chunk of chunks) {
+                        const q = query(collection(db, 'users'), where(documentId(), 'in', chunk));
+                        const userSnaps = await getDocs(q);
+                        userSnaps.docs.forEach(doc => {
+                            usersMap[doc.id] = doc.data() as User;
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error fetching member profiles:", error);
+                }
+            }
+
+            // merge profiles
+            const enrichedMembers = membersData.map(m => ({
+                ...m,
+                userProfile: usersMap[m.userId] ? {
+                    displayName: usersMap[m.userId].displayName || '',
+                    nickname: usersMap[m.userId].nickname,
+                    avatarUrl: usersMap[m.userId].avatarUrl
+                } : undefined
+            }));
+
             // removed/declined は除外して表示
-            const activeMembers = membersData.filter((m) => m.status !== 'removed' && m.status !== 'declined');
+            const activeMembers = enrichedMembers.filter((m) => m.status !== 'removed' && m.status !== 'declined');
             setMembers(activeMembers);
 
             // 現在のユーザーのロールを取得
