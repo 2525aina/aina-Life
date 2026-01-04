@@ -6,7 +6,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Entry, EntryTag } from '@/lib/types';
+import type { Entry, TimeType } from '@/lib/types';
 
 export function useEntries(petId: string | null) {
     const { user } = useAuth();
@@ -32,56 +32,66 @@ export function useEntries(petId: string | null) {
 
     const addEntry = useCallback(async (entryData: {
         type: 'diary' | 'schedule';
+        timeType?: TimeType;
         title?: string;
         body?: string;
-        tags: EntryTag[];
+        tags: string[];
         imageUrls: string[];
         date: Date;
-        friendIds?: string[];
+        endDate?: Date;
+        isCompleted?: boolean;
     }) => {
         if (!petId || !user) throw new Error('ペットが選択されていません');
 
-        // Firestore は undefined を許可しないので、値がある場合のみ設定
         const docData: Record<string, unknown> = {
             type: entryData.type,
+            timeType: entryData.timeType || 'point',
             tags: entryData.tags,
             imageUrls: entryData.imageUrls,
             date: Timestamp.fromDate(entryData.date),
             createdBy: user.uid,
+            updatedBy: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         };
         if (entryData.title) docData.title = entryData.title;
         if (entryData.body) docData.body = entryData.body;
-        if (entryData.friendIds && entryData.friendIds.length > 0) docData.friendIds = entryData.friendIds;
+        if (entryData.endDate) docData.endDate = Timestamp.fromDate(entryData.endDate);
+        if (entryData.isCompleted !== undefined) docData.isCompleted = entryData.isCompleted;
 
         await addDoc(collection(db, 'pets', petId, 'entries'), docData);
     }, [petId, user]);
 
     const updateEntry = useCallback(async (entryId: string, entryData: Partial<{
         type: 'diary' | 'schedule';
+        timeType: TimeType;
         title?: string;
         body?: string;
-        tags: EntryTag[];
+        tags: string[];
         imageUrls: string[];
         date: Date;
-        friendIds?: string[];
+        endDate?: Date;
+        isCompleted?: boolean;
     }>) => {
-        if (!petId) throw new Error('ペットが選択されていません');
+        if (!petId || !user) throw new Error('ペットが選択されていません');
 
-        // undefined を除外
-        const updateData: Record<string, unknown> = { updatedAt: serverTimestamp() };
+        const updateData: Record<string, unknown> = {
+            updatedBy: user.uid,
+            updatedAt: serverTimestamp()
+        };
         if (entryData.type !== undefined) updateData.type = entryData.type;
+        if (entryData.timeType !== undefined) updateData.timeType = entryData.timeType;
         if (entryData.title !== undefined) updateData.title = entryData.title;
         if (entryData.body !== undefined) updateData.body = entryData.body;
         if (entryData.tags !== undefined) updateData.tags = entryData.tags;
         if (entryData.imageUrls !== undefined) updateData.imageUrls = entryData.imageUrls;
         if (entryData.date !== undefined) updateData.date = Timestamp.fromDate(entryData.date);
-        if (entryData.friendIds !== undefined) updateData.friendIds = entryData.friendIds;
+        if (entryData.endDate !== undefined) updateData.endDate = Timestamp.fromDate(entryData.endDate);
+        if (entryData.isCompleted !== undefined) updateData.isCompleted = entryData.isCompleted;
 
         const entryRef = doc(db, 'pets', petId, 'entries', entryId);
         await updateDoc(entryRef, updateData);
-    }, [petId]);
+    }, [petId, user]);
 
     const deleteEntry = useCallback(async (entryId: string) => {
         if (!petId) throw new Error('ペットが選択されていません');
@@ -105,5 +115,31 @@ export function useEntries(petId: string | null) {
         return getEntriesByDateRange(startOfDay, endOfDay);
     }, [getEntriesByDateRange]);
 
-    return { entries, loading, addEntry, updateEntry, deleteEntry, getEntriesByDate, getEntriesByDateRange };
+    const getScheduleEntries = useCallback(() => {
+        return entries.filter((entry) => entry.type === 'schedule' && !entry.isCompleted);
+    }, [entries]);
+
+    const getTodaySchedules = useCallback(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return entries.filter((entry) => {
+            if (entry.type !== 'schedule') return false;
+            const entryDate = entry.date.toDate();
+            return entryDate >= today && entryDate < tomorrow;
+        });
+    }, [entries]);
+
+    return {
+        entries,
+        loading,
+        addEntry,
+        updateEntry,
+        deleteEntry,
+        getEntriesByDate,
+        getEntriesByDateRange,
+        getScheduleEntries,
+        getTodaySchedules,
+    };
 }

@@ -49,7 +49,7 @@ function EditEntryContent() {
             setType(entry.type);
             setTitle(entry.title || '');
             setBody(entry.body || '');
-            setTags(entry.tags);
+            setTags(entry.tags as EntryTag[]);
             const entryDate = entry.date.toDate();
             setDate(entryDate);
             setTime(format(entryDate, 'HH:mm'));

@@ -37,20 +37,25 @@ export function useWeights(petId: string | null) {
             ...weightData,
             date: Timestamp.fromDate(weightData.date),
             createdBy: user.uid,
+            updatedBy: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
     }, [petId, user]);
 
     const updateWeight = useCallback(async (weightId: string, weightData: Partial<{ value: number; unit: 'kg' | 'g'; date: Date }>) => {
-        if (!petId) throw new Error('ペットが選択されていません');
+        if (!petId || !user) throw new Error('ペットが選択されていません');
 
-        const updateData: Record<string, unknown> = { ...weightData, updatedAt: serverTimestamp() };
+        const updateData: Record<string, unknown> = {
+            ...weightData,
+            updatedBy: user.uid,
+            updatedAt: serverTimestamp()
+        };
         if (weightData.date) updateData.date = Timestamp.fromDate(weightData.date);
 
         const weightRef = doc(db, 'pets', petId, 'weights', weightId);
         await updateDoc(weightRef, updateData);
-    }, [petId]);
+    }, [petId, user]);
 
     const deleteWeight = useCallback(async (weightId: string) => {
         if (!petId) throw new Error('ペットが選択されていません');

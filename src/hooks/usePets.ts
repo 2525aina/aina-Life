@@ -62,12 +62,13 @@ export function usePets() {
         return () => unsubscribe();
     }, [user]);
 
-    const addPet = useCallback(async (petData: Omit<Pet, 'id' | 'ownerId' | 'createdAt' | 'updatedAt'>) => {
+    const addPet = useCallback(async (petData: Omit<Pet, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>) => {
         if (!user) throw new Error('認証が必要です');
 
         const petRef = await addDoc(collection(db, 'pets'), {
             ...petData,
-            ownerId: user.uid,
+            createdBy: user.uid,
+            updatedBy: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
@@ -77,6 +78,9 @@ export function usePets() {
             role: 'owner',
             status: 'active',
             inviteEmail: user.email?.toLowerCase() || '',
+            invitedBy: user.uid,
+            invitedAt: serverTimestamp(),
+            updatedBy: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
@@ -84,10 +88,15 @@ export function usePets() {
         return petRef.id;
     }, [user]);
 
-    const updatePet = useCallback(async (petId: string, petData: Partial<Omit<Pet, 'id' | 'ownerId' | 'createdAt' | 'updatedAt'>>) => {
+    const updatePet = useCallback(async (petId: string, petData: Partial<Omit<Pet, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>>) => {
+        if (!user) throw new Error('認証が必要です');
         const petRef = doc(db, 'pets', petId);
-        await updateDoc(petRef, { ...petData, updatedAt: serverTimestamp() });
-    }, []);
+        await updateDoc(petRef, {
+            ...petData,
+            updatedBy: user.uid,
+            updatedAt: serverTimestamp()
+        });
+    }, [user]);
 
     const deletePet = useCallback(async (petId: string) => {
         const petRef = doc(db, 'pets', petId);

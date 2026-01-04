@@ -2,82 +2,192 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    
+    // ============================================
+    // ヘルパー関数
+    // ============================================
+    
+    // 認証済みか
+    function isAuthenticated() {
+      return request.auth != null;
     }
-
+    
+    // 自分自身か
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ペットメンバーを取得
+    function getMember(petId) {
+      return get(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid)).data;
+    }
+    
+    // ペットメンバーか（アクティブのみ）
+    function isMember(petId) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid)) &&
+             getMember(petId).status == 'active';
+    }
+    
+    // ペットオーナーか
+    function isPetOwner(petId) {
+      return isMember(petId) && getMember(petId).role == 'owner';
+    }
+    
+    // 編集権限があるか（owner または editor）
+    function canEdit(petId) {
+      return isMember(petId) && getMember(petId).role in ['owner', 'editor'];
+    }
+    
+    // 共通フィールドの検証
+    function hasValidTimestamps() {
+      return request.resource.data.updatedAt == request.time;
+    }
+    
+    function hasValidCreator() {
+      return request.resource.data.createdBy == request.auth.uid;
+    }
+    
+    function hasValidUpdater() {
+      return request.resource.data.updatedBy == request.auth.uid;
+    }
+    
+    // ============================================
+    // users コレクション
+    // ============================================
+    match /users/{userId} {
+      // 読み取り: 認証済みユーザー（他ユーザーのプロフィールも閲覧可能）
+      allow read: if isAuthenticated();
+      
+      // 作成: 自分自身のみ
+      allow create: if isOwner(userId) && hasValidTimestamps();
+      
+      // 更新: 自分自身のみ
+      allow update: if isOwner(userId) && hasValidTimestamps();
+      
+      // 削除: 禁止
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // pets コレクション
+    // ============================================
     match /pets/{petId} {
-      // Allow read if user is owner (on pet doc) or a member (in subcollection)
-      allow read: if request.auth != null && (
-        resource.data.ownerId == request.auth.uid || 
-        exists(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid))
-      );
-      // Allow create if authenticated
-      allow create: if request.auth != null;
-      // Allow update/delete if owner (on pet doc) or 'owner' role in members
-      allow update, delete: if request.auth != null && (
-        resource.data.ownerId == request.auth.uid || 
-        isOwnerInMembers(petId)
-      );
-
-      match /entries/{entryId} {
-        allow read, write: if request.auth != null && canAccessPet(petId);
-      }
-
-      match /weights/{weightId} {
-        allow read, write: if request.auth != null && canAccessPet(petId);
-      }
-
+      // 読み取り: メンバーのみ
+      allow read: if isMember(petId);
+      
+      // 作成: 認証済みユーザー（自分がcreatedBy/updatedBy）
+      allow create: if isAuthenticated() && 
+                       hasValidTimestamps() && 
+                       hasValidCreator() && 
+                       hasValidUpdater();
+      
+      // 更新: オーナーまたは編集者
+      allow update: if canEdit(petId) && 
+                       hasValidTimestamps() && 
+                       hasValidUpdater();
+      
+      // 削除: オーナーのみ
+      allow delete: if isPetOwner(petId);
+      
+      // ----------------------------------------
+      // members サブコレクション
+      // ----------------------------------------
       match /members/{memberId} {
-        // 読み取り: ペットにアクセスできるメンバー
-        allow read: if request.auth != null && (
-          exists(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid)) ||
-          (exists(/databases/$(database)/documents/pets/$(petId)) && 
-           get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid)
+        // 読み取り: メンバーのみ
+        allow read: if isMember(petId);
+        
+        // 作成（招待）: オーナーのみ、または自分自身の初期登録
+        allow create: if isAuthenticated() && (
+          // 自分自身を owner として登録（ペット作成時）
+          (request.resource.data.userId == request.auth.uid && 
+           request.resource.data.role == 'owner') ||
+          // オーナーによる招待
+          isPetOwner(petId)
         );
-        // 作成: ペット作成時にオーナーがメンバーを追加するケース
-        // request.resource.data.userId がリクエストしているユーザーと一致すればOK
-        allow create: if request.auth != null && (
-          request.resource.data.userId == request.auth.uid ||
-          (exists(/databases/$(database)/documents/pets/$(petId)) && 
-           get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid)
+        
+        // 更新: オーナーのみ、または招待承諾時の自分自身
+        allow update: if isAuthenticated() && (
+          // 招待承諾（自分宛ての pending を active/declined に）
+          (resource.data.inviteEmail == request.auth.token.email.lower() &&
+           resource.data.status == 'pending' &&
+           request.resource.data.status in ['active', 'declined'] &&
+           request.resource.data.userId == request.auth.uid) ||
+          // オーナーによる更新
+          isPetOwner(petId)
         );
-        // 更新・削除: ペットのオーナーのみ
-        allow update, delete: if request.auth != null && (
-          (exists(/databases/$(database)/documents/pets/$(petId)) && 
-           get(/databases/$(database)/documents/pets/$(petId)).data.ownerId == request.auth.uid) ||
-          isOwnerInMembers(petId)
-        );
+        
+        // 削除: オーナーのみ（自分自身以外）
+        allow delete: if isPetOwner(petId) && resource.data.userId != request.auth.uid;
       }
-
+      
+      // ----------------------------------------
+      // entries サブコレクション
+      // ----------------------------------------
+      match /entries/{entryId} {
+        // 読み取り: メンバーのみ
+        allow read: if isMember(petId);
+        
+        // 作成: 編集権限のあるメンバー
+        allow create: if canEdit(petId) && 
+                         hasValidTimestamps() && 
+                         hasValidCreator() && 
+                         hasValidUpdater();
+        
+        // 更新: 編集権限のあるメンバー
+        allow update: if canEdit(petId) && 
+                         hasValidTimestamps() && 
+                         hasValidUpdater();
+        
+        // 削除: 編集権限のあるメンバー
+        allow delete: if canEdit(petId);
+      }
+      
+      // ----------------------------------------
+      // weights サブコレクション
+      // ----------------------------------------
+      match /weights/{weightId} {
+        allow read: if isMember(petId);
+        allow create: if canEdit(petId) && hasValidTimestamps() && hasValidCreator() && hasValidUpdater();
+        allow update: if canEdit(petId) && hasValidTimestamps() && hasValidUpdater();
+        allow delete: if canEdit(petId);
+      }
+      
+      // ----------------------------------------
+      // tasks サブコレクション
+      // ----------------------------------------
+      match /tasks/{taskId} {
+        allow read: if isMember(petId);
+        allow create: if canEdit(petId) && hasValidTimestamps() && hasValidCreator() && hasValidUpdater();
+        allow update: if canEdit(petId) && hasValidTimestamps() && hasValidUpdater();
+        allow delete: if canEdit(petId);
+      }
+      
+      // ----------------------------------------
+      // friends サブコレクション
+      // ----------------------------------------
       match /friends/{friendId} {
-        allow read, write: if request.auth != null && canAccessPet(petId);
+        allow read: if isMember(petId);
+        allow create: if canEdit(petId) && hasValidTimestamps();
+        allow update: if canEdit(petId) && hasValidTimestamps();
+        allow delete: if canEdit(petId);
+        
         match /encounters/{encounterId} {
-          allow read, write: if request.auth != null && canAccessPet(petId);
+          allow read: if isMember(petId);
+          allow write: if canEdit(petId);
         }
       }
     }
-
+    
+    // ============================================
+    // collectionGroup クエリ用
+    // ============================================
     match /{path=**}/members/{memberId} {
-      // 自分宛の招待（inviteEmail）または自分がメンバー（userId）の場合に読み取り可能
-      // 注意: inviteEmailは小文字で保存されているので、token.emailも小文字化して比較
-      allow read: if request.auth != null && (
-        resource.data.userId == request.auth.uid || 
+      // 自分宛ての招待を検索するため
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
         resource.data.inviteEmail == request.auth.token.email.lower()
       );
-    }
-
-    // Helper functions
-    function canAccessPet(petId) {
-      // Check parent pet ownerId OR existence in members
-      let pet = get(/databases/$(database)/documents/pets/$(petId));
-      return pet.data.ownerId == request.auth.uid || 
-             exists(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid));
-    }
-
-    function isOwnerInMembers(petId) {
-      let member = get(/databases/$(database)/documents/pets/$(petId)/members/$(request.auth.uid));
-      return member != null && member.data.role == 'owner';
     }
   }
 }

@@ -34,7 +34,7 @@ export default function NewPetPage() {
         try {
             const petId = await addPet({ name: name.trim(), breed: breed.trim() || undefined, birthday: birthday ? format(birthday, 'yyyy-MM-dd') : undefined });
             toast.success(`${name}を登録しました！`);
-            setSelectedPet({ id: petId, ownerId: '', name: name.trim(), breed: breed.trim() || undefined, birthday: birthday ? format(birthday, 'yyyy-MM-dd') : undefined, createdAt: null as any, updatedAt: null as any });
+            setSelectedPet({ id: petId, name: name.trim(), breed: breed.trim() || undefined, birthday: birthday ? format(birthday, 'yyyy-MM-dd') : undefined, createdBy: '', updatedBy: '', createdAt: null as any, updatedAt: null as any });
             router.push('/dashboard');
         } catch { toast.error('エラーが発生しました'); }
         finally { setIsSubmitting(false); }

@@ -66,6 +66,7 @@ export function useMembers(petId: string | null) {
             status: 'pending',
             invitedBy: user.uid,
             invitedAt: serverTimestamp(),
+            updatedBy: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
@@ -79,20 +80,23 @@ export function useMembers(petId: string | null) {
         await updateDoc(memberRef, {
             userId: user.uid,
             status: 'active',
+            updatedBy: user.uid,
             updatedAt: serverTimestamp(),
         });
     }, [petId, user]);
 
     // 招待を辞退
     const declineInvitation = useCallback(async (memberId: string) => {
-        if (!petId) throw new Error('エラーが発生しました');
+        if (!petId || !user) throw new Error('エラーが発生しました');
 
         const memberRef = doc(db, 'pets', petId, 'members', memberId);
         await updateDoc(memberRef, {
             status: 'declined',
+            userId: user.uid,
+            updatedBy: user.uid,
             updatedAt: serverTimestamp(),
         });
-    }, [petId]);
+    }, [petId, user]);
 
     // メンバーの権限変更
     const updateMemberRole = useCallback(async (memberId: string, newRole: MemberRole) => {
@@ -113,6 +117,7 @@ export function useMembers(petId: string | null) {
         const memberRef = doc(db, 'pets', petId, 'members', memberId);
         await updateDoc(memberRef, {
             role: newRole,
+            updatedBy: user.uid,
             updatedAt: serverTimestamp(),
         });
     }, [petId, user, currentUserRole, members]);
@@ -130,6 +135,7 @@ export function useMembers(petId: string | null) {
         const newOwnerRef = doc(db, 'pets', petId, 'members', newOwnerId);
         await updateDoc(newOwnerRef, {
             role: 'owner',
+            updatedBy: user.uid,
             updatedAt: serverTimestamp(),
         });
 
@@ -139,6 +145,7 @@ export function useMembers(petId: string | null) {
             const currentMemberRef = doc(db, 'pets', petId, 'members', currentMember.id);
             await updateDoc(currentMemberRef, {
                 role: 'editor',
+                updatedBy: user.uid,
                 updatedAt: serverTimestamp(),
             });
         }
@@ -157,11 +164,9 @@ export function useMembers(petId: string | null) {
             throw new Error('オーナーは削除できません。先に権限を変更してください');
         }
 
+        // 物理削除
         const memberRef = doc(db, 'pets', petId, 'members', memberId);
-        await updateDoc(memberRef, {
-            status: 'removed',
-            updatedAt: serverTimestamp(),
-        });
+        await deleteDoc(memberRef);
     }, [petId, user, currentUserRole, members]);
 
     // 自分が脱退
@@ -177,11 +182,9 @@ export function useMembers(petId: string | null) {
         const currentMember = members.find((m) => m.userId === user.uid);
         if (!currentMember) throw new Error('メンバーが見つかりません');
 
+        // 物理削除
         const memberRef = doc(db, 'pets', petId, 'members', currentMember.id);
-        await updateDoc(memberRef, {
-            status: 'removed',
-            updatedAt: serverTimestamp(),
-        });
+        await deleteDoc(memberRef);
     }, [petId, user, currentUserRole, members]);
 
     // 権限に応じた操作可否
