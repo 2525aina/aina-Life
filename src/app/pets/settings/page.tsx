@@ -485,22 +485,22 @@ function PetSettingsContent() {
                                 <div className="space-y-2">
                                     {activeMembers.map((member) => (
                                         <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="w-10 h-10"><AvatarFallback className="bg-primary/10">{getRoleIcon(member.role)}</AvatarFallback></Avatar>
-                                                <div>
-                                                    <p className="font-medium flex items-center gap-2">
-                                                        {member.userId === user?.uid ? 'あなた' : member.inviteEmail || 'メンバー'}
-                                                        <span className={cn('text-xs px-1.5 py-0.5 rounded', member.role === 'owner' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : member.role === 'editor' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300')}>
+                                            <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                                                <Avatar className="w-10 h-10 flex-shrink-0"><AvatarFallback className="bg-primary/10">{getRoleIcon(member.role)}</AvatarFallback></Avatar>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="font-medium flex items-center gap-2 truncate">
+                                                        <span className="truncate">{member.userId === user?.uid ? 'あなた' : member.inviteEmail || 'メンバー'}</span>
+                                                        <span className={cn('text-xs px-1.5 py-0.5 rounded flex-shrink-0', member.role === 'owner' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : member.role === 'editor' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300')}>
                                                             {getRoleLabel(member.role)}
                                                         </span>
                                                     </p>
-                                                    <p className="text-sm text-muted-foreground">{member.inviteEmail}</p>
+                                                    <p className="text-sm text-muted-foreground truncate">{member.inviteEmail}</p>
                                                 </div>
                                             </div>
                                             {canManageMembers && member.userId !== user?.uid && (
-                                                <div className="flex gap-1">
+                                                <div className="flex gap-1 flex-shrink-0">
                                                     <Select value={member.role} onValueChange={(v) => handleRoleChange(member.id, v as MemberRole)}>
-                                                        <SelectTrigger className="w-28 h-8"><SelectValue /></SelectTrigger>
+                                                        <SelectTrigger className="w-[100px] h-8 text-xs px-2"><SelectValue /></SelectTrigger>
                                                         <SelectContent>
                                                             {MEMBER_ROLES.map((role) => (
                                                                 <SelectItem key={role.value} value={role.value}>
@@ -527,17 +527,17 @@ function PetSettingsContent() {
                                             <p className="text-sm text-muted-foreground pt-2">招待中</p>
                                             {pendingMembers.map((member) => (
                                                 <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-dashed">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Mail className="w-5 h-5 text-muted-foreground" /></div>
-                                                        <div>
-                                                            <p className="font-medium text-muted-foreground flex items-center gap-2">
-                                                                {member.inviteEmail}
-                                                                <span className="text-xs bg-muted px-1.5 py-0.5 rounded">{getRoleLabel(member.role)}</span>
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                                                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0"><Mail className="w-5 h-5 text-muted-foreground" /></div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-medium text-muted-foreground flex items-center gap-2 truncate">
+                                                                <span className="truncate">{member.inviteEmail}</span>
+                                                                <span className="text-xs bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{getRoleLabel(member.role)}</span>
                                                             </p>
                                                             <p className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />承認待ち</p>
                                                         </div>
                                                     </div>
-                                                    {canManageMembers && <Button variant="ghost" size="icon" onClick={() => handleRemoveMember(member.id, member.inviteEmail || '')} className="text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>}
+                                                    {canManageMembers && <Button variant="ghost" size="icon" onClick={() => handleRemoveMember(member.id, member.inviteEmail || '')} className="text-muted-foreground hover:text-destructive flex-shrink-0"><Trash2 className="w-4 h-4" /></Button>}
                                                 </div>
                                             ))}
                                         </>
@@ -551,21 +551,21 @@ function PetSettingsContent() {
                     <Card className="border-destructive/50">
                         <CardHeader className="pb-2"><CardTitle className="text-base text-destructive">危険な操作</CardTitle></CardHeader>
                         <CardContent className="space-y-3">
-                            {!isOwner && (
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild><Button variant="outline" className="w-full text-destructive hover:text-destructive"><LogOut className="w-4 h-4 mr-2" />チームから脱退</Button></AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader><AlertDialogTitle>チームから脱退</AlertDialogTitle><AlertDialogDescription>本当にこのペットのチームから脱退しますか？</AlertDialogDescription></AlertDialogHeader>
-                                        <AlertDialogFooter><AlertDialogCancel>キャンセル</AlertDialogCancel><AlertDialogAction onClick={handleLeaveTeam} className="bg-destructive text-destructive-foreground">脱退する</AlertDialogAction></AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            )}
-                            {isOwner && activeMembers.length > 1 && (
+                            {isOwner && !activeMembers.some(m => m.userId !== user?.uid && m.role === 'owner') && (
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild><Button variant="outline" className="w-full text-destructive hover:text-destructive"><LogOut className="w-4 h-4 mr-2" />チームから脱退</Button></AlertDialogTrigger>
                                     <AlertDialogContent>
                                         <AlertDialogHeader><AlertDialogTitle>チームから脱退</AlertDialogTitle><AlertDialogDescription>オーナーとして脱退する前に、他のメンバーをオーナーに設定してください。</AlertDialogDescription></AlertDialogHeader>
                                         <AlertDialogFooter><AlertDialogCancel>閉じる</AlertDialogCancel></AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
+                            {(!isOwner || activeMembers.some(m => m.userId !== user?.uid && m.role === 'owner')) && (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild><Button variant="outline" className="w-full text-destructive hover:text-destructive"><LogOut className="w-4 h-4 mr-2" />チームから脱退</Button></AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader><AlertDialogTitle>チームから脱退</AlertDialogTitle><AlertDialogDescription>本当にこのペットのチームから脱退しますか？</AlertDialogDescription></AlertDialogHeader>
+                                        <AlertDialogFooter><AlertDialogCancel>キャンセル</AlertDialogCancel><AlertDialogAction onClick={handleLeaveTeam} className="bg-destructive text-destructive-foreground">脱退する</AlertDialogAction></AlertDialogFooter>
                                     </AlertDialogContent>
                                 </AlertDialog>
                             )}

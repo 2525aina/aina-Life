@@ -73,8 +73,8 @@ service cloud.firestore {
       // 作成: 認証済みユーザー
       allow create: if isAuthenticated() && hasValidCreator() && hasValidUpdater();
       
-      // 更新: 作成者（簡易版：本来はmembersで判定すべき）
-      allow update: if isAuthenticated() && resource.data.createdBy == request.auth.uid;
+      // 更新: メンバーであれば許可（本来はroleチェックすべきだが、一旦メンバーならOKとする）
+      allow update: if isPetMember(petId);
       
       // 削除: 作成者のみ
       allow delete: if isAuthenticated() && resource.data.createdBy == request.auth.uid;
@@ -103,9 +103,10 @@ service cloud.firestore {
           isPetCreator(petId)
         );
         
-        // 削除: ペット作成者、または自分宛ての招待
+        // 削除: ペット作成者、または自分自身（脱退・辞退）
         allow delete: if isAuthenticated() && (
           isPetCreator(petId) ||
+          resource.data.userId == request.auth.uid ||
           resource.data.inviteEmail == request.auth.token.email.lower()
         );
       }
