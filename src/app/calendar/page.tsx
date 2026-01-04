@@ -70,7 +70,7 @@ export default function CalendarPage() {
                                 return (
                                     <button key={dateKey} onClick={() => setSelectedDate(day)} className={cn('relative p-1 rounded-lg transition-colors min-h-[60px] flex flex-col items-center', viewMode === 'week' && 'min-h-[100px]', !isCurrentMonth && viewMode === 'month' && 'opacity-40', isSelected && 'bg-primary/10 ring-2 ring-primary', !isSelected && 'hover:bg-muted')}>
                                         <span className={cn('text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full', isToday && 'bg-primary text-primary-foreground', dayOfWeek === 0 && 'text-red-500', dayOfWeek === 6 && 'text-blue-500')}>{format(day, 'd')}</span>
-                                        {dayEntries.length > 0 && <div className="flex gap-0.5 mt-1">{dayEntries.slice(0, 3).map((e) => <div key={e.id} className="w-1.5 h-1.5 rounded-full bg-primary" />)}{dayEntries.length > 3 && <span className="text-[10px] text-muted-foreground">+{dayEntries.length - 3}</span>}</div>}
+                                        {dayEntries.length > 0 && <div className="flex gap-0.5 mt-1 flex-wrap justify-center">{dayEntries.slice(0, 4).map((e) => <div key={e.id} className={cn('w-1.5 h-1.5 rounded-full', e.type === 'schedule' ? 'bg-orange-400' : 'bg-primary')} />)}{dayEntries.length > 4 && <span className="text-[10px] text-muted-foreground">+{dayEntries.length - 4}</span>}</div>}
                                     </button>
                                 );
                             })}
