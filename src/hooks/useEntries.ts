@@ -1,34 +1,77 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-    collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp,
+    collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp, limit as firestoreLimit, startAfter, getDocs, QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Entry, TimeType } from '@/lib/types';
 
+const PAGE_SIZE = 20;
+
 export function useEntries(petId: string | null) {
     const { user } = useAuth();
     const [entries, setEntries] = useState<Entry[]>([]);
     const [loading, setLoading] = useState(true);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const lastDocRef = useRef<QueryDocumentSnapshot | null>(null);
 
     useEffect(() => {
         if (!petId || !user) {
             setEntries([]);
             setLoading(false);
+            setHasMore(true);
             return;
         }
 
-        const entriesQuery = query(collection(db, 'pets', petId, 'entries'), orderBy('date', 'desc'));
+        // リアルタイム更新は最初のページのみ
+        const entriesQuery = query(
+            collection(db, 'pets', petId, 'entries'),
+            orderBy('date', 'desc'),
+            firestoreLimit(PAGE_SIZE)
+        );
+
         const unsubscribe = onSnapshot(entriesQuery, (snapshot) => {
             const entriesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Entry[];
             setEntries(entriesData);
             setLoading(false);
+            setHasMore(snapshot.docs.length === PAGE_SIZE);
+            lastDocRef.current = snapshot.docs[snapshot.docs.length - 1] || null;
         });
 
         return () => unsubscribe();
     }, [petId, user]);
+
+    const loadMore = useCallback(async () => {
+        if (!petId || !lastDocRef.current || loadingMore || !hasMore) return;
+
+        setLoadingMore(true);
+        try {
+            const nextQuery = query(
+                collection(db, 'pets', petId, 'entries'),
+                orderBy('date', 'desc'),
+                startAfter(lastDocRef.current),
+                firestoreLimit(PAGE_SIZE)
+            );
+
+            const snapshot = await getDocs(nextQuery);
+            const newEntries = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Entry[];
+
+            setEntries((prev) => {
+                // 重複を除外
+                const existingIds = new Set(prev.map((e) => e.id));
+                const uniqueNewEntries = newEntries.filter((e) => !existingIds.has(e.id));
+                return [...prev, ...uniqueNewEntries];
+            });
+
+            setHasMore(snapshot.docs.length === PAGE_SIZE);
+            lastDocRef.current = snapshot.docs[snapshot.docs.length - 1] || null;
+        } finally {
+            setLoadingMore(false);
+        }
+    }, [petId, loadingMore, hasMore]);
 
     const addEntry = useCallback(async (entryData: {
         type: 'diary' | 'schedule';
@@ -134,6 +177,9 @@ export function useEntries(petId: string | null) {
     return {
         entries,
         loading,
+        hasMore,
+        loadingMore,
+        loadMore,
         addEntry,
         updateEntry,
         deleteEntry,
