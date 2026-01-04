@@ -17,11 +17,20 @@ export function PetSwitcher() {
         if (loading) return;
 
         if (pets.length > 0) {
-            // 選択中のペットがリストに存在するか確認
-            const isSelectedPetValid = selectedPet && pets.some(p => p.id === selectedPet.id);
-
-            if (!selectedPet || !isSelectedPetValid) {
-                // 未選択、または選択中のペットが削除された場合は最初のペットを選択
+            if (selectedPet) {
+                // 選択中のペットが最新のリストに存在するか確認し、データが更新されていればStateも更新
+                const updatedPet = pets.find(p => p.id === selectedPet.id);
+                if (updatedPet) {
+                    // JSON.stringifyで比較して変更があれば更新 (レンダリングループ防止)
+                    if (JSON.stringify(updatedPet) !== JSON.stringify(selectedPet)) {
+                        setSelectedPet(updatedPet);
+                    }
+                } else {
+                    // 選択中のペットが削除された場合は最初のペットを選択
+                    setSelectedPet(pets[0]);
+                }
+            } else {
+                // 未選択の場合は最初のペットを選択
                 setSelectedPet(pets[0]);
             }
         } else {

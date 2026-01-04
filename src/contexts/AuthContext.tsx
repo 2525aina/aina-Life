@@ -8,7 +8,7 @@ import {
     GoogleAuthProvider,
     signOut as firebaseSignOut
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import type { User } from '@/lib/types';
 
@@ -28,40 +28,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        let unsubscribeProfile: (() => void) | null = null;
+
+        const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+            // ユーザー切り替えなどで再発火した場合、前のリスナーを解除
+            if (unsubscribeProfile) {
+                unsubscribeProfile();
+                unsubscribeProfile = null;
+            }
+
             setUser(firebaseUser);
 
             if (firebaseUser) {
                 const userRef = doc(db, 'users', firebaseUser.uid);
-                const userSnap = await getDoc(userRef);
 
-                if (userSnap.exists()) {
-                    setUserProfile({ uid: firebaseUser.uid, ...userSnap.data() } as User);
-                } else {
-                    // Firestore は undefined を許可しないので、値がある場合のみ設定
-                    const newUser: Record<string, unknown> = {
-                        displayName: firebaseUser.displayName || 'ユーザー',
-                        settings: { theme: 'system' },
-                        createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp(),
-                    };
-                    if (firebaseUser.photoURL) {
-                        newUser.avatarUrl = firebaseUser.photoURL;
+                // リアルタイムリスナーを設定
+                unsubscribeProfile = onSnapshot(userRef, async (docSnap) => {
+                    if (docSnap.exists()) {
+                        setUserProfile({ uid: firebaseUser.uid, ...docSnap.data() } as User);
+                    } else {
+                        // 初回ログイン時など、ドキュメントがない場合は作成
+                        const newUser: Record<string, unknown> = {
+                            displayName: firebaseUser.displayName || 'ユーザー',
+                            settings: { theme: 'system' },
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp(),
+                        };
+                        if (firebaseUser.photoURL) {
+                            newUser.avatarUrl = firebaseUser.photoURL;
+                        }
+                        if (firebaseUser.email) {
+                            newUser.email = firebaseUser.email;
+                        }
+
+                        try {
+                            await setDoc(userRef, newUser);
+                            // setDoc後の更新はリスナーが拾うが、即時反映のため
+                            setUserProfile({ uid: firebaseUser.uid, ...newUser } as User);
+                        } catch (e) {
+                            console.error("Error creating user profile:", e);
+                        }
                     }
-                    if (firebaseUser.email) {
-                        newUser.email = firebaseUser.email;
-                    }
-                    await setDoc(userRef, newUser);
-                    setUserProfile({ uid: firebaseUser.uid, ...newUser } as User);
-                }
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Profile sync error:", error);
+                    setLoading(false);
+                });
             } else {
                 setUserProfile(null);
+                setLoading(false);
             }
-
-            setLoading(false);
         });
 
-        return () => unsubscribe();
+        // クリーンアップ
+        return () => {
+            unsubscribeAuth();
+            if (unsubscribeProfile) {
+                unsubscribeProfile();
+            }
+        };
     }, []);
 
     const signInWithGoogle = async () => {

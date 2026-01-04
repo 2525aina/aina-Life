@@ -258,185 +258,189 @@ function PetSettingsContent() {
                         <h1 className="text-xl font-bold">{pet.name}の設定</h1>
                     </div>
 
-                    {/* プロフィール画像 */}
-                    <div className="flex flex-col items-center gap-2 mb-6">
-                        <div className="relative">
-                            <Avatar className="w-48 h-48 border-4 border-background shadow-xl">
-                                <AvatarImage src={avatarPreview || (removeAvatar ? undefined : pet.avatarUrl)} alt={pet.name} className="object-cover" />
-                                <AvatarFallback className="bg-primary/10 text-4xl"><PawPrint className="w-16 h-16 text-primary" /></AvatarFallback>
-                            </Avatar>
-                            {canEdit && (
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={uploading}
-                                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-                                >
-                                    <Camera className="w-4 h-4" />
-                                </button>
-                            )}
-                            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-                        </div>
-                        {canEdit && (avatarPreview || pet.avatarUrl) && !removeAvatar && (
-                            <Button variant="ghost" size="sm" onClick={handleRemoveAvatar} className="text-muted-foreground hover:text-destructive">
-                                画像を削除
-                            </Button>
-                        )}
-                        {(pendingAvatarFile || removeAvatar) && (
-                            <span className="text-xs text-muted-foreground">（保存ボタンで反映されます）</span>
-                        )}
-                    </div>
-
-                    {/* 基本情報 */}
-                    <Card className="mb-6">
-                        <CardHeader className="pb-2"><CardTitle className="text-base">基本情報</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <Label htmlFor="name">名前 <span className="text-destructive">*</span></Label>
-                                <Input id="name" value={petName} onChange={(e) => setPetName(e.target.value)} className="mt-1" disabled={!canEdit} />
-                            </div>
-                            <div>
-                                <Label htmlFor="breed">品種</Label>
-                                <Input id="breed" value={petBreed} onChange={(e) => setPetBreed(e.target.value)} placeholder="例：柴犬" className="mt-1" disabled={!canEdit} />
-                            </div>
-                            <div>
-                                <Label>性別</Label>
-                                <Select value={petGender} onValueChange={(v) => setPetGender(v as any)} disabled={!canEdit}>
-                                    <SelectTrigger className="mt-1"><SelectValue placeholder="選択してください" /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="male">オス ♂</SelectItem>
-                                        <SelectItem value="female">メス ♀</SelectItem>
-                                        <SelectItem value="other">その他</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>誕生日</Label>
-                                <div className="relative">
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" disabled={!canEdit} className={cn('w-full mt-1 justify-start text-left font-normal pr-10', !petBirthday && 'text-muted-foreground')}>
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {petBirthday ? format(petBirthday, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar mode="single" selected={petBirthday} onSelect={setPetBirthday} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
-                                        </PopoverContent>
-                                    </Popover>
-                                    {canEdit && petBirthday && (
-                                        <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setPetBirthday(undefined);
-                                                }}
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div>
-                                <Label>お迎え日</Label>
-                                <div className="relative">
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" disabled={!canEdit} className={cn('w-full mt-1 justify-start text-left font-normal pr-10', !petAdoptionDate && 'text-muted-foreground')}>
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {petAdoptionDate ? format(petAdoptionDate, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar mode="single" selected={petAdoptionDate} onSelect={setPetAdoptionDate} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
-                                        </PopoverContent>
-                                    </Popover>
-                                    {canEdit && petAdoptionDate && (
-                                        <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setPetAdoptionDate(undefined);
-                                                }}
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* 詳細情報 */}
-                    <Card className="mb-6">
-                        <CardHeader className="pb-2"><CardTitle className="text-base">詳細情報</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <Label htmlFor="microchipId">マイクロチップID</Label>
-                                <Input id="microchipId" value={petMicrochipId} onChange={(e) => setPetMicrochipId(e.target.value)} placeholder="15桁の番号" className="mt-1" disabled={!canEdit} />
-                            </div>
-                            <div>
-                                <Label htmlFor="medicalNotes">医療メモ</Label>
-                                <textarea
-                                    id="medicalNotes"
-                                    value={petMedicalNotes}
-                                    onChange={(e) => setPetMedicalNotes(e.target.value)}
-                                    placeholder="アレルギー、持病、服用中の薬など"
-                                    rows={3}
-                                    disabled={!canEdit}
-                                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none disabled:cursor-not-allowed disabled:opacity-50"
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* 獣医情報 */}
-                    <Card className="mb-6">
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-base">かかりつけ獣医</CardTitle>
+                    {/* プロフィール画像・編集フォーム（保存ボタンまでをグループ化してStickyにする） */}
+                    <div className="relative">
+                        <div className="flex flex-col items-center gap-2 mb-6">
+                            <div className="relative">
+                                <Avatar className="w-48 h-48 border-4 border-background shadow-xl">
+                                    <AvatarImage src={avatarPreview || (removeAvatar ? undefined : pet.avatarUrl)} alt={pet.name} className="object-cover" />
+                                    <AvatarFallback className="bg-primary/10 text-4xl"><PawPrint className="w-16 h-16 text-primary" /></AvatarFallback>
+                                </Avatar>
                                 {canEdit && (
-                                    <Button type="button" variant="outline" size="sm" onClick={addVetInfo}><Plus className="w-4 h-4 mr-1" />追加</Button>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploading}
+                                        className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                    >
+                                        <Camera className="w-4 h-4" />
+                                    </button>
                                 )}
+                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                             </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {petVetInfo.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-4">獣医情報が登録されていません</p>
-                            ) : (
-                                petVetInfo.map((vet, index) => (
-                                    <div key={index} className="flex gap-2 items-end">
-                                        <div className="flex-1">
-                                            <Label className="text-xs">病院名</Label>
-                                            <Input value={vet.name} onChange={(e) => updateVetInfo(index, 'name', e.target.value)} placeholder="◯◯動物病院" className="mt-1" disabled={!canEdit} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <Label className="text-xs">電話番号</Label>
-                                            <Input value={vet.phone || ''} onChange={(e) => updateVetInfo(index, 'phone', e.target.value)} placeholder="03-1234-5678" className="mt-1" disabled={!canEdit} />
-                                        </div>
-                                        {canEdit && (
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeVetInfo(index)} className="text-muted-foreground hover:text-destructive">
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                            {canEdit && (avatarPreview || pet.avatarUrl) && !removeAvatar && (
+                                <Button variant="ghost" size="sm" onClick={handleRemoveAvatar} className="text-muted-foreground hover:text-destructive">
+                                    画像を削除
+                                </Button>
+                            )}
+                            {(pendingAvatarFile || removeAvatar) && (
+                                <span className="text-xs text-muted-foreground">（保存ボタンで反映されます）</span>
+                            )}
+                        </div>
+
+                        {/* 基本情報 */}
+                        <Card className="mb-6">
+                            <CardHeader className="pb-2"><CardTitle className="text-base">基本情報</CardTitle></CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label htmlFor="name">名前 <span className="text-destructive">*</span></Label>
+                                    <Input id="name" value={petName} onChange={(e) => setPetName(e.target.value)} className="mt-1" disabled={!canEdit} />
+                                </div>
+                                <div>
+                                    <Label htmlFor="breed">品種</Label>
+                                    <Input id="breed" value={petBreed} onChange={(e) => setPetBreed(e.target.value)} placeholder="例：柴犬" className="mt-1" disabled={!canEdit} />
+                                </div>
+                                <div>
+                                    <Label>性別</Label>
+                                    <Select value={petGender} onValueChange={(v) => setPetGender(v as any)} disabled={!canEdit}>
+                                        <SelectTrigger className="mt-1"><SelectValue placeholder="選択してください" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">オス ♂</SelectItem>
+                                            <SelectItem value="female">メス ♀</SelectItem>
+                                            <SelectItem value="other">その他</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label>誕生日</Label>
+                                    <div className="relative">
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" disabled={!canEdit} className={cn('w-full mt-1 justify-start text-left font-normal pr-10', !petBirthday && 'text-muted-foreground')}>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {petBirthday ? format(petBirthday, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar mode="single" selected={petBirthday} onSelect={setPetBirthday} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {canEdit && petBirthday && (
+                                            <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPetBirthday(undefined);
+                                                    }}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            </div>
                                         )}
                                     </div>
-                                ))
-                            )}
-                        </CardContent>
-                    </Card>
+                                </div>
+                                <div>
+                                    <Label>お迎え日</Label>
+                                    <div className="relative">
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" disabled={!canEdit} className={cn('w-full mt-1 justify-start text-left font-normal pr-10', !petAdoptionDate && 'text-muted-foreground')}>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {petAdoptionDate ? format(petAdoptionDate, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar mode="single" selected={petAdoptionDate} onSelect={setPetAdoptionDate} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {canEdit && petAdoptionDate && (
+                                            <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPetAdoptionDate(undefined);
+                                                    }}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                    {canEdit && (
-                        <Button onClick={handleUpdatePet} className="w-full mb-6 gradient-primary">保存</Button>
-                    )}
+                        {/* 詳細情報 */}
+                        <Card className="mb-6">
+                            <CardHeader className="pb-2"><CardTitle className="text-base">詳細情報</CardTitle></CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label htmlFor="microchipId">マイクロチップID</Label>
+                                    <Input id="microchipId" value={petMicrochipId} onChange={(e) => setPetMicrochipId(e.target.value)} placeholder="15桁の番号" className="mt-1" disabled={!canEdit} />
+                                </div>
+                                <div>
+                                    <Label htmlFor="medicalNotes">医療メモ</Label>
+                                    <textarea
+                                        id="medicalNotes"
+                                        value={petMedicalNotes}
+                                        onChange={(e) => setPetMedicalNotes(e.target.value)}
+                                        placeholder="アレルギー、持病、服用中の薬など"
+                                        rows={3}
+                                        disabled={!canEdit}
+                                        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* 獣医情報 */}
+                        <Card className="mb-6">
+                            <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-base">かかりつけ獣医</CardTitle>
+                                    {canEdit && (
+                                        <Button type="button" variant="outline" size="sm" onClick={addVetInfo}><Plus className="w-4 h-4 mr-1" />追加</Button>
+                                    )}
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {petVetInfo.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground text-center py-4">獣医情報が登録されていません</p>
+                                ) : (
+                                    petVetInfo.map((vet, index) => (
+                                        <div key={index} className="flex gap-2 items-end">
+                                            <div className="flex-1">
+                                                <Label className="text-xs">病院名</Label>
+                                                <Input value={vet.name} onChange={(e) => updateVetInfo(index, 'name', e.target.value)} placeholder="◯◯動物病院" className="mt-1" disabled={!canEdit} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <Label className="text-xs">電話番号</Label>
+                                                <Input value={vet.phone || ''} onChange={(e) => updateVetInfo(index, 'phone', e.target.value)} placeholder="03-1234-5678" className="mt-1" disabled={!canEdit} />
+                                            </div>
+                                            {canEdit && (
+                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeVetInfo(index)} className="text-muted-foreground hover:text-destructive">
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {canEdit && (
+                            <div className="sticky bottom-15 z-10 pb-4">
+                                <Button onClick={handleUpdatePet} className="w-full shadow-lg gradient-primary">保存</Button>
+                            </div>
+                        )}
+                    </div>
 
                     {/* メンバー管理 */}
                     <Card className="mb-6">
