@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/features/AppLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,10 +13,10 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
-import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, CalendarIcon, Save, User, Bell, MessageSquare, Clock, ArrowLeft, Mail, Info } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, CalendarIcon, Save, User, Bell, MessageSquare, Clock, ArrowLeft, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePets } from '@/hooks/usePets';
 import { format, parse } from 'date-fns';
@@ -86,6 +86,7 @@ export default function ProfilePage() {
                 [`settings.${key}`]: value,
                 updatedAt: serverTimestamp()
             });
+            toast.success('設定を保存しました');
         } catch (error) {
             console.error(error);
             toast.error('設定の保存に失敗しました');
@@ -128,13 +129,9 @@ export default function ProfilePage() {
         setIsSaving(true);
         try {
             let avatarUrl: any = userProfile?.avatarUrl;
-
-            // 画像削除
             if (removeAvatar) {
                 avatarUrl = deleteField();
-            }
-            // 新しい画像をアップロード
-            else if (pendingAvatarFile) {
+            } else if (pendingAvatarFile) {
                 avatarUrl = await uploadUserAvatar(pendingAvatarFile);
             }
 
@@ -148,11 +145,9 @@ export default function ProfilePage() {
                 updatedAt: serverTimestamp(),
             });
 
-            // 状態リセット
             setPendingAvatarFile(null);
             setAvatarPreview(null);
             setRemoveAvatar(false);
-
             toast.success('プロフィールを更新しました');
             setIsEditing(false);
         } catch {
@@ -164,7 +159,6 @@ export default function ProfilePage() {
 
     const handleCancelEdit = () => {
         setIsEditing(false);
-        // Reset local state to profile values
         if (userProfile) {
             setDisplayName(userProfile.displayName || '');
             setNickname(userProfile.nickname || '');
@@ -179,273 +173,274 @@ export default function ProfilePage() {
 
     const displayAvatar = avatarPreview || (removeAvatar ? undefined : userProfile?.avatarUrl);
 
+    // Common List Item Component
+    const ListItem = ({ icon: Icon, label, subLabel, action, className }: any) => (
+        <div className={cn("flex items-center justify-between p-4 rounded-xl bg-card border shadow-sm hover:shadow-md transition-all duration-300 group", className)}>
+            <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-primary/10 rounded-full text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                    <Icon className="w-5 h-5" />
+                </div>
+                <div className="space-y-0.5">
+                    <h3 className="font-medium text-sm leading-none">{label}</h3>
+                    {subLabel && <p className="text-xs text-muted-foreground">{subLabel}</p>}
+                </div>
+            </div>
+            <div>{action}</div>
+        </div>
+    );
+
     return (
         <AppLayout>
-            <div className="md:container max-w-2xl mx-auto pb-24">
-                {/* ヘッダーエリア */}
-                <div className="relative h-48 bg-gradient-to-r from-primary/10 to-primary/5 mb-16 md:rounded-b-3xl -mx-4 md:mx-0">
-                    <div className="absolute top-4 left-4">
-                        <Link href="/dashboard">
-                            <Button variant="ghost" size="icon" className="bg-background/50 hover:bg-background/80 backdrop-blur-sm">
-                                <ArrowLeft className="w-5 h-5" />
-                            </Button>
-                        </Link>
-                    </div>
+            <div className="pb-32">
+                {/* Modern Hero Section */}
+                <div className="relative">
+                    <div className="absolute inset-0 h-64 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent -z-10" />
 
-                    {/* アバター（重なり） */}
-                    <div className="absolute -bottom-12 left-0 right-0 flex justify-center">
-                        <div className="relative group">
-                            <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-                                <AvatarImage src={displayAvatar} alt={userProfile?.displayName} className="object-cover" />
-                                <AvatarFallback className="bg-primary/10 text-primary text-4xl font-medium">
-                                    {userProfile?.displayName?.charAt(0) || <User className="w-12 h-12" />}
-                                </AvatarFallback>
-                            </Avatar>
+                    <div className="md:container max-w-2xl mx-auto px-4 pt-8">
+                        {/* Header Navigation */}
+                        <div className="flex items-center justify-between mb-8">
+                            <Link href="/dashboard">
+                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-background/80 hover:shadow-sm">
+                                    <ArrowLeft className="w-5 h-5" />
+                                </Button>
+                            </Link>
+                            <div className="flex gap-2">
+                                <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={signOut}>
+                                    <LogOut className="w-5 h-5" />
+                                </Button>
+                            </div>
+                        </div>
 
-                            {isEditing && (
-                                <>
-                                    <button
+                        {/* Profile Header Card */}
+                        <div className="flex flex-col items-center mb-8">
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="relative group mb-4"
+                            >
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-violet-500 rounded-full opacity-30 blur group-hover:opacity-50 transition duration-500"></div>
+                                <Avatar className="w-32 h-32 border-4 border-background shadow-2xl relative">
+                                    <AvatarImage src={displayAvatar} alt={userProfile?.displayName} className="object-cover" />
+                                    <AvatarFallback className="bg-primary/5 text-primary text-4xl font-medium">
+                                        {userProfile?.displayName?.charAt(0) || <User className="w-12 h-12" />}
+                                    </AvatarFallback>
+                                </Avatar>
+                                {isEditing && (
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
                                         onClick={() => fileInputRef.current?.click()}
-                                        disabled={uploading}
-                                        className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors z-10"
+                                        className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-background z-10"
                                     >
-                                        <Camera className="w-4 h-4" />
-                                    </button>
-                                    {!removeAvatar && (displayAvatar || userProfile?.avatarUrl) && (
-                                        <button
-                                            onClick={() => setConfirmDeleteAvatarOpen(true)}
-                                            className="absolute top-1 right-1 w-8 h-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg hover:bg-destructive/90 transition-colors z-10"
-                                            title="画像を削除"
+                                        <Camera className="w-5 h-5" />
+                                    </motion.button>
+                                )}
+                                {isEditing && !removeAvatar && (displayAvatar || userProfile?.avatarUrl) && (
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => setConfirmDeleteAvatarOpen(true)}
+                                        className="absolute top-0 right-0 w-8 h-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg border-2 border-background z-10"
+                                    >
+                                        <LogOut className="w-3 h-3 rotate-180" />
+                                    </motion.button>
+                                )}
+                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                            </motion.div>
+
+                            <AnimatePresence mode="wait">
+                                {!isEditing ? (
+                                    <motion.div
+                                        key="view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="text-center space-y-2"
+                                    >
+                                        <h1 className="text-2xl font-bold tracking-tight">{nickname || displayName}</h1>
+                                        {nickname && <p className="text-sm text-muted-foreground font-medium">{displayName}</p>}
+                                        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/50 py-1 px-3 rounded-full">
+                                            <Mail className="w-3 h-3" /> {userProfile?.email}
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-4 rounded-full px-6 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/50 transition-all"
+                                            onClick={() => setIsEditing(true)}
                                         >
-                                            <LogOut className="w-4 h-4 rotate-180" /> {/* ゴミ箱アイコンの代わり */}
-                                        </button>
-                                    )}
-                                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="px-4 space-y-8 mt-4 text-center">
-                    {/* 名前表示 (閲覧モード) */}
-                    {!isEditing && (
-                        <div className="space-y-1">
-                            <h1 className="text-2xl font-bold">{nickname || displayName}</h1>
-                            {nickname && <p className="text-sm text-muted-foreground">{displayName}</p>}
-                            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-2">
-                                <Mail className="w-3 h-3" /> {userProfile?.email}
-                            </p>
-                            <Button variant="outline" size="sm" className="mt-4 rounded-full px-6" onClick={() => setIsEditing(true)}>
-                                プロフィールを編集
-                            </Button>
-                        </div>
-                    )}
-                </div>
-
-                <div className="px-4 space-y-6 mt-8">
-                    {/* 編集フォーム */}
-                    {isEditing && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>プロフィール編集</CardTitle>
-                                    <CardDescription>あなたの情報を更新します</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        <div>
-                                            <Label htmlFor="displayName">表示名 <span className="text-destructive">*</span></Label>
-                                            <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="mt-1" placeholder="お名前" />
-                                            <p className="text-[10px] text-muted-foreground mt-1">基本となる名前です</p>
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="nickname">ニックネーム</Label>
-                                            <Input id="nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} className="mt-1" placeholder="ニックネーム（省略可）" />
-                                            <p className="text-[10px] text-muted-foreground mt-1">アプリ内で優先して表示されます</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        <div>
-                                            <Label>性別</Label>
-                                            <Select value={gender} onValueChange={(v) => setGender(v as any)}>
-                                                <SelectTrigger className="mt-1"><SelectValue placeholder="選択してください" /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="male">男性</SelectItem>
-                                                    <SelectItem value="female">女性</SelectItem>
-                                                    <SelectItem value="other">その他</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div>
-                                            <Label>誕生日</Label>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant="outline" className={cn('w-full mt-1 justify-start text-left font-normal', !birthday && 'text-muted-foreground')}>
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                                        {birthday ? format(birthday, 'yyyy年M月d日', { locale: ja }) : '選択してください'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar mode="single" selected={birthday} onSelect={setBirthday} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="introduction">自己紹介</Label>
-                                        <textarea
-                                            id="introduction"
-                                            value={introduction}
-                                            onChange={(e) => setIntroduction(e.target.value)}
-                                            rows={3}
-                                            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                                            placeholder="ペットへの想いや趣味など..."
-                                        />
-                                    </div>
-
-                                    <div className="flex gap-3 pt-4 border-t mt-4">
-                                        <Button variant="outline" className="flex-1" onClick={handleCancelEdit}>キャンセル</Button>
-                                        <Button className="flex-1 gradient-primary" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
-                                            <Save className="w-4 h-4 mr-2" />{isSaving ? '保存中...' : '変更を保存'}
+                                            <Edit3 className="w-3 h-3 mr-2" />
+                                            プロフィールを編集
                                         </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    )}
+                                    </motion.div>
+                                ) : (
+                                    <motion.div key="edit" className="w-full max-w-md mt-4" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                                        <Card className="border-none shadow-xl bg-background/80 backdrop-blur-sm">
+                                            <CardContent className="p-6 space-y-4">
+                                                <div className="grid gap-4">
+                                                    <div>
+                                                        <Label className="text-xs text-muted-foreground ml-1">表示名</Label>
+                                                        <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-muted/50" placeholder="お名前" />
+                                                    </div>
+                                                    <div>
+                                                        <Label className="text-xs text-muted-foreground ml-1">ニックネーム</Label>
+                                                        <Input value={nickname} onChange={(e) => setNickname(e.target.value)} className="bg-muted/50" placeholder="ニックネーム" />
+                                                    </div>
+                                                </div>
 
-                    {/* App Settings */}
-                    <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-base">アプリ設定</CardTitle></CardHeader>
-                        <CardContent className="space-y-6">
-                            {/* Theme */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-muted rounded-full">
-                                        {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                                    </div>
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="dark-mode" className="text-base">ダークモード</Label>
-                                        <p className="text-xs text-muted-foreground">画面を暗くして目の負担を軽減</p>
-                                    </div>
-                                </div>
-                                <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} />
-                            </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <Label className="text-xs text-muted-foreground ml-1">性別</Label>
+                                                        <Select value={gender} onValueChange={(v) => setGender(v as any)}>
+                                                            <SelectTrigger className="bg-muted/50"><SelectValue placeholder="選択" /></SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="male">男性</SelectItem>
+                                                                <SelectItem value="female">女性</SelectItem>
+                                                                <SelectItem value="other">その他</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div>
+                                                        <Label className="text-xs text-muted-foreground ml-1">誕生日</Label>
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <Button variant="outline" className={cn('w-full bg-muted/50 justify-start text-left font-normal', !birthday && 'text-muted-foreground')}>
+                                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                                    {birthday ? format(birthday, 'yyyy/MM/dd') : '選択'}
+                                                                </Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-auto p-0" align="start">
+                                                                <Calendar mode="single" selected={birthday} onSelect={setBirthday} locale={ja} disabled={(date) => date > new Date()} />
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs text-muted-foreground ml-1">自己紹介</Label>
+                                                    <textarea
+                                                        value={introduction}
+                                                        onChange={(e) => setIntroduction(e.target.value)}
+                                                        rows={2}
+                                                        className="w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus:bg-background transition-colors resize-none"
+                                                        placeholder="ひとこと..."
+                                                    />
+                                                </div>
 
-                            {/* Notifications */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-muted rounded-full">
-                                        <Bell className="w-4 h-4" />
-                                    </div>
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="daily-summary" className="text-base">デイリーサマリー</Label>
-                                        <p className="text-xs text-muted-foreground">毎日の記録まとめを受け取る</p>
-                                    </div>
-                                </div>
-                                <Switch
-                                    id="daily-summary"
-                                    checked={notifications.dailySummary}
-                                    onCheckedChange={(checked) => handleUpdateSettings('notifications', { ...notifications, dailySummary: checked })}
-                                />
-                            </div>
+                                                <div className="flex gap-2 pt-2">
+                                                    <Button variant="ghost" className="flex-1" onClick={handleCancelEdit}>キャンセル</Button>
+                                                    <Button className="flex-1 gradient-primary shadow-lg" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
+                                                        <Save className="w-4 h-4 mr-2" />{isSaving ? '保存中...' : '保存'}
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
 
-                            {/* Time Format */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-muted rounded-full">
-                                        <Clock className="w-4 h-4" />
-                                    </div>
-                                    <Label className="text-base">時刻フォーマット</Label>
-                                </div>
-                                <Select value={timeFormat} onValueChange={(v) => handleUpdateSettings('timeFormat', v)}>
-                                    <SelectTrigger className="w-[140px]">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="HH:mm">24時間 (13:00)</SelectItem>
-                                        <SelectItem value="h:mm aa">12時間 (1:00 PM)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Toast Position */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-muted rounded-full">
-                                        <MessageSquare className="w-4 h-4" />
-                                    </div>
-                                    <Label className="text-base">通知位置</Label>
-                                </div>
-                                <Select value={toastPosition} onValueChange={(v) => handleUpdateSettings('toastPosition', v)}>
-                                    <SelectTrigger className="w-[140px]">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="top-right">右上</SelectItem>
-                                        <SelectItem value="top-center">上部中央</SelectItem>
-                                        <SelectItem value="top-left">左上</SelectItem>
-                                        <SelectItem value="bottom-right">右下</SelectItem>
-                                        <SelectItem value="bottom-center">下部中央</SelectItem>
-                                        <SelectItem value="bottom-left">左下</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* ペット一覧 */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-base flex items-center gap-2"><PawPrint className="w-4 h-4" />登録ペット</CardTitle>
-                                <Link href="/pets/new"><Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10">追加</Button></Link>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {pets.length === 0 ? (
-                                <div className="text-center py-6 bg-muted/20 rounded-lg">
-                                    <p className="text-muted-foreground mb-2">まだペットが登録されていません</p>
-                                    <Link href="/pets/new"><Button size="sm" variant="outline">登録する</Button></Link>
-                                </div>
-                            ) : (
+                        {/* Settings Sections */}
+                        <div className="space-y-8">
+                            {/* Pets Section */}
+                            <section className="space-y-3">
+                                <h2 className="text-lg font-semibold px-1 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-primary" />
+                                    マイファミリー
+                                </h2>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     {pets.map((pet) => (
                                         <Link key={pet.id} href={`/pets/settings?id=${pet.id}`}>
-                                            <div className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/50 transition-colors shadow-sm">
-                                                <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
+                                            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 group">
+                                                <Avatar className="w-12 h-12 border-2 border-background group-hover:scale-105 transition-transform duration-300">
                                                     <AvatarImage src={pet.avatarUrl} alt={pet.name} className="object-cover" />
-                                                    <AvatarFallback className="bg-primary/10"><PawPrint className="w-5 h-5 text-primary" /></AvatarFallback>
+                                                    <AvatarFallback className="bg-orange-100 text-orange-500"><PawPrint className="w-6 h-6" /></AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-bold text-sm truncate">{pet.name}</p>
+                                                    <p className="font-bold text-sm truncate group-hover:text-primary transition-colors">{pet.name}</p>
                                                     <p className="text-xs text-muted-foreground truncate">{pet.breed || '犬種未設定'}</p>
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="text-muted-foreground"><ArrowLeft className="w-4 h-4 rotate-180" /></Button>
+                                                <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary/50 group-hover:translate-x-1 transition-all" />
                                             </div>
                                         </Link>
                                     ))}
+                                    <Link href="/pets/new">
+                                        <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed hover:bg-muted/50 hover:border-primary/30 transition-all duration-300 cursor-pointer h-full justify-center group">
+                                            <div className="w-8 h-8 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                                                <PawPrint className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                            </div>
+                                            <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">新しい家族を迎える</span>
+                                        </div>
+                                    </Link>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </section>
 
-                    {/* その他リンク */}
-                    <div className="space-y-3">
-                        <a href="https://aina-life-dev.web.app" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-xl bg-card border shadow-sm hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-muted rounded-full"><Info className="w-4 h-4" /></div>
-                                <span className="font-medium text-sm">旧アプリ（aina-life-dev）</span>
-                            </div>
-                            <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                        </a>
+                            {/* App Settings */}
+                            <section className="space-y-3">
+                                <h2 className="text-lg font-semibold px-1 flex items-center gap-2">
+                                    <Settings className="w-4 h-4 text-primary" />
+                                    アプリ設定
+                                </h2>
+                                <div className="space-y-3">
+                                    <ListItem
+                                        icon={theme === 'dark' ? Moon : Sun}
+                                        label="ダークモード"
+                                        subLabel="画面の明度を調整します"
+                                        action={<Switch checked={theme === 'dark'} onCheckedChange={(c) => setTheme(c ? 'dark' : 'light')} />}
+                                    />
+                                    <ListItem
+                                        icon={Bell}
+                                        label="デイリーサマリー"
+                                        subLabel="毎日の記録まとめを受け取る"
+                                        action={<Switch checked={notifications.dailySummary} onCheckedChange={(c) => handleUpdateSettings('notifications', { ...notifications, dailySummary: c })} />}
+                                    />
+                                    <ListItem
+                                        icon={Clock}
+                                        label="時刻表記"
+                                        subLabel={timeFormat}
+                                        action={
+                                            <Select value={timeFormat} onValueChange={(v) => handleUpdateSettings('timeFormat', v)}>
+                                                <SelectTrigger className="w-[100px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="HH:mm">24時間</SelectItem>
+                                                    <SelectItem value="h:mm aa">12時間</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        }
+                                    />
+                                    <ListItem
+                                        icon={MessageSquare}
+                                        label="通知位置"
+                                        subLabel="トースト通知の表示場所"
+                                        action={
+                                            <Select value={toastPosition} onValueChange={(v) => handleUpdateSettings('toastPosition', v)}>
+                                                <SelectTrigger className="w-[100px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="top-right">右上</SelectItem>
+                                                    <SelectItem value="top-center">上部中央</SelectItem>
+                                                    <SelectItem value="bottom-right">右下</SelectItem>
+                                                    <SelectItem value="bottom-center">下部中央</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        }
+                                    />
+                                </div>
+                            </section>
 
-                        <Button variant="ghost" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 h-12" onClick={signOut}>
-                            <LogOut className="w-4 h-4 mr-2" />ログアウト
-                        </Button>
+                            {/* Other Links */}
+                            <section className="space-y-3">
+                                <h2 className="text-lg font-semibold px-1 flex items-center gap-2">
+                                    <span className="w-4 h-4" /> {/* Spacer for alignment */}
+                                    その他
+                                </h2>
+                                <a href="https://aina-life-dev.web.app" target="_blank" rel="noopener noreferrer">
+                                    <ListItem
+                                        icon={ExternalLink}
+                                        label="旧アプリを開く"
+                                        subLabel="aina-life-dev.web.app"
+                                        action={<ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                                    />
+                                </a>
+                            </section>
+                        </div>
                     </div>
                 </div>
 
@@ -459,8 +454,8 @@ export default function ProfilePage() {
                 <Dialog open={confirmDeleteAvatarOpen} onOpenChange={setConfirmDeleteAvatarOpen}>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>画像を削除</DialogTitle>
-                            <DialogDescription>プロフィール画像を削除して初期状態に戻しますか？</DialogDescription>
+                            <DialogTitle>画像を削除しますか？</DialogTitle>
+                            <DialogDescription>プロフィール画像が初期状態に戻ります。この操作は取り消せません。</DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setConfirmDeleteAvatarOpen(false)}>キャンセル</Button>
