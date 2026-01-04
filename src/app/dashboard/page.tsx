@@ -53,6 +53,7 @@ export default function DashboardPage() {
         return (
             <AppLayout>
                 <div className="p-4 space-y-6">
+                    <PendingInvitations />
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
                         <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center mb-4"><PawPrint className="w-10 h-10 text-muted-foreground" /></div>
                         <h2 className="text-xl font-semibold mb-2">ペットを登録しましょう</h2>
