@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePets } from '@/hooks/usePets';
 import { usePetContext } from '@/contexts/PetContext';
@@ -24,6 +25,7 @@ import { toast } from 'sonner';
 
 export default function NewPetPage() {
     const router = useRouter();
+    const { user } = useAuth();
     const { addPet, updatePet } = usePets();
     const { setSelectedPet } = usePetContext();
     const { uploadPetAvatar, uploading } = useImageUpload();
@@ -110,6 +112,7 @@ export default function NewPetPage() {
                 id: petId,
                 ...petData,
                 avatarUrl: finalAvatarUrl,
+                memberUids: user ? [user.uid] : [],
                 createdBy: '', updatedBy: '', createdAt: null as any, updatedAt: null as any
             });
             router.push('/dashboard');

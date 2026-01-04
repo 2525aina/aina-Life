@@ -62,11 +62,12 @@ export function usePets() {
         return () => unsubscribe();
     }, [user]);
 
-    const addPet = useCallback(async (petData: Omit<Pet, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>) => {
+    const addPet = useCallback(async (petData: Omit<Pet, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy' | 'memberUids'>) => {
         if (!user) throw new Error('認証が必要です');
 
         const petRef = await addDoc(collection(db, 'pets'), {
             ...petData,
+            memberUids: [user.uid],
             createdBy: user.uid,
             updatedBy: user.uid,
             createdAt: serverTimestamp(),
@@ -96,7 +97,7 @@ export function usePets() {
         return petRef.id;
     }, [user]);
 
-    const updatePet = useCallback(async (petId: string, petData: Partial<Omit<Pet, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>>) => {
+    const updatePet = useCallback(async (petId: string, petData: Partial<Omit<Pet, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy' | 'memberUids'>>) => {
         if (!user) throw new Error('認証が必要です');
         const petRef = doc(db, 'pets', petId);
         await updateDoc(petRef, {

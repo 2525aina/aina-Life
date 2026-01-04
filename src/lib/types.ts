@@ -62,6 +62,7 @@ export interface Pet extends AuditDocument {
     microchipId?: string;
     medicalNotes?: string;
     vetInfo?: VetInfo[];
+    memberUids: string[];
 }
 
 // ============================================

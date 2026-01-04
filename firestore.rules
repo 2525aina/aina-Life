@@ -62,7 +62,7 @@ service cloud.firestore {
       // 注意: サブコレクションのクエリはここでは使えないので、createdByで判定
       allow read: if isAuthenticated() && (
         resource.data.createdBy == request.auth.uid ||
-        isPetCreator(petId)
+        request.auth.uid in resource.data.memberUids
       );
       
       // 作成: 認証済みユーザー

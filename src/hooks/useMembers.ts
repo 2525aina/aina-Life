@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-    collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, where, getDocs,
+    collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, where, getDocs, arrayUnion, arrayRemove,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -90,6 +90,12 @@ export function useMembers(petId: string | null) {
             updatedBy: user.uid,
             updatedAt: serverTimestamp(),
         });
+
+        // ペットのメンバー配列に追加
+        const petRef = doc(db, 'pets', petId);
+        await updateDoc(petRef, {
+            memberUids: arrayUnion(user.uid),
+        });
     }, [petId, user]);
 
     // 招待を辞退
@@ -172,8 +178,17 @@ export function useMembers(petId: string | null) {
         }
 
         // 物理削除
+        // 物理削除
         const memberRef = doc(db, 'pets', petId, 'members', memberId);
         await deleteDoc(memberRef);
+
+        // メンバー配列から削除（ユーザーIDが設定されている場合）
+        if (member.userId) {
+            const petRef = doc(db, 'pets', petId);
+            await updateDoc(petRef, {
+                memberUids: arrayRemove(member.userId),
+            });
+        }
     }, [petId, user, currentUserRole, members]);
 
     // 自分が脱退
@@ -190,8 +205,15 @@ export function useMembers(petId: string | null) {
         if (!currentMember) throw new Error('メンバーが見つかりません');
 
         // 物理削除
+        // 物理削除
         const memberRef = doc(db, 'pets', petId, 'members', currentMember.id);
         await deleteDoc(memberRef);
+
+        // メンバー配列から削除
+        const petRef = doc(db, 'pets', petId);
+        await updateDoc(petRef, {
+            memberUids: arrayRemove(user.uid),
+        });
     }, [petId, user, currentUserRole, members]);
 
     // 権限に応じた操作可否
