@@ -23,7 +23,7 @@ export const db = initializeFirestore(app, {
 export const storage = getStorage(app);
 
 // エミュレータ接続（開発環境のみ）
-const USE_EMULATOR = process.env.NEXT_PUBLIC_USE_EMULATOR === 'true';
+const USE_EMULATOR = process.env.NEXT_PUBLIC_USE_EMULATOR === 'true' && process.env.NODE_ENV === 'development';
 
 if (typeof window !== 'undefined' && USE_EMULATOR) {
     // Auth Emulator
