@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
                 <div className="fixed bottom-0 right-0 w-[80%] h-[50%] bg-blue-400/5 rounded-full blur-[100px] -z-20 pointer-events-none" />
 
-                <div className="sticky top-0 z-20 px-4 pt-6 pb-4 bg-gradient-to-b from-background via-background/95 to-transparent backdrop-blur-sm">
+                <div className="sticky top-14 z-20 px-4 pt-4 pb-4 bg-gradient-to-b from-background via-background/95 to-transparent backdrop-blur-sm">
                     <PendingInvitations />
 
                     {/* Header */}
