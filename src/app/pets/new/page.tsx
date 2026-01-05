@@ -143,7 +143,7 @@ export default function NewPetPage() {
 
                             <div className="relative group mb-6">
                                 <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-orange-400 rounded-full opacity-30 blur-xl group-hover:opacity-40 transition duration-1000 animate-pulse" />
-                                <Avatar className="w-40 h-40 border-4 border-white/50 dark:border-white/10 shadow-2xl relative z-10">
+                                <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-white/50 dark:border-white/10 shadow-2xl relative z-10">
                                     <AvatarImage src={avatarPreview || undefined} className="object-cover" />
                                     <AvatarFallback className="bg-white/50 dark:bg-black/20 text-4xl backdrop-blur-md"><PawPrint className="w-16 h-16 text-primary/50" /></AvatarFallback>
                                 </Avatar>
@@ -182,7 +182,7 @@ export default function NewPetPage() {
                                         <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="ペットの名前" maxLength={20} className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20 focus:scale-[1.01] transition-transform" />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="breed" className="text-xs font-bold text-muted-foreground ml-1">品種</Label>
                                             <Input id="breed" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="例：柴犬" className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20" />
@@ -202,7 +202,7 @@ export default function NewPetPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <DatePickerDropdown
                                             label="誕生日"
                                             date={birthday}
