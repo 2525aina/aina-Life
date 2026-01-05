@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { SPECIES_DATA } from '@/lib/constants/species';
 import { PET_COLORS } from '@/lib/constants/colors';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { ArrowLeft, Camera, Loader2, MapPin, User, Phone, Home } from 'lucide-react';
@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 
-export default function EditFriendPage() {
+function EditFriendContent() {
     const { selectedPet } = usePetContext();
     const { canEdit } = useMembers(selectedPet?.id || null);
     const { updateFriend } = useFriends(selectedPet?.id || null);
@@ -469,5 +469,13 @@ export default function EditFriendPage() {
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+export default function EditFriendPage() {
+    return (
+        <Suspense fallback={<AppLayout><div className="p-8 text-center">読み込み中...</div></AppLayout>}>
+            <EditFriendContent />
+        </Suspense>
     );
 }
