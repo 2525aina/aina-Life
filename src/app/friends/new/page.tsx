@@ -464,18 +464,22 @@ export default function NewFriendPage() {
                             </div>
                         </section>
 
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting || uploading}
-                            className="w-full h-14 rounded-full gradient-primary text-lg font-bold shadow-lg"
-                        >
-                            {(isSubmitting || uploading) ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    登録中...
-                                </>
-                            ) : '登録する'}
-                        </Button>
+                        <div className="sticky bottom-24 z-20 pt-4 mx-auto max-w-sm">
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting || uploading}
+                                className="rounded-full gradient-primary shadow-2xl w-full h-14 text-lg font-bold hover:scale-105 active:scale-95 transition-all"
+                            >
+                                {(isSubmitting || uploading) ? (
+                                    <>
+                                        <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                                        登録中...
+                                    </>
+                                ) : (
+                                    '登録する'
+                                )}
+                            </Button>
+                        </div>
                     </form>
                 </div>
             </div>
