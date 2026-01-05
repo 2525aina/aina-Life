@@ -211,12 +211,7 @@ export function TimelineView() {
                                         )}
                                     </div>
 
-                                    {/* Decoration for 'Schedule' type */}
-                                    {isSchedule && (
-                                        <div className="absolute top-3 right-3 text-[10px] font-bold tracking-wider text-blue-500/40 dark:text-blue-400/30 uppercase pointer-events-none">
-                                            Schedule
-                                        </div>
-                                    )}
+
                                 </div>
                             </Link>
                         </motion.div>
