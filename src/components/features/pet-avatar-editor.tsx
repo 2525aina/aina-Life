@@ -15,6 +15,7 @@ interface PetAvatarEditorProps {
     disabled?: boolean;
     className?: string;
     avatarClassName?: string;
+    showRemoveButton?: boolean;
 }
 
 export function PetAvatarEditor({
@@ -24,6 +25,7 @@ export function PetAvatarEditor({
     disabled = false,
     className,
     avatarClassName,
+    showRemoveButton = true,
 }: PetAvatarEditorProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [cropperOpen, setCropperOpen] = useState(false);
@@ -80,7 +82,7 @@ export function PetAvatarEditor({
                         disabled={disabled}
                     />
 
-                    {imageUrl && (
+                    {imageUrl && showRemoveButton && (
                         <button
                             type="button"
                             onClick={onImageRemove}
