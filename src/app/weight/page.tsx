@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
+import { useMembers } from '@/hooks/useMembers';
 import { useWeights } from '@/hooks/useWeights';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function WeightPage() {
     const { selectedPet } = usePetContext();
+    const { canEdit } = useMembers(selectedPet?.id || null);
     const { weights, loading, addWeight, deleteWeight } = useWeights(selectedPet?.id || null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [newWeight, setNewWeight] = useState('');
@@ -36,6 +38,7 @@ export default function WeightPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!canEdit) return;
         const value = parseFloat(newWeight);
         if (isNaN(value) || value <= 0) { toast.error('正しい体重を入力してください'); return; }
         setIsSubmitting(true);
@@ -44,7 +47,11 @@ export default function WeightPage() {
         finally { setIsSubmitting(false); }
     };
 
-    const handleDelete = async (weightId: string) => { if (!confirm('この記録を削除しますか？')) return; try { await deleteWeight(weightId); toast.success('削除しました'); } catch { toast.error('エラーが発生しました'); } };
+    const handleDelete = async (weightId: string) => {
+        if (!canEdit) return;
+        if (!confirm('この記録を削除しますか？')) return;
+        try { await deleteWeight(weightId); toast.success('削除しました'); } catch { toast.error('エラーが発生しました'); }
+    };
 
     if (!selectedPet) return <AppLayout><div className="p-4 text-center py-12"><p className="text-muted-foreground">ペットを選択してください</p></div></AppLayout>;
 
@@ -64,63 +71,65 @@ export default function WeightPage() {
                             </h1>
                             <p className="text-xs font-bold text-muted-foreground ml-1">{selectedPet.name}の成長記録</p>
                         </div>
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="rounded-full gradient-primary shadow-xl hover:shadow-primary/25 h-12 px-6 transition-all hover:scale-105 active:scale-95 text-base font-bold">
-                                    <Plus className="w-5 h-5 mr-2" /> 記録
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md rounded-[2rem] border-white/20 glass">
-                                <DialogHeader>
-                                    <DialogTitle>体重を記録</DialogTitle>
-                                </DialogHeader>
-                                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                                    <div className="flex gap-4">
-                                        <div className="flex-1 space-y-2">
-                                            <Label htmlFor="weight" className="text-xs font-medium text-muted-foreground ml-1">体重</Label>
-                                            <Input
-                                                id="weight"
-                                                type="number"
-                                                step="0.01"
-                                                value={newWeight}
-                                                onChange={(e) => setNewWeight(e.target.value)}
-                                                placeholder="0.00"
-                                                className="h-12 rounded-xl bg-white/50 border-white/20 text-lg font-bold"
-                                            />
-                                        </div>
-                                        <div className="w-24 space-y-2">
-                                            <Label className="text-xs font-medium text-muted-foreground ml-1">単位</Label>
-                                            <Select value={newUnit} onValueChange={(v) => setNewUnit(v as 'kg' | 'g')}>
-                                                <SelectTrigger className="h-12 rounded-xl bg-white/50 border-white/20">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="kg">kg</SelectItem>
-                                                    <SelectItem value="g">g</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-medium text-muted-foreground ml-1">日付</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" className={cn('w-full h-12 justify-start text-left font-normal rounded-xl bg-white/50 border-white/20')}>
-                                                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                                                    {format(newDate, 'yyyy年M月d日', { locale: ja })}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0 rounded-xl" align="start">
-                                                <Calendar mode="single" selected={newDate} onSelect={(d) => d && setNewDate(d)} locale={ja} initialFocus />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                    <Button type="submit" disabled={isSubmitting} className="w-full h-12 rounded-xl gradient-primary text-base font-bold shadow-lg">
-                                        {isSubmitting ? '保存中...' : '保存する'}
+                        {canEdit && (
+                            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button className="rounded-full gradient-primary shadow-xl hover:shadow-primary/25 h-12 px-6 transition-all hover:scale-105 active:scale-95 text-base font-bold">
+                                        <Plus className="w-5 h-5 mr-2" /> 記録
                                     </Button>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md rounded-[2rem] border-white/20 glass">
+                                    <DialogHeader>
+                                        <DialogTitle>体重を記録</DialogTitle>
+                                    </DialogHeader>
+                                    <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                                        <div className="flex gap-4">
+                                            <div className="flex-1 space-y-2">
+                                                <Label htmlFor="weight" className="text-xs font-medium text-muted-foreground ml-1">体重</Label>
+                                                <Input
+                                                    id="weight"
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={newWeight}
+                                                    onChange={(e) => setNewWeight(e.target.value)}
+                                                    placeholder="0.00"
+                                                    className="h-12 rounded-xl bg-white/50 border-white/20 text-lg font-bold"
+                                                />
+                                            </div>
+                                            <div className="w-24 space-y-2">
+                                                <Label className="text-xs font-medium text-muted-foreground ml-1">単位</Label>
+                                                <Select value={newUnit} onValueChange={(v) => setNewUnit(v as 'kg' | 'g')}>
+                                                    <SelectTrigger className="h-12 rounded-xl bg-white/50 border-white/20">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="kg">kg</SelectItem>
+                                                        <SelectItem value="g">g</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-medium text-muted-foreground ml-1">日付</Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" className={cn('w-full h-12 justify-start text-left font-normal rounded-xl bg-white/50 border-white/20')}>
+                                                        <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                                        {format(newDate, 'yyyy年M月d日', { locale: ja })}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0 rounded-xl" align="start">
+                                                    <Calendar mode="single" selected={newDate} onSelect={(d) => d && setNewDate(d)} locale={ja} initialFocus />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                        <Button type="submit" disabled={isSubmitting} className="w-full h-12 rounded-xl gradient-primary text-base font-bold shadow-lg">
+                                            {isSubmitting ? '保存中...' : '保存する'}
+                                        </Button>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                        )}
                     </div>
 
                     {/* Hero Stat Card */}
@@ -250,14 +259,16 @@ export default function WeightPage() {
                                                 <p className="text-[10px] text-muted-foreground mt-1">{format(w.date.toDate(), 'yyyy年M月', { locale: ja })}</p>
                                             </div>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleDelete(w.id)}
-                                            className="text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-full w-8 h-8"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                        {canEdit && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleDelete(w.id)}
+                                                className="text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-full w-8 h-8"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
                                     </motion.div>
                                 ))}
                             </div>

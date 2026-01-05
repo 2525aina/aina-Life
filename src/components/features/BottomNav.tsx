@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { Home, Calendar, Plus, BarChart3, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { usePetContext } from '@/contexts/PetContext';
+import { useMembers } from '@/hooks/useMembers';
 
 const navItems = [
     { href: '/dashboard', icon: Home, label: 'ホーム' },
@@ -16,6 +18,8 @@ const navItems = [
 
 export function BottomNav() {
     const pathname = usePathname();
+    const { selectedPet } = usePetContext();
+    const { canEdit } = useMembers(selectedPet?.id || null);
 
     return (
         <nav className="fixed bottom-6 left-0 right-0 z-50 pointer-events-none flex justify-center safe-area-bottom">
@@ -25,6 +29,7 @@ export function BottomNav() {
                     const Icon = item.icon;
 
                     if (item.isAction) {
+                        if (!canEdit) return <div key={item.href} className="w-14" />; // Placeholder to keep spacing
                         return (
                             <Link key={item.href} href={item.href} className="relative -top-6">
                                 <motion.div

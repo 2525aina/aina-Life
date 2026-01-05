@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
+import { useMembers } from '@/hooks/useMembers';
 import { useEntries } from '@/hooks/useEntries';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -15,13 +16,21 @@ function EditEntryContent() {
     const entryId = searchParams.get('id');
 
     const { selectedPet } = usePetContext();
+    const { canEdit, loading: membersLoading } = useMembers(selectedPet?.id || null);
     const { entries, updateEntry, loading } = useEntries(selectedPet?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!membersLoading && !canEdit) {
+            toast.error('編集権限がありません');
+            router.push('/dashboard');
+        }
+    }, [canEdit, membersLoading, router]);
 
     const entry = entries.find((e) => e.id === entryId);
 
     const handleSubmit = async (data: any) => {
-        if (!selectedPet || !entryId) {
+        if (!selectedPet || !entryId || !canEdit) {
             toast.error('エラーが発生しました');
             return;
         }

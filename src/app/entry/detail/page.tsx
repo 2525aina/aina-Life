@@ -15,6 +15,7 @@ import { ArrowLeft, Trash2, Edit, Calendar, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
+import { useMembers } from '@/hooks/useMembers';
 
 function EntryDetailContent() {
     const router = useRouter();
@@ -25,10 +26,13 @@ function EntryDetailContent() {
     const { entries, deleteEntry, loading } = useEntries(selectedPet?.id || null);
     const { tasks } = useCustomTasks(selectedPet?.id || null);
 
+    // Check permissions
+    const { canEdit } = useMembers(selectedPet?.id || null);
+
     const entry = entries.find((e) => e.id === entryId);
 
     const handleDelete = async () => {
-        if (!entryId) return;
+        if (!entryId || !canEdit) return; // double check
         try {
             await deleteEntry(entryId);
             toast.success('削除しました');
@@ -72,32 +76,34 @@ function EntryDetailContent() {
                             <ArrowLeft className="w-6 h-6" />
                         </Button>
 
-                        <div className="flex gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => router.push(`/entry/edit?id=${entryId}`)} className="rounded-full w-10 h-10 hover:bg-white/10 text-muted-foreground hover:text-foreground">
-                                <Edit className="w-5 h-5" />
-                            </Button>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
-                                        <Trash2 className="w-5 h-5" />
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="glass border-white/20">
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>エントリーを削除</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            本当にこのエントリーを削除しますか？この操作は取り消せません。
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel className="rounded-full">キャンセル</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90">
-                                            削除
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
+                        {canEdit && (
+                            <div className="flex gap-2">
+                                <Button variant="ghost" size="icon" onClick={() => router.push(`/entry/edit?id=${entryId}`)} className="rounded-full w-10 h-10 hover:bg-white/10 text-muted-foreground hover:text-foreground">
+                                    <Edit className="w-5 h-5" />
+                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                                            <Trash2 className="w-5 h-5" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="glass border-white/20">
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>エントリーを削除</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                本当にこのエントリーを削除しますか？この操作は取り消せません。
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel className="rounded-full">キャンセル</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90">
+                                                削除
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-6">
@@ -119,7 +125,7 @@ function EntryDetailContent() {
                             {/* Tags */}
                             <div className="flex flex-wrap gap-2 mb-8 justify-center relative z-10">
                                 {entry.tags.map((tag) => {
-                                    const tagInfo = tasks.find((t) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag);
+                                    const tagInfo = tasks.find((t: any) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag);
                                     return (
                                         <span key={tag} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/20 text-foreground text-sm font-bold shadow-sm backdrop-blur-md">
                                             <span className="text-lg">{tagInfo?.emoji}</span>

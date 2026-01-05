@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
+import { useMembers } from '@/hooks/useMembers';
 import { useEntries } from '@/hooks/useEntries';
 import { toast } from 'sonner';
 import { EntryForm } from '@/components/features/EntryForm';
@@ -11,12 +12,20 @@ import { EntryForm } from '@/components/features/EntryForm';
 export default function NewEntryPage() {
     const router = useRouter();
     const { selectedPet } = usePetContext();
+    const { canEdit, loading: membersLoading } = useMembers(selectedPet?.id || null);
     const { addEntry } = useEntries(selectedPet?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    useEffect(() => {
+        if (selectedPet && !membersLoading && !canEdit) {
+            toast.error('編集権限がありません');
+            router.push('/dashboard');
+        }
+    }, [selectedPet, canEdit, membersLoading, router]);
+
     const handleSubmit = async (data: any) => {
-        if (!selectedPet) {
-            toast.error('ペットが選択されていません');
+        if (!selectedPet || !canEdit) {
+            toast.error('ペットが選択されていません、または権限がありません');
             return;
         }
         setIsSubmitting(true);
