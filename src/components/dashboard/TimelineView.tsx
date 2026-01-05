@@ -80,9 +80,10 @@ export function TimelineView() {
                         // Check if end date is different day
                         const isSameDay = startDate.toDateString() === endDateTime.toDateString();
                         if (isSameDay) {
-                            timeStr = `${startTime} - ${endTime}`;
+                            timeStr = `${startTime} ~ ${endTime}`;
                         } else {
-                            timeStr = `${startTime} - 翌${endTime}`;
+                            // Multi-day: show "h:m ~ m/d h:m"
+                            timeStr = `${startTime} ~ ${format(endDateTime, 'M/d')} ${endTime}`;
                         }
                     }
 

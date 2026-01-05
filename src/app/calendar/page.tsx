@@ -68,9 +68,17 @@ export default function CalendarPage() {
     }, [currentDate, viewMode]);
 
     const navigate = (direction: 'prev' | 'next') => {
-        if (viewMode === 'month') setCurrentDate((prev) => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
-        else if (viewMode === 'week') setCurrentDate((prev) => direction === 'prev' ? subWeeks(prev, 1) : addWeeks(prev, 1));
-        else setCurrentDate((prev) => direction === 'prev' ? subDays(prev, 1) : addDays(prev, 1));
+        if (viewMode === 'month') {
+            setCurrentDate((prev) => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
+        } else if (viewMode === 'week') {
+            const newDate = direction === 'prev' ? subWeeks(currentDate, 1) : addWeeks(currentDate, 1);
+            setCurrentDate(newDate);
+            setSelectedDate(newDate); // Sync selected date with week navigation
+        } else {
+            const newDate = direction === 'prev' ? subDays(currentDate, 1) : addDays(currentDate, 1);
+            setCurrentDate(newDate);
+            setSelectedDate(newDate); // Sync selected date with day navigation
+        }
     };
 
     const selectedDateEntries = useMemo(() => entriesByDate[format(selectedDate, 'yyyy-MM-dd')] || [], [selectedDate, entriesByDate]);

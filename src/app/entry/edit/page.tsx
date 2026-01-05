@@ -23,12 +23,15 @@ function EditEntryContent() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (isPetLoading || authLoading) return; // Wait for initialization
-        if (!membersLoading && !canEdit) {
+        // Wait for all loading states to complete before checking permissions
+        if (isPetLoading || authLoading || membersLoading || loading) return;
+
+        // Only redirect if we're certain user doesn't have edit permission
+        if (!canEdit) {
             toast.error('編集権限がありません');
             router.push('/dashboard');
         }
-    }, [canEdit, membersLoading, router, isPetLoading, authLoading]);
+    }, [canEdit, membersLoading, router, isPetLoading, authLoading, loading]);
 
     const entry = entries.find((e) => e.id === entryId);
 
