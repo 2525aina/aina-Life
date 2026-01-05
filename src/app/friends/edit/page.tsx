@@ -84,22 +84,33 @@ function EditFriendContent() {
     // Dynamic Species Logic (Flattened for selection but grouped by category if we had better UI, here simple mapping)
     const speciesOptions = useMemo(() => {
         // Build options from constants
-        const opts = [];
-        if (SPECIES_DATA.mammals) {
-            opts.push({ value: "Canis lupus familiaris", label: "犬" });
-            opts.push({ value: "Felis catus", label: "猫" });
-            // Add other mammals? We can iterate if needed, but primary use is Dog/Cat
-        }
-        opts.push({ value: "other", label: "その他" });
-        return opts;
+        return [
+            // 犬・猫
+            { label: SPECIES_DATA.mammals.categories.dogs.label, value: SPECIES_DATA.mammals.categories.dogs.species, breeds: SPECIES_DATA.mammals.categories.dogs.breeds },
+            { label: SPECIES_DATA.mammals.categories.cats.label, value: SPECIES_DATA.mammals.categories.cats.species, breeds: SPECIES_DATA.mammals.categories.cats.breeds },
+            // 小動物
+            ...Object.values(SPECIES_DATA.mammals.categories.small_mammals.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
+            // 鳥類
+            ...Object.values(SPECIES_DATA.birds.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
+            // 爬虫類
+            ...Object.values(SPECIES_DATA.reptiles.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
+            // 両生類
+            ...Object.values(SPECIES_DATA.amphibians.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
+            // 魚類
+            ...Object.values(SPECIES_DATA.fish.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
+            // 無脊椎動物
+            ...Object.values(SPECIES_DATA.invertebrates.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
+            // その他
+            { label: 'その他', value: 'other', breeds: [] }
+        ];
     }, []);
 
     const breedOptions = useMemo(() => {
-        if (species === 'Canis lupus familiaris') return SPECIES_DATA.mammals.categories.dogs.breeds;
-        if (species === 'Felis catus') return SPECIES_DATA.mammals.categories.cats.breeds;
-        // For others, we might want to show lists from other categories, but kept simple for now or "Others"
-        return [];
-    }, [species]);
+        const found = speciesOptions.find(opt => opt.value === species);
+        return found?.breeds || [];
+    }, [species, speciesOptions]);
+
+    const isOtherSpecies = species === 'other';
 
     const handleImageChange = (file: File) => {
         setPendingImageFile(file);
@@ -253,7 +264,7 @@ function EditFriendContent() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label>犬種/猫種</Label>
-                                    {breedOptions.length > 0 ? (
+                                    {!isOtherSpecies && breedOptions.length > 0 ? (
                                         <Select value={breed} onValueChange={setBreed}>
                                             <SelectTrigger className="bg-background/50"><SelectValue placeholder="選択" /></SelectTrigger>
                                             <SelectContent className="max-h-[200px]">

@@ -48,11 +48,14 @@ export function PetBasicInfoForm({ data, onChange, disabled = false, className }
         ...Object.values(SPECIES_DATA.fish.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
         // 無脊椎動物
         ...Object.values(SPECIES_DATA.invertebrates.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
+        // その他
+        { label: 'その他', value: 'other', breeds: [] }
     ];
 
     // 選択された種類に基づく品種オプションの取得
     const currentSpecies = speciesOptions.find(opt => opt.value === data.species);
     const breedOptions = currentSpecies?.breeds || [];
+    const isOtherSpecies = data.species === 'other';
 
     return (
         <div className={cn("glass rounded-[2.5rem] p-8 shadow-xl space-y-6 relative overflow-hidden", className)}>
@@ -97,7 +100,7 @@ export function PetBasicInfoForm({ data, onChange, disabled = false, className }
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="breed" className="text-xs font-bold text-muted-foreground ml-1">品種</Label>
-                    {breedOptions.length > 0 ? (
+                    {!isOtherSpecies && breedOptions.length > 0 ? (
                         <Select value={data.breed} onValueChange={(val) => handleChange('breed', val)} disabled={disabled}>
                             <SelectTrigger className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20">
                                 <SelectValue placeholder="選択" />
