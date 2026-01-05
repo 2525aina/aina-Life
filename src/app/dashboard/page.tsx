@@ -4,12 +4,13 @@ import { AppLayout } from '@/components/features/AppLayout';
 import { PendingInvitations } from '@/components/features/PendingInvitations';
 import { usePetContext } from '@/contexts/PetContext';
 import { Button } from '@/components/ui/button';
-import { Plus, PawPrint, Calendar as CalendarIcon, Settings } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { TimelineView } from '@/components/dashboard/TimelineView';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import Image from 'next/image';
 
 export default function DashboardPage() {
     const { selectedPet } = usePetContext();
@@ -24,8 +25,8 @@ export default function DashboardPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="text-center py-12 w-full max-w-sm bg-white/50 backdrop-blur-xl rounded-3xl border border-white/20 shadow-xl p-8"
                     >
-                        <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6 ring-4 ring-white/50">
-                            <PawPrint className="w-12 h-12 text-primary" />
+                        <div className="w-28 h-28 mx-auto rounded-full overflow-hidden mb-6 ring-4 ring-primary/20 shadow-lg">
+                            <Image src="/ogp.webp" alt="Welcome" width={112} height={112} className="w-full h-full object-cover" priority />
                         </div>
                         <h2 className="text-2xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">ようこそ！</h2>
                         <p className="text-muted-foreground mb-8 leading-relaxed">

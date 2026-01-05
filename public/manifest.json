@@ -1,7 +1,7 @@
 {
-    "name": "aina-life",
+    "name": "aina-life - 生活日記",
     "short_name": "aina-life",
-    "description": "大切なペットとの日々を記録する生活日記アプリ",
+    "description": "大切な日々を記録し共有する生活日記アプリ",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#fafaf9",
@@ -9,15 +9,15 @@
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/icon-192x192.svg",
+            "src": "/favicon.webp",
             "sizes": "192x192",
-            "type": "image/svg+xml",
+            "type": "image/webp",
             "purpose": "any maskable"
         },
         {
-            "src": "/icon-192x192.svg",
+            "src": "/favicon.webp",
             "sizes": "512x512",
-            "type": "image/svg+xml",
+            "type": "image/webp",
             "purpose": "any maskable"
         }
     ]

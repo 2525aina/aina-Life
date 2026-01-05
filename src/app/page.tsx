@@ -3,10 +3,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PawPrint, LogIn } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function Home() {
   const { user, loading, signInWithGoogle } = useAuth();
@@ -19,8 +20,8 @@ export default function Home() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-          <PawPrint className="w-12 h-12 text-primary" />
+        <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}>
+          <Image src="/ogp.webp" alt="Loading" width={120} height={63} className="rounded-xl shadow-lg" priority />
         </motion.div>
       </div>
     );
@@ -32,13 +33,13 @@ export default function Home() {
         <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center space-y-4 pb-2">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }} className="mx-auto">
-              <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center shadow-lg">
-                <PawPrint className="w-10 h-10 text-white" />
+              <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg ring-4 ring-primary/20">
+                <Image src="/ogp.webp" alt="aina-life" width={128} height={128} className="w-full h-full object-cover" priority />
               </div>
             </motion.div>
             <div>
               <CardTitle className="text-3xl font-bold tracking-tight">aina-life</CardTitle>
-              <CardDescription className="text-base mt-2">大切なペットとの日々を、<br />もっと楽しく、もっと素敵に。</CardDescription>
+              <CardDescription className="text-base mt-2">大切な日々を、<br />もっと楽しく、もっと素敵に。</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-6 pt-4">
@@ -56,3 +57,4 @@ export default function Home() {
     </main>
   );
 }
+
