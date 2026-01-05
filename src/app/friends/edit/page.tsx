@@ -221,7 +221,6 @@ function EditFriendContent() {
                                 imageUrl={previewUrl}
                                 onImageChange={handleImageChange}
                                 onImageRemove={handleRemoveImage}
-                                showRemoveButton={false}
                                 disabled={isSubmitting}
                             />
                         </div>
