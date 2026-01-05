@@ -45,9 +45,9 @@ function FriendDetailContent() {
     const age = friend.birthday ? differenceInYears(new Date(), friend.birthday.toDate()) : null;
 
     return (
-        <div className="relative min-h-screen pb-32">
+        <div className="relative min-h-screen pb-32 pt-6">
             {/* Hero Image / Header */}
-            <div className="relative aspect-square w-full bg-muted overflow-hidden rounded-b-[3rem]">
+            <div className="relative aspect-square w-full bg-muted overflow-hidden rounded-[2.5rem] shadow-xl">
                 {friend.images?.[0] ? (
                     <img
                         src={friend.images[0]}

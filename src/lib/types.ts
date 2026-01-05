@@ -54,7 +54,9 @@ export interface VetInfo {
 export interface Pet extends AuditDocument {
     id: string;
     name: string;
+    species?: string;
     breed?: string;
+    color?: string;
     birthday?: string;
     gender?: 'male' | 'female' | 'other';
     avatarUrl?: string;

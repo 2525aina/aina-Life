@@ -25,7 +25,9 @@ export default function NewPetPage() {
     // 基本情報
     const [formData, setFormData] = useState<PetBasicInfoData>({
         name: '',
+        species: '',
         breed: '',
+        color: '',
         gender: '',
         birthday: undefined,
         adoptionDate: undefined,
@@ -56,7 +58,9 @@ export default function NewPetPage() {
             // 1. まずペットを作成（画像なしで）
             const petData = {
                 name: formData.name.trim(),
+                species: formData.species || undefined,
                 breed: formData.breed.trim() || undefined,
+                color: formData.color || undefined,
                 birthday: formData.birthday ? format(formData.birthday, 'yyyy-MM-dd') : undefined,
                 gender: formData.gender || undefined,
                 adoptionDate: formData.adoptionDate ? format(formData.adoptionDate, 'yyyy-MM-dd') : undefined,

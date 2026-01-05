@@ -41,7 +41,9 @@ function PetSettingsContent() {
     // 基本情報 (FormData)
     const [formData, setFormData] = useState<PetBasicInfoData>({
         name: '',
+        species: '',
         breed: '',
+        color: '',
         gender: '',
         birthday: undefined,
         adoptionDate: undefined,
@@ -68,7 +70,9 @@ function PetSettingsContent() {
         if (pet) {
             setFormData({
                 name: pet.name,
+                species: pet.species || '',
                 breed: pet.breed || '',
+                color: pet.color || '',
                 gender: pet.gender || '',
                 birthday: pet.birthday ? parse(pet.birthday, 'yyyy-MM-dd', new Date()) : undefined,
                 adoptionDate: pet.adoptionDate ? parse(pet.adoptionDate, 'yyyy-MM-dd', new Date()) : undefined,
@@ -112,7 +116,9 @@ function PetSettingsContent() {
 
             await updatePet(petId, {
                 name: formData.name.trim(),
+                species: formData.species || undefined,
                 breed: formData.breed.trim() || undefined,
+                color: formData.color || undefined,
                 birthday: formData.birthday ? format(formData.birthday, 'yyyy-MM-dd') : undefined,
                 gender: formData.gender || undefined,
                 adoptionDate: formData.adoptionDate ? format(formData.adoptionDate, 'yyyy-MM-dd') : undefined,
