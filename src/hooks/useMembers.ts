@@ -21,6 +21,7 @@ export function useMembers(petId: string | null) {
             return;
         }
 
+        setLoading(true);
         const membersQuery = query(collection(db, 'pets', petId, 'members'));
         const unsubscribe = onSnapshot(membersQuery, async (snapshot) => {
             const membersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Member[];

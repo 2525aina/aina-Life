@@ -4,6 +4,7 @@ import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMembers } from '@/hooks/useMembers';
 import { useEntries } from '@/hooks/useEntries';
 import { Button } from '@/components/ui/button';
@@ -16,17 +17,18 @@ function EditEntryContent() {
     const entryId = searchParams.get('id');
 
     const { selectedPet, isPetLoading } = usePetContext();
+    const { loading: authLoading } = useAuth();
     const { canEdit, loading: membersLoading } = useMembers(selectedPet?.id || null);
     const { entries, updateEntry, loading } = useEntries(selectedPet?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (isPetLoading) return; // Wait for pet selection
+        if (isPetLoading || authLoading) return; // Wait for initialization
         if (!membersLoading && !canEdit) {
             toast.error('編集権限がありません');
             router.push('/dashboard');
         }
-    }, [canEdit, membersLoading, router, isPetLoading]);
+    }, [canEdit, membersLoading, router, isPetLoading, authLoading]);
 
     const entry = entries.find((e) => e.id === entryId);
 
@@ -59,7 +61,7 @@ function EditEntryContent() {
         }
     };
 
-    if (loading || isPetLoading) {
+    if (loading || isPetLoading || authLoading) {
         return (
             <AppLayout>
                 <div className="p-4">

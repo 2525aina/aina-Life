@@ -203,7 +203,7 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
                     <div className="space-y-2">{[...Array(3)].map((_, i) => <div key={i} className="h-14 bg-muted animate-pulse rounded-lg" />)}</div>
                 ) : tasks.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8 bg-muted/20 rounded-lg">カスタムタスクはまだありません</p>
-                ) : (
+                ) : canEdit ? (
                     <Reorder.Group axis="y" values={tasks} onReorder={handleReorder} className="space-y-2">
                         {tasks.map((task) => (
                             <Reorder.Item key={task.id} value={task}>
@@ -211,57 +211,64 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
                                     <GripVertical className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                                     <span className="text-xl w-8 text-center">{task.emoji}</span>
                                     <span className="flex-1 font-medium">{task.name}</span>
-                                    {canEdit && (
-                                        <div className="flex gap-1">
-                                            <Dialog open={editingTask?.id === task.id} onOpenChange={(open) => !open && setEditingTask(null)}>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(task)}>
-                                                        <Edit2 className="w-4 h-4" />
+                                    <div className="flex gap-1">
+                                        <Dialog open={editingTask?.id === task.id} onOpenChange={(open) => !open && setEditingTask(null)}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(task)}>
+                                                    <Edit2 className="w-4 h-4" />
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-h-[90vh] flex flex-col">
+                                                <DialogHeader>
+                                                    <DialogTitle>タスクを編集</DialogTitle>
+                                                    <DialogDescription>タスクの内容を変更します</DialogDescription>
+                                                </DialogHeader>
+                                                <form onSubmit={handleUpdateTask} className="flex-1 overflow-y-auto space-y-4 pt-4 px-1">
+                                                    <div>
+                                                        <Label htmlFor="edit-task-name">タスク名</Label>
+                                                        <Input id="edit-task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} className="mt-1" />
+                                                    </div>
+                                                    <div>
+                                                        <Label>絵文字</Label>
+                                                        <EmojiPicker value={taskEmoji} onChange={setTaskEmoji} />
+                                                    </div>
+                                                    <Button type="submit" disabled={isSubmitting || !taskName.trim()} className="w-full gradient-primary">
+                                                        {isSubmitting ? '更新中...' : '更新する'}
                                                     </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="max-h-[90vh] flex flex-col">
-                                                    <DialogHeader>
-                                                        <DialogTitle>タスクを編集</DialogTitle>
-                                                        <DialogDescription>タスクの内容を変更します</DialogDescription>
-                                                    </DialogHeader>
-                                                    <form onSubmit={handleUpdateTask} className="flex-1 overflow-y-auto space-y-4 pt-4 px-1">
-                                                        <div>
-                                                            <Label htmlFor="edit-task-name">タスク名</Label>
-                                                            <Input id="edit-task-name" value={taskName} onChange={(e) => setTaskName(e.target.value)} className="mt-1" />
-                                                        </div>
-                                                        <div>
-                                                            <Label>絵文字</Label>
-                                                            <EmojiPicker value={taskEmoji} onChange={setTaskEmoji} />
-                                                        </div>
-                                                        <Button type="submit" disabled={isSubmitting || !taskName.trim()} className="w-full gradient-primary">
-                                                            {isSubmitting ? '更新中...' : '更新する'}
-                                                        </Button>
-                                                    </form>
-                                                </DialogContent>
-                                            </Dialog>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>タスクを削除</AlertDialogTitle>
-                                                        <AlertDialogDescription>「{task.emoji} {task.name}」を削除しますか？</AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDeleteTask(task.id)} className="bg-destructive text-destructive-foreground">削除</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
-                                    )}
+                                                </form>
+                                            </DialogContent>
+                                        </Dialog>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>タスクを削除</AlertDialogTitle>
+                                                    <AlertDialogDescription>「{task.emoji} {task.name}」を削除しますか？</AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteTask(task.id)} className="bg-destructive text-destructive-foreground">削除</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                 </div>
                             </Reorder.Item>
                         ))}
                     </Reorder.Group>
+                ) : (
+                    <div className="space-y-2">
+                        {tasks.map((task) => (
+                            <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-transparent">
+                                <span className="text-xl w-8 text-center">{task.emoji}</span>
+                                <span className="flex-1 font-medium">{task.name}</span>
+                            </div>
+                        ))}
+                    </div>
                 )}
             </CardContent>
         </Card>

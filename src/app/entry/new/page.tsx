@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMembers } from '@/hooks/useMembers';
 import { useEntries } from '@/hooks/useEntries';
 import { toast } from 'sonner';
@@ -11,17 +12,19 @@ import { EntryForm } from '@/components/features/EntryForm';
 
 export default function NewEntryPage() {
     const router = useRouter();
-    const { selectedPet } = usePetContext();
+    const { selectedPet, isPetLoading } = usePetContext();
+    const { loading: authLoading } = useAuth();
     const { canEdit, loading: membersLoading } = useMembers(selectedPet?.id || null);
     const { addEntry } = useEntries(selectedPet?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
+        if (isPetLoading || authLoading) return;
         if (selectedPet && !membersLoading && !canEdit) {
             toast.error('編集権限がありません');
             router.push('/dashboard');
         }
-    }, [selectedPet, canEdit, membersLoading, router]);
+    }, [selectedPet, canEdit, membersLoading, router, isPetLoading, authLoading]);
 
     const handleSubmit = async (data: any) => {
         if (!selectedPet || !canEdit) {
@@ -50,6 +53,8 @@ export default function NewEntryPage() {
             setIsSubmitting(false);
         }
     };
+
+    if (isPetLoading || authLoading) return <AppLayout><div className="p-4 text-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div></div></AppLayout>;
 
     if (!selectedPet) return <AppLayout><div className="p-4 text-center py-12"><p className="text-muted-foreground">ペットを選択してください</p></div></AppLayout>;
 
