@@ -47,7 +47,7 @@ function FriendDetailContent() {
     return (
         <div className="relative min-h-screen pb-32">
             {/* Hero Image / Header */}
-            <div className="relative h-[40vh] w-full bg-muted overflow-hidden rounded-b-[3rem]">
+            <div className="relative aspect-square w-full bg-muted overflow-hidden rounded-b-[3rem]">
                 {friend.images?.[0] ? (
                     <img
                         src={friend.images[0]}
