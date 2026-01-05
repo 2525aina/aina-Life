@@ -19,7 +19,7 @@ import { ArrowLeft, Camera, Loader2, MapPin, User, Phone, Home, X } from 'lucide
 import Link from 'next/link';
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { ImageCropper } from '@/components/ui/image-cropper';
+import { PetAvatarEditor } from '@/components/features/pet-avatar-editor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 export default function NewFriendPage() {
@@ -74,12 +74,19 @@ export default function NewFriendPage() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Image Cropper State
-    const [cropperOpen, setCropperOpen] = useState(false);
-    const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
+    // Image Editor State
     const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImageChange = (file: File) => {
+        setPendingImageFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+    };
+
+    const handleRemoveImage = () => {
+        setPendingImageFile(null);
+        setPreviewUrl(null);
+    };
 
     // Dynamic Species Logic (Flattened for selection but grouped by category if we had better UI, here simple mapping)
     const speciesOptions = useMemo(() => {
@@ -101,39 +108,9 @@ export default function NewFriendPage() {
         return [];
     }, [species]);
 
-    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const url = URL.createObjectURL(file);
-            setOriginalImageSrc(url);
-            setCropperOpen(true);
-            // Reset input value to allow re-selecting same file
-            e.target.value = '';
-        }
-    };
 
-    const handleCropComplete = (croppedBlob: Blob) => {
-        const file = new File([croppedBlob], "friend_image.jpg", { type: "image/jpeg" });
-        setPendingImageFile(file);
-        setPreviewUrl(URL.createObjectURL(file));
-        setCropperOpen(false);
-    };
 
-    const handleCropCancel = () => {
-        setCropperOpen(false);
-        if (!pendingImageFile) {
-            setOriginalImageSrc(null);
-        }
-    };
 
-    const handleRemoveImage = () => {
-        setPendingImageFile(null);
-        setPreviewUrl(null);
-        setOriginalImageSrc(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -203,41 +180,12 @@ export default function NewFriendPage() {
                     <form onSubmit={handleSubmit} className="space-y-8">
                         {/* Image Upload */}
                         <div className="flex justify-center">
-                            <div className="relative group">
-                                <div className="w-32 h-32 rounded-full overflow-hidden bg-muted border-4 border-white shadow-xl ring-1 ring-primary/10 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                    {previewUrl ? (
-                                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-white/50">
-                                            <Camera className="w-10 h-10 opacity-50" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-32 h-32 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <Camera className="w-8 h-8 text-white" />
-                                    </div>
-                                </div>
-                                {previewUrl && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRemoveImage();
-                                        }}
-                                        className="absolute top-0 right-0 bg-destructive text-white p-1 rounded-full shadow-lg hover:bg-destructive/90 transition-colors"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                )}
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageSelect}
-                                    className="hidden"
-                                />
-                            </div>
+                            <PetAvatarEditor
+                                imageUrl={previewUrl}
+                                onImageChange={handleImageChange}
+                                onImageRemove={handleRemoveImage}
+                                disabled={isSubmitting}
+                            />
                         </div>
 
                         {/* Basic Info Section */}
@@ -485,12 +433,7 @@ export default function NewFriendPage() {
             </div>
 
 
-            <ImageCropper
-                open={cropperOpen}
-                imageSrc={originalImageSrc}
-                onCropComplete={handleCropComplete}
-                onCancel={handleCropCancel}
-            />
+
         </AppLayout >
     );
 }

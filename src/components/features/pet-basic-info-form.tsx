@@ -33,9 +33,9 @@ export function PetBasicInfoForm({ data, onChange, disabled = false, className }
 
     // 種類オプションの生成
     const speciesOptions = [
-        // 犬・猫
-        { label: SPECIES_DATA.mammals.categories.dogs.label, value: SPECIES_DATA.mammals.categories.dogs.label, breeds: SPECIES_DATA.mammals.categories.dogs.breeds },
-        { label: SPECIES_DATA.mammals.categories.cats.label, value: SPECIES_DATA.mammals.categories.cats.label, breeds: SPECIES_DATA.mammals.categories.cats.breeds },
+        // 犬・猫 (Use species keys for compatibility with friends/new)
+        { label: SPECIES_DATA.mammals.categories.dogs.label, value: SPECIES_DATA.mammals.categories.dogs.species, breeds: SPECIES_DATA.mammals.categories.dogs.breeds },
+        { label: SPECIES_DATA.mammals.categories.cats.label, value: SPECIES_DATA.mammals.categories.cats.species, breeds: SPECIES_DATA.mammals.categories.cats.breeds },
         // 小動物
         ...Object.values(SPECIES_DATA.mammals.categories.small_mammals.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
         // 鳥類

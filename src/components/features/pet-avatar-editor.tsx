@@ -69,7 +69,7 @@ export function PetAvatarEditor({
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={disabled}
-                        className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 hover:scale-110 transition-all z-20"
+                        className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 hover:scale-110 transition-all z-20"
                     >
                         <Camera className="w-5 h-5" />
                     </button>
@@ -87,7 +87,7 @@ export function PetAvatarEditor({
                             type="button"
                             onClick={onImageRemove}
                             disabled={disabled}
-                            className="absolute -top-1 -right-1 w-9 h-9 rounded-full bg-destructive text-white flex items-center justify-center shadow-lg hover:bg-destructive/90 hover:scale-110 transition-all z-20"
+                            className="absolute -top-2 -right-2 w-9 h-9 rounded-full bg-destructive text-white flex items-center justify-center shadow-lg hover:bg-destructive/90 hover:scale-110 transition-all z-20"
                         >
                             <X className="w-5 h-5" />
                         </button>

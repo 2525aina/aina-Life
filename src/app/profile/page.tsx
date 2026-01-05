@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/features/AppLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -24,14 +24,14 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { doc, updateDoc, serverTimestamp, deleteField } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ImageCropper } from '@/components/ui/image-cropper';
+import { PetAvatarEditor } from '@/components/features/pet-avatar-editor';
 
 export default function ProfilePage() {
     const { user, userProfile, signOut } = useAuth();
     const { theme, setTheme } = useTheme();
     const { pets } = usePets();
     const { uploadUserAvatar, uploading } = useImageUpload();
-    const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     // プロフィール情報
     const [displayName, setDisplayName] = useState('');
@@ -49,8 +49,7 @@ export default function ProfilePage() {
     const [isSaving, setIsSaving] = useState(false);
 
     // 画像編集状態
-    const [cropperOpen, setCropperOpen] = useState(false);
-    const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
+
     const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [removeAvatar, setRemoveAvatar] = useState(false);
@@ -89,29 +88,15 @@ export default function ProfilePage() {
         }
     };
 
-    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.[0]) return;
-        const file = e.target.files[0];
-        const url = URL.createObjectURL(file);
-        setOriginalImageSrc(url);
-        setCropperOpen(true);
-        e.target.value = '';
-    };
 
-    const handleCropComplete = (croppedBlob: Blob) => {
-        const file = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
+
+    const handleCropComplete = (file: File) => {
         setPendingAvatarFile(file);
         setAvatarPreview(URL.createObjectURL(file));
         setRemoveAvatar(false);
-        setCropperOpen(false);
     };
 
-    const handleCropCancel = () => {
-        setCropperOpen(false);
-        if (!pendingAvatarFile) {
-            setOriginalImageSrc(null);
-        }
-    };
+
 
     const handleRemoveAvatar = () => {
         setPendingAvatarFile(null);
@@ -210,52 +195,14 @@ export default function ProfilePage() {
 
                         {/* Profile Header Card */}
                         <div className="flex flex-col items-center mb-10">
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="relative group mb-6"
-                            >
-                                <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-orange-400 rounded-full opacity-40 blur-2xl group-hover:opacity-60 transition duration-1000 animate-pulse"></div>
-                                <Avatar className="w-36 h-36 border-4 border-white/50 dark:border-white/10 shadow-2xl relative z-10">
-                                    <AvatarImage src={displayAvatar} alt={userProfile?.displayName} className="object-cover" />
-                                    <AvatarFallback className="bg-white/20 backdrop-blur-md">
-                                        <img src="/ogp.webp" alt="User" className="w-full h-full object-cover opacity-50 grayscale" />
-                                    </AvatarFallback>
-                                </Avatar>
+                            <PetAvatarEditor
+                                imageUrl={displayAvatar}
+                                onImageChange={handleCropComplete}
+                                onImageRemove={handleRemoveAvatar}
+                                disabled={!isEditing || uploading}
+                                className="mb-6"
+                            />
 
-                                {isEditing ? (
-                                    <>
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="absolute bottom-1 right-1 w-12 h-12 rounded-full gradient-primary text-white flex items-center justify-center shadow-lg border-4 border-background z-20"
-                                        >
-                                            <Camera className="w-5 h-5" />
-                                        </motion.button>
-                                        {!removeAvatar && (displayAvatar || userProfile?.avatarUrl) && (
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                onClick={() => setConfirmDeleteAvatarOpen(true)}
-                                                className="absolute top-1 right-1 w-8 h-8 rounded-full bg-destructive text-white flex items-center justify-center shadow-lg border-2 border-background z-20"
-                                            >
-                                                <LogOut className="w-3 h-3 rotate-180" />
-                                            </motion.button>
-                                        )}
-                                    </>
-                                ) : (
-                                    <Button
-                                        size="icon"
-                                        className="absolute bottom-1 right-1 rounded-full z-20 shadow-xl gradient-primary hover:scale-110 transition-transform w-12 h-12 border-4 border-background/50"
-                                        onClick={() => setIsEditing(true)}
-                                    >
-                                        <Edit3 className="w-5 h-5 text-white" />
-                                    </Button>
-                                )}
-
-                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-                            </motion.div>
 
                             <AnimatePresence mode="wait">
                                 {!isEditing ? (
@@ -277,6 +224,17 @@ export default function ProfilePage() {
                                             <div className="inline-flex items-center px-4 py-1.5 rounded-full glass-capsule border border-white/20 text-xs font-bold text-muted-foreground/80 mt-3 shadow-sm">
                                                 <Mail className="w-3.5 h-3.5 mr-2 opacity-70" />
                                                 {userProfile?.email}
+                                            </div>
+
+                                            <div className="mt-6">
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full px-6 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary transition-all duration-300"
+                                                    onClick={() => setIsEditing(true)}
+                                                >
+                                                    <Edit3 className="w-4 h-4 mr-2" />
+                                                    プロフィールを編集
+                                                </Button>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -444,12 +402,7 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                <ImageCropper
-                    open={cropperOpen}
-                    imageSrc={originalImageSrc}
-                    onCropComplete={handleCropComplete}
-                    onCancel={handleCropCancel}
-                />
+
 
                 <Dialog open={confirmDeleteAvatarOpen} onOpenChange={setConfirmDeleteAvatarOpen}>
                     <DialogContent>
