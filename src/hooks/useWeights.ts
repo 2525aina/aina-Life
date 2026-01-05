@@ -28,7 +28,10 @@ export function useWeights(petId: string | null) {
                 const dateDiff = b.date.toMillis() - a.date.toMillis();
                 if (dateDiff !== 0) return dateDiff;
                 // 日付が同じ場合は作成日時で降順（新しいものが上）
-                return b.createdAt.toMillis() - a.createdAt.toMillis();
+                // createdAtがない古いデータに対応
+                const aTime = a.createdAt?.toMillis() ?? 0;
+                const bTime = b.createdAt?.toMillis() ?? 0;
+                return bTime - aTime;
             });
             setWeights(weightsData);
             setLoading(false);

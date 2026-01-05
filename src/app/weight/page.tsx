@@ -274,15 +274,19 @@ export default function WeightPage() {
                                                 strokeWidth={3}
                                                 fill="url(#weightGradient)"
                                                 animationDuration={1000}
+                                                dot={{
+                                                    r: 4,
+                                                    fill: "#f97316",
+                                                    stroke: "var(--background)",
+                                                    strokeWidth: 2
+                                                }}
                                                 activeDot={{
-                                                    r: 6,
+                                                    r: 7,
                                                     fill: "#f97316",
                                                     stroke: "var(--background)",
                                                     strokeWidth: 4,
                                                     className: "filter drop-shadow-lg"
                                                 }}
-                                            // Data dots
-                                            // dot={{ r: 3, fill: "#f97316", strokeWidth: 0, opacity: 0.5 }} // Optional: can be noisy if too many points
                                             />
                                         </AreaChart>
                                     </ResponsiveContainer>
