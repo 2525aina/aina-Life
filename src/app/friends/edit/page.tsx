@@ -290,7 +290,7 @@ function EditFriendContent() {
                                     value={name}
                                     onChange={e => setName(e.target.value)}
                                     placeholder="ポチ"
-                                    className="bg-white/50 h-12 text-lg font-bold"
+                                    className="bg-background/50 h-12 text-lg font-bold"
                                 />
                             </div>
 
@@ -298,7 +298,7 @@ function EditFriendContent() {
                                 <div className="space-y-2">
                                     <Label>種類</Label>
                                     <Select value={species} onValueChange={setSpecies}>
-                                        <SelectTrigger className="bg-white/50"><SelectValue /></SelectTrigger>
+                                        <SelectTrigger className="bg-background/50"><SelectValue /></SelectTrigger>
                                         <SelectContent>
                                             {speciesOptions.map(opt => (
                                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -310,7 +310,7 @@ function EditFriendContent() {
                                     <Label>犬種/猫種</Label>
                                     {breedOptions.length > 0 ? (
                                         <Select value={breed} onValueChange={setBreed}>
-                                            <SelectTrigger className="bg-white/50"><SelectValue placeholder="選択" /></SelectTrigger>
+                                            <SelectTrigger className="bg-background/50"><SelectValue placeholder="選択" /></SelectTrigger>
                                             <SelectContent className="max-h-[200px]">
                                                 {breedOptions.map(b => (
                                                     <SelectItem key={b} value={b}>{b}</SelectItem>
@@ -318,7 +318,7 @@ function EditFriendContent() {
                                             </SelectContent>
                                         </Select>
                                     ) : (
-                                        <Input value={breed} onChange={e => setBreed(e.target.value)} placeholder="種類を入力" className="bg-white/50" />
+                                        <Input value={breed} onChange={e => setBreed(e.target.value)} placeholder="種類を入力" className="bg-background/50" />
                                     )}
                                 </div>
                             </div>
@@ -327,7 +327,7 @@ function EditFriendContent() {
                                 <div className="space-y-2">
                                     <Label>性別</Label>
                                     <Select value={gender} onValueChange={(v: any) => setGender(v)}>
-                                        <SelectTrigger className="bg-white/50"><SelectValue /></SelectTrigger>
+                                        <SelectTrigger className="bg-background/50"><SelectValue /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="male">男の子 (♂)</SelectItem>
                                             <SelectItem value="female">女の子 (♀)</SelectItem>
@@ -338,7 +338,7 @@ function EditFriendContent() {
                                 <div className="space-y-2">
                                     <Label>毛色</Label>
                                     <Select value={color} onValueChange={setColor}>
-                                        <SelectTrigger className="bg-white/50"><SelectValue placeholder="選択" /></SelectTrigger>
+                                        <SelectTrigger className="bg-background/50"><SelectValue placeholder="選択" /></SelectTrigger>
                                         <SelectContent className="max-h-[200px]">
                                             {PET_COLORS.map(c => (
                                                 <SelectItem key={c.id} value={c.name}>
@@ -356,17 +356,17 @@ function EditFriendContent() {
                             <div className="space-y-4">
                                 <Label>年齢・誕生日</Label>
                                 <div className="space-y-4">
-                                    <div className="flex bg-white/50 p-1 rounded-lg">
+                                    <div className="flex bg-muted/50 p-1 rounded-lg">
                                         <button
                                             type="button"
-                                            className={`flex-1 py-1.5 text-sm rounded-md transition-all ${birthdayMode === 'birthday' ? 'bg-white shadow-sm font-bold text-primary' : 'text-muted-foreground'}`}
+                                            className={`flex-1 py-1.5 text-sm rounded-md transition-all ${birthdayMode === 'birthday' ? 'bg-background shadow-sm font-bold text-primary' : 'text-muted-foreground'}`}
                                             onClick={() => setBirthdayMode('birthday')}
                                         >
                                             誕生日を指定
                                         </button>
                                         <button
                                             type="button"
-                                            className={`flex-1 py-1.5 text-sm rounded-md transition-all ${birthdayMode === 'age' ? 'bg-white shadow-sm font-bold text-primary' : 'text-muted-foreground'}`}
+                                            className={`flex-1 py-1.5 text-sm rounded-md transition-all ${birthdayMode === 'age' ? 'bg-background shadow-sm font-bold text-primary' : 'text-muted-foreground'}`}
                                             onClick={() => setBirthdayMode('age')}
                                         >
                                             年齢から計算
@@ -390,7 +390,7 @@ function EditFriendContent() {
                                                         min="0"
                                                         value={ageYears}
                                                         onChange={e => setAgeYears(e.target.value)}
-                                                        className="bg-white/50 pr-8"
+                                                        className="bg-background/50 pr-8"
                                                     />
                                                     <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">歳</span>
                                                 </div>
@@ -404,7 +404,7 @@ function EditFriendContent() {
                                                         max="11"
                                                         value={ageMonths}
                                                         onChange={e => setAgeMonths(e.target.value)}
-                                                        className="bg-white/50 pr-8"
+                                                        className="bg-background/50 pr-8"
                                                     />
                                                     <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">ヶ月</span>
                                                 </div>
@@ -425,10 +425,10 @@ function EditFriendContent() {
                                         value={weight}
                                         onChange={e => setWeight(e.target.value)}
                                         placeholder="0.0"
-                                        className="bg-white/50"
+                                        className="bg-background/50"
                                     />
                                     <Select value={weightUnit} onValueChange={(v: any) => setWeightUnit(v)}>
-                                        <SelectTrigger className="w-20 bg-white/50"><SelectValue /></SelectTrigger>
+                                        <SelectTrigger className="w-20 bg-background/50"><SelectValue /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="kg">kg</SelectItem>
                                             <SelectItem value="g">g</SelectItem>
@@ -446,24 +446,24 @@ function EditFriendContent() {
                             </h2>
                             <div className="space-y-2">
                                 <Label>飼い主名</Label>
-                                <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} className="bg-white/50" placeholder="○○さん" />
+                                <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} className="bg-background/50" placeholder="○○さん" />
                             </div>
                             <div className="space-y-2">
                                 <Label>飼い主の特徴</Label>
-                                <Input value={ownerDetails} onChange={e => setOwnerDetails(e.target.value)} className="bg-white/50" placeholder="いつも帽子を被っている、など" />
+                                <Input value={ownerDetails} onChange={e => setOwnerDetails(e.target.value)} className="bg-background/50" placeholder="いつも帽子を被っている、など" />
                             </div>
                             <div className="space-y-2">
                                 <Label>連絡先</Label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input value={contact} onChange={e => setContact(e.target.value)} className="pl-9 bg-white/50" placeholder="電話番号やLINEなど（任意）" />
+                                    <Input value={contact} onChange={e => setContact(e.target.value)} className="pl-9 bg-background/50" placeholder="電話番号やLINEなど（任意）" />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>住所・地域</Label>
                                 <div className="relative">
                                     <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input value={address} onChange={e => setAddress(e.target.value)} className="pl-9 bg-white/50" placeholder="○○区○○町" />
+                                    <Input value={address} onChange={e => setAddress(e.target.value)} className="pl-9 bg-background/50" placeholder="○○区○○町" />
                                 </div>
                             </div>
                         </section>
@@ -487,7 +487,7 @@ function EditFriendContent() {
                                             value={location}
                                             onChange={e => setLocation(e.target.value)}
                                             placeholder="公園、ドッグランなど"
-                                            className="pl-9 bg-white/50"
+                                            className="pl-9 bg-background/50"
                                         />
                                     </div>
                                 </div>
@@ -498,7 +498,7 @@ function EditFriendContent() {
                                         value={memo}
                                         onChange={e => setMemo(e.target.value)}
                                         placeholder="フレンドリー、おやつが好き、など"
-                                        className="w-full bg-white/50 min-h-[100px] rounded-xl border border-input px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        className="w-full bg-background/50 min-h-[100px] rounded-xl border border-input px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     />
                                 </div>
                             </div>
