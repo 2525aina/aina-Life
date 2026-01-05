@@ -111,10 +111,34 @@ export function TimelineView() {
                             className="relative flex gap-6 group"
                         >
                             {/* Time Column */}
-                            <div className="w-10 pt-4 text-right flex-shrink-0">
-                                <span className="text-sm font-bold font-mono text-muted-foreground group-hover:text-primary transition-colors">
-                                    {timeStr}
-                                </span>
+                            <div className="w-16 pt-3 text-right flex-shrink-0">
+                                {entry.timeType === 'range' && entry.endDate ? (
+                                    (() => {
+                                        const startDate = entry.date.toDate();
+                                        const endDateTime = entry.endDate.toDate();
+                                        const isSameDayRange = startDate.toDateString() === endDateTime.toDateString();
+
+                                        if (isSameDayRange) {
+                                            return (
+                                                <span className="text-[10px] font-bold font-mono text-muted-foreground group-hover:text-primary transition-colors">
+                                                    {formatTime(startDate)} ~ {formatTime(endDateTime)}
+                                                </span>
+                                            );
+                                        } else {
+                                            return (
+                                                <div className="flex flex-col items-end text-[9px] font-bold font-mono text-muted-foreground group-hover:text-primary transition-colors leading-tight">
+                                                    <span>{format(startDate, 'M/d')} {formatTime(startDate)}</span>
+                                                    <span className="text-primary/50">~</span>
+                                                    <span>{format(endDateTime, 'M/d')} {formatTime(endDateTime)}</span>
+                                                </div>
+                                            );
+                                        }
+                                    })()
+                                ) : (
+                                    <span className="text-sm font-bold font-mono text-muted-foreground group-hover:text-primary transition-colors">
+                                        {formatTime(entry.date.toDate())}
+                                    </span>
+                                )}
                             </div>
 
                             {/* Node Column */}
