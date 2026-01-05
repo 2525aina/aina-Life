@@ -139,11 +139,9 @@ export function TimelineView() {
                                                         })}
                                                     </div>
                                                 )}
-                                                {entry.title && (
-                                                    <h3 className={cn("font-bold text-base leading-tight", entry.isCompleted && "line-through opacity-60")}>
-                                                        {entry.title}
-                                                    </h3>
-                                                )}
+                                                <h3 className={cn("font-bold text-base leading-tight", entry.isCompleted && "line-through opacity-60")}>
+                                                    {entry.title || (tagInfo && ('label' in tagInfo ? tagInfo.label : tagInfo.name)) || entry.tags[0]}
+                                                </h3>
                                             </div>
 
                                             {/* Body */}

@@ -283,7 +283,12 @@ export default function CalendarPage() {
                                                                     return <span key={tag} className="text-base">{t?.emoji}</span>;
                                                                 })}
                                                             </div>
-                                                            <p className="font-bold text-sm truncate">{entry.title || entry.tags[0]}</p>
+                                                            {(() => {
+                                                                const firstTag = entry.tags[0];
+                                                                const tagInfo = tasks.find(x => x.name === firstTag) || ENTRY_TAGS.find(x => x.value === firstTag);
+                                                                const displayName = entry.title || (tagInfo && ('label' in tagInfo ? tagInfo.label : tagInfo.name)) || firstTag;
+                                                                return <p className="font-bold text-sm truncate">{displayName}</p>;
+                                                            })()}
                                                         </div>
                                                         {entry.body && <p className="text-xs text-muted-foreground line-clamp-1">{entry.body}</p>}
                                                     </div>
