@@ -154,141 +154,175 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
     const uniqueTags = tasks.map(t => ({ value: t.name, label: t.name, emoji: t.emoji }));
 
     return (
-        <div className="p-4 pb-24">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <div className="flex items-center gap-3 mb-6">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft className="w-5 h-5" /></Button>
-                    <h1 className="text-xl font-bold">{pageTitle}</h1>
-                </div>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <Tabs value={type} onValueChange={(v) => setType(v as 'diary' | 'schedule')}>
-                        <TabsList className="w-full">
-                            <TabsTrigger value="diary" className="flex-1">日記</TabsTrigger>
-                            <TabsTrigger value="schedule" className="flex-1">予定</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
 
-                    {/* 日時カード */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-sm font-medium">日時</CardTitle>
-                                <div className="flex items-center gap-2">
-                                    <Label htmlFor="time-type" className="text-xs text-muted-foreground">範囲で記録</Label>
-                                    <Switch
-                                        id="time-type"
-                                        checked={timeType === 'range'}
-                                        onCheckedChange={(checked) => setTimeType(checked ? 'range' : 'point')}
-                                    />
-                                </div>
+        <div className="relative min-h-screen pt-4 pb-40 px-4">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full w-10 h-10 hover:bg-white/10">
+                        <ArrowLeft className="w-6 h-6" />
+                    </Button>
+                    <h1 className="text-lg font-bold tracking-wider uppercase text-muted-foreground/50">{pageTitle}</h1>
+                    <div className="w-10" />
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto">
+                    {/* Type Switcher */}
+                    <div className="glass-capsule p-1.5 flex shadow-lg">
+                        <button
+                            type="button"
+                            onClick={() => setType('diary')}
+                            className={cn(
+                                "flex-1 py-3 rounded-full text-sm font-bold transition-all duration-300",
+                                type === 'diary' ? "bg-white dark:bg-zinc-800 text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            日記
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setType('schedule')}
+                            className={cn(
+                                "flex-1 py-3 rounded-full text-sm font-bold transition-all duration-300",
+                                type === 'schedule' ? "bg-white dark:bg-zinc-800 text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            予定
+                        </button>
+                    </div>
+
+                    {/* Date & Time */}
+                    <div className="glass rounded-[2rem] p-6 space-y-4 shadow-sm">
+                        <div className="flex items-center justify-between text-muted-foreground mb-1">
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                <span className="text-xs font-bold tracking-wider">DATE & TIME</span>
                             </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {/* 開始日時 */}
-                            <div className="flex gap-3 items-center">
-                                {timeType === 'range' && <span className="text-xs text-muted-foreground">開始</span>}
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="time-type" className="text-[10px] font-medium">範囲</Label>
+                                <Switch
+                                    id="time-type"
+                                    checked={timeType === 'range'}
+                                    onCheckedChange={(checked) => setTimeType(checked ? 'range' : 'point')}
+                                    className="scale-75"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between group">
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline" className="flex-1 justify-start text-left font-normal">
-                                            <CalendarIcon className="mr-2 h-4 w-4" />{format(date, 'M月d日（E）', { locale: ja })}
+                                        <Button variant="ghost" className="h-auto p-0 hover:bg-transparent font-normal text-left">
+                                            <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 group-hover:to-foreground transition-all">
+                                                {format(date, 'M/d')}
+                                                <span className="text-base ml-1 text-muted-foreground font-medium">{format(date, '(E)', { locale: ja })}</span>
+                                            </div>
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={ja} />
+                                    <PopoverContent className="w-auto p-0 rounded-xl" align="start">
+                                        <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={ja} initialFocus />
                                     </PopoverContent>
                                 </Popover>
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-muted-foreground" />
-                                    <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-28" />
-                                </div>
+                                <input
+                                    type="time"
+                                    value={time}
+                                    onChange={(e) => setTime(e.target.value)}
+                                    className="bg-transparent text-3xl font-bold outline-none w-28 text-right border-b-2 border-transparent focus:border-primary/50 transition-colors font-mono tracking-tight"
+                                />
                             </div>
 
-                            {/* 終了日時（範囲の場合のみ） */}
+                            {/* End Time for Range */}
                             {timeType === 'range' && (
-                                <div className="flex gap-3 items-center">
-                                    <span className="text-xs text-muted-foreground">終了</span>
-                                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    className="flex items-center justify-between pt-4 border-t border-white/10"
+                                >
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <Button variant="outline" className="flex-1 justify-start text-left font-normal">
-                                                <CalendarIcon className="mr-2 h-4 w-4" />{format(endDate, 'M月d日（E）', { locale: ja })}
+                                            <Button variant="ghost" className="h-auto p-0 hover:bg-transparent font-normal text-left">
+                                                <div className="text-xl font-medium text-muted-foreground">
+                                                    {format(endDate, 'M/d')}
+                                                    <span className="text-sm ml-1 text-muted-foreground/50">{format(endDate, '(E)', { locale: ja })}</span>
+                                                </div>
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <PopoverContent className="w-auto p-0 rounded-xl" align="start">
                                             <Calendar mode="single" selected={endDate} onSelect={(d) => d && setEndDate(d)} locale={ja} />
                                         </PopoverContent>
                                     </Popover>
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-muted-foreground" />
-                                        <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-28" />
-                                    </div>
-                                </div>
+                                    <input
+                                        type="time"
+                                        value={endTime}
+                                        onChange={(e) => setEndTime(e.target.value)}
+                                        className="bg-transparent text-xl font-medium text-muted-foreground outline-none w-24 text-right border-b-2 border-transparent focus:border-primary/50 transition-colors font-mono"
+                                    />
+                                </motion.div>
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
-                    {/* カテゴリ */}
-                    <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">カテゴリ</CardTitle></CardHeader>
-                        <CardContent>
-                            <div className="flex flex-wrap gap-2">
-                                {uniqueTags.map((tag) => (
-                                    <Button
+                    {/* Tags */}
+                    <div className="glass rounded-[2rem] p-6 shadow-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                            <span className="text-xs font-bold tracking-wider">CATEGORY</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {uniqueTags.map((tag) => {
+                                const isSelected = tags.includes(tag.label as any);
+                                return (
+                                    <button
                                         key={tag.value}
                                         type="button"
-                                        variant={tags.includes(tag.label as any) ? 'default' : 'outline'}
-                                        size="sm"
                                         onClick={() => toggleTag(tag.label as any)}
-                                        className={cn('gap-1.5', tags.includes(tag.label as any) && 'gradient-primary')}
+                                        className={cn(
+                                            "flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 border",
+                                            isSelected
+                                                ? "bg-primary text-white border-primary shadow-lg shadow-primary/25 scale-105"
+                                                : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 hover:border-white/20"
+                                        )}
                                     >
                                         <span>{tag.emoji}</span>
                                         <span>{tag.label}</span>
-                                    </Button>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
 
-                    {/* 内容 */}
-                    <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">内容</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <Label htmlFor="title" className="text-xs text-muted-foreground">タイトル（任意）</Label>
-                                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="タイトルを入力" className="mt-1" />
-                            </div>
-                            <div>
-                                <Label htmlFor="body" className="text-xs text-muted-foreground">メモ（任意）</Label>
-                                <textarea
-                                    id="body"
-                                    value={body}
-                                    onChange={(e) => setBody(e.target.value)}
-                                    placeholder="詳細を入力..."
-                                    rows={4}
-                                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {/* Content */}
+                    <div className="glass rounded-[2rem] p-6 space-y-6 shadow-sm">
+                        <div className="space-y-4">
+                            <input
+                                placeholder="タイトルを入力"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="w-full bg-transparent border-0 border-b border-white/10 rounded-none text-xl font-bold px-0 focus:ring-0 focus:border-primary placeholder:text-muted-foreground/30 py-2 transition-colors"
+                            />
+                            <textarea
+                                placeholder="詳細を入力..."
+                                value={body}
+                                onChange={(e) => setBody(e.target.value)}
+                                rows={5}
+                                className="w-full bg-transparent border-none text-base resize-none outline-none placeholder:text-muted-foreground/30 leading-relaxed"
+                            />
+                        </div>
 
-                    {/* 写真 */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium flex items-center justify-between">
-                                写真
-                                <span className="text-xs text-muted-foreground font-normal">{imageUrls.length}/5</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-                            <div className="flex flex-wrap gap-3">
+                        {/* Images Grid */}
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-xs font-bold text-muted-foreground tracking-wider">PHOTOS</span>
+                                <span className="text-[10px] text-muted-foreground/50">{imageUrls.length}/5</span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-2">
                                 {imageUrls.map((url, i) => (
-                                    <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden group">
-                                        <img src={url} alt="" className="w-full h-full object-cover" />
+                                    <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
+                                        <img src={url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveImage(i)}
-                                            className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70"
+                                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center hover:bg-destructive transition-colors backdrop-blur-sm"
                                         >
                                             <X className="w-3 h-3 text-white" />
                                         </button>
@@ -297,27 +331,36 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                                 {imageUrls.length < 5 && (
                                     <button
                                         type="button"
-                                        className="w-20 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary transition-colors disabled:opacity-50"
+                                        className="aspect-square rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center hover:border-primary/50 hover:bg-primary/5 transition-all gap-1 group disabled:opacity-50"
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={uploading}
                                     >
                                         {uploading ? (
-                                            <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+                                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
                                         ) : (
-                                            <ImagePlus className="w-6 h-6 text-muted-foreground" />
+                                            <ImagePlus className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                                         )}
                                     </button>
                                 )}
                             </div>
-                        </CardContent>
-                    </Card>
+                            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                        </div>
+                    </div>
 
-                    <Button type="submit" disabled={isSubmitting || tags.length === 0 || uploading} className="w-full h-12 text-base gradient-primary">
-                        <Save className="w-5 h-5 mr-2" />
-                        {isSubmitting ? '保存中...' : '保存する'}
-                    </Button>
+                    {/* Floating Save Button */}
+                    <div className="fixed bottom-24 left-0 right-0 px-6 flex justify-center pointer-events-none z-50">
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || tags.length === 0 || uploading}
+                            className="pointer-events-auto rounded-full gradient-primary shadow-2xl w-full max-w-sm h-14 text-lg font-bold hover:scale-105 active:scale-95 transition-all"
+                        >
+                            {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6 mr-2" />}
+                            保存する
+                        </Button>
+                    </div>
                 </form>
             </motion.div>
+
 
             <ImageCropper
                 open={cropperOpen}

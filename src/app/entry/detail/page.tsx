@@ -64,28 +64,25 @@ function EntryDetailContent() {
 
     return (
         <AppLayout>
-            <div className="p-4">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                                <ArrowLeft className="w-5 h-5" />
-                            </Button>
-                            <h1 className="text-xl font-bold">
-                                {entry.type === 'diary' ? '日記' : '予定'}の詳細
-                            </h1>
-                        </div>
+            <div className="relative min-h-screen pt-4 pb-32 px-4 space-y-6">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    {/* Header & Actions */}
+                    <div className="flex items-center justify-between mb-8">
+                        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full w-10 h-10 hover:bg-white/10 text-muted-foreground hover:text-foreground">
+                            <ArrowLeft className="w-6 h-6" />
+                        </Button>
+
                         <div className="flex gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => router.push(`/entry/edit?id=${entryId}`)}>
+                            <Button variant="ghost" size="icon" onClick={() => router.push(`/entry/edit?id=${entryId}`)} className="rounded-full w-10 h-10 hover:bg-white/10 text-muted-foreground hover:text-foreground">
                                 <Edit className="w-5 h-5" />
                             </Button>
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="text-destructive">
+                                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                                         <Trash2 className="w-5 h-5" />
                                     </Button>
                                 </AlertDialogTrigger>
-                                <AlertDialogContent>
+                                <AlertDialogContent className="glass border-white/20">
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>エントリーを削除</AlertDialogTitle>
                                         <AlertDialogDescription>
@@ -93,8 +90,8 @@ function EntryDetailContent() {
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+                                        <AlertDialogCancel className="rounded-full">キャンセル</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90">
                                             削除
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
@@ -103,58 +100,59 @@ function EntryDetailContent() {
                         </div>
                     </div>
 
-                    <Card className="mb-4">
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Calendar className="w-4 h-4" />
-                                <span>{format(entryDate, 'yyyy年M月d日（E）', { locale: ja })}</span>
-                                <Clock className="w-4 h-4 ml-2" />
-                                <span>{format(entryDate, 'H:mm')}</span>
+                    <div className="space-y-6">
+
+                        {/* Date & Time Badge */}
+                        <div className="flex justify-center">
+                            <div className="glass-capsule px-6 py-3 flex items-center gap-4 text-sm font-bold text-foreground/80 shadow-lg backdrop-blur-xl bg-white/40 dark:bg-black/40 border border-white/20">
+                                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> {format(entryDate, 'yyyy/MM/dd (E)', { locale: ja })}</span>
+                                <span className="w-px h-3 bg-foreground/20" />
+                                <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> {format(entryDate, 'HH:mm')}</span>
                             </div>
-                        </CardHeader>
-                        <CardContent>
-                            {/* タグ */}
-                            <div className="flex flex-wrap gap-2 mb-4">
+                        </div>
+
+                        {/* Main Content Glass Panel */}
+                        <div className="glass rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary opacity-50" />
+                            <div className="absolute -right-20 -top-20 w-60 h-60 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
+
+                            {/* Tags */}
+                            <div className="flex flex-wrap gap-2 mb-8 justify-center relative z-10">
                                 {entry.tags.map((tag) => {
                                     const tagInfo = tasks.find((t) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag);
                                     return (
-                                        <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-sm">
-                                            <span>{tagInfo?.emoji}</span>
+                                        <span key={tag} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/20 text-foreground text-sm font-bold shadow-sm backdrop-blur-md">
+                                            <span className="text-lg">{tagInfo?.emoji}</span>
                                             <span>{(tagInfo as any)?.name || (tagInfo as any)?.label}</span>
                                         </span>
                                     );
                                 })}
                             </div>
 
-                            {/* タイトル */}
+                            {/* Title */}
                             {entry.title && (
-                                <h2 className="text-lg font-semibold mb-2">{entry.title}</h2>
+                                <h1 className="text-2xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 relative z-10">{entry.title}</h1>
                             )}
 
-                            {/* 本文 */}
+                            {/* Body */}
                             {entry.body && (
-                                <p className="text-foreground whitespace-pre-wrap">{entry.body}</p>
+                                <div className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-base font-medium relative z-10">
+                                    {entry.body}
+                                </div>
                             )}
-                        </CardContent>
-                    </Card>
 
-                    {/* 画像 */}
-                    {entry.imageUrls.length > 0 && (
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium">写真</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-2">
+                            {/* Images Grid */}
+                            {entry.imageUrls.length > 0 && (
+                                <div className="mt-8 grid grid-cols-2 gap-3 relative z-10">
                                     {entry.imageUrls.map((url, i) => (
-                                        <div key={i} className="aspect-square rounded-lg overflow-hidden">
-                                            <img src={url} alt="" className="w-full h-full object-cover" />
+                                        <div key={i} className="aspect-square rounded-2xl overflow-hidden shadow-md ring-1 ring-white/10 group/image cursor-pointer">
+                                            <img src={url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover/image:scale-110" />
                                         </div>
                                     ))}
                                 </div>
-                            </CardContent>
-                        </Card>
-                    )}
+                            )}
+                        </div>
+                    </div>
                 </motion.div>
             </div>
         </AppLayout>

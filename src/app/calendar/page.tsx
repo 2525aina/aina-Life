@@ -5,8 +5,6 @@ import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
 import { useEntries } from '@/hooks/useEntries';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ENTRY_TAGS } from '@/lib/types';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -28,13 +26,25 @@ export default function CalendarPage() {
 
     const entriesByDate = useMemo(() => {
         const grouped: Record<string, typeof entries> = {};
-        entries.forEach((entry) => { const dateKey = format(entry.date.toDate(), 'yyyy-MM-dd'); if (!grouped[dateKey]) grouped[dateKey] = []; grouped[dateKey].push(entry); });
+        entries.forEach((entry) => {
+            const dateKey = format(entry.date.toDate(), 'yyyy-MM-dd');
+            if (!grouped[dateKey]) grouped[dateKey] = [];
+            grouped[dateKey].push(entry);
+        });
         return grouped;
     }, [entries]);
 
     const calendarDays = useMemo(() => {
-        if (viewMode === 'month') { const start = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 }); const end = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 }); return eachDayOfInterval({ start, end }); }
-        if (viewMode === 'week') { const start = startOfWeek(currentDate, { weekStartsOn: 0 }); const end = endOfWeek(currentDate, { weekStartsOn: 0 }); return eachDayOfInterval({ start, end }); }
+        if (viewMode === 'month') {
+            const start = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 });
+            const end = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 });
+            return eachDayOfInterval({ start, end });
+        }
+        if (viewMode === 'week') {
+            const start = startOfWeek(currentDate, { weekStartsOn: 0 });
+            const end = endOfWeek(currentDate, { weekStartsOn: 0 });
+            return eachDayOfInterval({ start, end });
+        }
         return [currentDate];
     }, [currentDate, viewMode]);
 
@@ -49,51 +59,185 @@ export default function CalendarPage() {
 
     return (
         <AppLayout>
-            <div className="p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                    <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}><TabsList><TabsTrigger value="month">月</TabsTrigger><TabsTrigger value="week">週</TabsTrigger><TabsTrigger value="day">日</TabsTrigger></TabsList></Tabs>
-                    <Button variant="outline" size="sm" onClick={() => { setCurrentDate(new Date()); setSelectedDate(new Date()); }}>今日</Button>
-                </div>
-                <div className="flex items-center justify-between">
-                    <Button variant="ghost" size="icon" onClick={() => navigate('prev')}><ChevronLeft className="w-5 h-5" /></Button>
-                    <h2 className="text-lg font-semibold">
-                        {viewMode === 'month' && format(currentDate, 'yyyy年M月', { locale: ja })}
-                        {viewMode === 'week' && `${format(startOfWeek(currentDate, { weekStartsOn: 0 }), 'M/d')} - ${format(endOfWeek(currentDate, { weekStartsOn: 0 }), 'M/d')}`}
-                        {viewMode === 'day' && format(currentDate, 'M月d日（E）', { locale: ja })}
-                    </h2>
-                    <Button variant="ghost" size="icon" onClick={() => navigate('next')}><ChevronRight className="w-5 h-5" /></Button>
-                </div>
-                <Card><CardContent className="p-3">
-                    {viewMode !== 'day' && (<>
-                        <div className="grid grid-cols-7 mb-2">{weekDays.map((day, i) => <div key={day} className={cn('text-center text-xs font-medium py-2', i === 0 && 'text-red-500', i === 6 && 'text-blue-500')}>{day}</div>)}</div>
-                        <div className={cn('grid grid-cols-7 gap-1', viewMode === 'week' && 'min-h-[200px]')}>
+
+            <div className="relative min-h-screen pb-32">
+                {/* Global Header Gradient */}
+                <div className="absolute inset-0 h-[40vh] bg-gradient-to-b from-primary/20 via-primary/5 to-transparent -z-10 rounded-b-[4rem]" />
+
+                <div className="px-4 pt-6 space-y-6">
+                    {/* Header Controls */}
+                    <div className="flex items-center justify-between z-10 relative">
+                        <div className="glass-capsule p-1 flex items-center space-x-1 shadow-lg bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-white/10">
+                            {(['month', 'week', 'day'] as const).map(mode => (
+                                <button
+                                    key={mode}
+                                    onClick={() => setViewMode(mode)}
+                                    className={cn(
+                                        "px-4 py-2 rounded-full text-xs font-bold transition-all duration-300",
+                                        viewMode === mode
+                                            ? "bg-primary text-white shadow-md shadow-primary/30"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+                                    )}
+                                >
+                                    {mode === 'month' ? '月' : mode === 'week' ? '週' : '日'}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => navigate('prev')} className="rounded-full w-10 h-10 hover:bg-white/20 text-foreground/80 hover:text-foreground backdrop-blur-sm transition-all hover:scale-110 active:scale-95"><ChevronLeft className="w-6 h-6" /></Button>
+                            <h2 className="text-2xl font-black tracking-tight min-w-[4rem] text-center pt-1.5 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+                                {viewMode === 'month' && format(currentDate, 'M月', { locale: ja })}
+                                {viewMode !== 'month' && format(currentDate, 'M/d')}
+                            </h2>
+                            <Button variant="ghost" size="icon" onClick={() => navigate('next')} className="rounded-full w-10 h-10 hover:bg-white/20 text-foreground/80 hover:text-foreground backdrop-blur-sm transition-all hover:scale-110 active:scale-95"><ChevronRight className="w-6 h-6" /></Button>
+                        </div>
+                    </div>
+
+                    {/* Calendar Grid Container */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={cn(
+                            "glass rounded-[2rem] p-4 overflow-hidden shadow-xl ring-1 ring-white/20",
+                            viewMode === 'day' && "hidden"
+                        )}
+                    >
+                        <div className="grid grid-cols-7 mb-2 opacity-60">
+                            {weekDays.map((day, i) => (
+                                <div key={day} className={cn('text-center text-[10px] font-bold py-2', i === 0 && 'text-red-500', i === 6 && 'text-blue-500')}>
+                                    {day}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className={cn('grid grid-cols-7 gap-1', viewMode === 'month' ? 'auto-rows-[1fr]' : 'h-32')}>
                             {calendarDays.map((day) => {
-                                const dateKey = format(day, 'yyyy-MM-dd'); const dayEntries = entriesByDate[dateKey] || []; const isToday = isSameDay(day, new Date()); const isSelected = isSameDay(day, selectedDate); const isCurrentMonth = isSameMonth(day, currentDate); const dayOfWeek = day.getDay();
+                                const dateKey = format(day, 'yyyy-MM-dd');
+                                const dayEntries = entriesByDate[dateKey] || [];
+                                const isToday = isSameDay(day, new Date());
+                                const isSelected = isSameDay(day, selectedDate);
+                                const isCurrentMonth = isSameMonth(day, currentDate);
+                                const dayOfWeek = day.getDay();
+
                                 return (
-                                    <button key={dateKey} onClick={() => setSelectedDate(day)} className={cn('relative p-1 rounded-lg transition-colors min-h-[60px] flex flex-col items-center', viewMode === 'week' && 'min-h-[100px]', !isCurrentMonth && viewMode === 'month' && 'opacity-40', isSelected && 'bg-primary/10 ring-2 ring-primary', !isSelected && 'hover:bg-muted')}>
-                                        <span className={cn('text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full', isToday && 'bg-primary text-primary-foreground', dayOfWeek === 0 && 'text-red-500', dayOfWeek === 6 && 'text-blue-500')}>{format(day, 'd')}</span>
-                                        {dayEntries.length > 0 && <div className="flex gap-0.5 mt-1 flex-wrap justify-center">{dayEntries.slice(0, 4).map((e) => <div key={e.id} className={cn('w-1.5 h-1.5 rounded-full', e.type === 'schedule' ? 'bg-orange-400' : 'bg-primary')} />)}{dayEntries.length > 4 && <span className="text-[10px] text-muted-foreground">+{dayEntries.length - 4}</span>}</div>}
+                                    <button
+                                        key={dateKey}
+                                        onClick={() => setSelectedDate(day)}
+                                        className={cn(
+                                            'relative aspect-[4/5] rounded-xl flex flex-col items-center justify-start pt-2 transition-all duration-300 group outline-none',
+                                            isSelected ? 'bg-primary/10 ring-2 ring-primary/30' : 'hover:bg-white/10 dark:hover:bg-white/5',
+                                            !isCurrentMonth && viewMode === 'month' && 'opacity-20'
+                                        )}
+                                    >
+                                        <span className={cn(
+                                            'text-xs font-semibold z-10 w-6 h-6 flex items-center justify-center rounded-full transition-all',
+                                            isToday ? 'bg-gradient-to-tr from-primary to-orange-400 text-white shadow-lg shadow-primary/30 scale-110' : 'text-foreground/80',
+                                            dayOfWeek === 0 && !isToday && 'text-red-400',
+                                            dayOfWeek === 6 && !isToday && 'text-blue-400'
+                                        )}>
+                                            {format(day, 'd')}
+                                        </span>
+
+                                        {/* Indicators */}
+                                        {dayEntries.length > 0 && (
+                                            <div className="mt-1.5 flex flex-wrap justify-center content-start gap-0.5 px-1 w-full h-full overflow-hidden opacity-80">
+                                                {dayEntries.slice(0, 4).map((e) => {
+                                                    const tagInfo = tasks.find((t) => t.name === e.tags[0]) || ENTRY_TAGS.find((t) => t.value === e.tags[0]);
+                                                    return (
+                                                        <span key={e.id} className="text-[8px] leading-none">
+                                                            {tagInfo?.emoji || '•'}
+                                                        </span>
+                                                    )
+                                                })}
+                                                {dayEntries.length > 4 && <span className="text-[8px] leading-none text-muted-foreground">+</span>}
+                                            </div>
+                                        )}
                                     </button>
                                 );
                             })}
                         </div>
-                    </>)}
-                    {viewMode === 'day' && <div className="py-4 text-center"><p className="text-3xl font-bold">{format(currentDate, 'd')}</p><p className="text-muted-foreground">{format(currentDate, 'EEEE', { locale: ja })}</p></div>}
-                </CardContent></Card>
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between"><h3 className="font-medium">{format(viewMode === 'day' ? currentDate : selectedDate, 'M月d日', { locale: ja })}の記録</h3><Link href={`/entry/new?date=${format(viewMode === 'day' ? currentDate : selectedDate, 'yyyy-MM-dd')}`}><Button size="sm" variant="outline" className="gap-1"><Plus className="w-4 h-4" />追加</Button></Link></div>
-                    <AnimatePresence mode="wait">
-                        {loading ? <div className="space-y-2">{[...Array(2)].map((_, i) => <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />)}</div>
-                            : selectedDateEntries.length === 0 ? <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-8 text-muted-foreground">この日の記録はありません</motion.div>
-                                : <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">{selectedDateEntries.sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()).map((entry) => (
-                                    <Link key={entry.id} href={`/entry/detail?id=${entry.id}`} className="flex items-start gap-3 p-3 rounded-lg bg-card border hover:bg-muted/50 transition-colors">
-                                        <div className="flex-shrink-0 text-sm font-medium text-muted-foreground w-12">{format(entry.date.toDate(), 'H:mm')}</div>
-                                        <div className="flex gap-1 flex-shrink-0">{entry.tags.map((tag) => <span key={tag} className="text-lg">{(tasks.find((t) => t.name === tag) || ENTRY_TAGS.find((t) => t.value === tag))?.emoji}</span>)}</div>
-                                        <div className="flex-1 min-w-0">{entry.title && <p className="font-medium truncate">{entry.title}</p>}{entry.body && <p className="text-sm text-muted-foreground line-clamp-1">{entry.body}</p>}{entry.type === 'schedule' && <span className="inline-block text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded mt-1">予定</span>}</div>
-                                        {entry.imageUrls.length > 0 && <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0"><img src={entry.imageUrls[0]} alt="" className="w-full h-full object-cover" /></div>}
-                                    </Link>
-                                ))}</motion.div>}
-                    </AnimatePresence>
+                    </motion.div>
+
+                    {/* Selected Date Details */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between px-2">
+                            <div>
+                                <p className="text-xs font-medium text-muted-foreground">{format(selectedDate, 'yyyy年', { locale: ja })}</p>
+                                <h3 className="text-xl font-bold flex items-center gap-2">
+                                    {format(selectedDate, 'M月d日 (E)', { locale: ja })}
+                                </h3>
+                            </div>
+                            <Link href={`/entry/new?date=${format(selectedDate, 'yyyy-MM-dd')}`}>
+                                <Button size="sm" className="rounded-full gradient-primary shadow-lg hover:shadow-primary/25 h-9 px-4">
+                                    <Plus className="w-4 h-4 mr-1" />
+                                    記録
+                                </Button>
+                            </Link>
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                            {loading ? (
+                                <div className="space-y-3">{[...Array(2)].map((_, i) => <div key={i} className="h-20 bg-muted/20 animate-pulse rounded-2xl" />)}</div>
+                            ) : selectedDateEntries.length === 0 ? (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="glass-capsule rounded-3xl p-6 text-center py-10 border-dashed"
+                                >
+                                    <p className="text-muted-foreground">記録はありません</p>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="space-y-3"
+                                >
+                                    {selectedDateEntries.sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()).map((entry) => {
+                                        const isSchedule = entry.type === 'schedule';
+                                        return (
+                                            <Link key={entry.id} href={`/entry/detail?id=${entry.id}`}>
+                                                <motion.div
+                                                    whileHover={{ scale: 1.02 }}
+                                                    className={cn(
+                                                        "flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300",
+                                                        isSchedule
+                                                            ? "bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800"
+                                                            : "glass border-white/40 dark:border-white/10"
+                                                    )}
+                                                >
+                                                    <div className="flex flex-col items-center flex-shrink-0 w-10">
+                                                        <span className="text-xs font-bold text-muted-foreground">{format(entry.date.toDate(), 'H:mm')}</span>
+                                                    </div>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-0.5">
+                                                            <div className="flex -space-x-1">
+                                                                {entry.tags.map(tag => {
+                                                                    const t = tasks.find(x => x.name === tag) || ENTRY_TAGS.find(x => x.value === tag);
+                                                                    return <span key={tag} className="text-base">{t?.emoji}</span>;
+                                                                })}
+                                                            </div>
+                                                            <p className="font-bold text-sm truncate">{entry.title || entry.tags[0]}</p>
+                                                        </div>
+                                                        {entry.body && <p className="text-xs text-muted-foreground line-clamp-1">{entry.body}</p>}
+                                                    </div>
+
+                                                    {entry.imageUrls.length > 0 && (
+                                                        <div className="w-10 h-10 rounded-lg overflow-hidden ring-1 ring-white/50 flex-shrink-0">
+                                                            <img src={entry.imageUrls[0]} alt="" className="w-full h-full object-cover" />
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            </Link>
+                                        )
+                                    })}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
         </AppLayout>

@@ -252,25 +252,48 @@ export default function ProfilePage() {
                                 {!isEditing ? (
                                     <motion.div
                                         key="view"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="text-center space-y-2"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 1.05 }}
+                                        className="flex flex-col items-center relative z-10"
                                     >
-                                        <h1 className="text-2xl font-bold tracking-tight">{nickname || displayName}</h1>
-                                        {nickname && <p className="text-sm text-muted-foreground font-medium">{displayName}</p>}
-                                        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/50 py-1 px-3 rounded-full">
-                                            <Mail className="w-3 h-3" /> {userProfile?.email}
+                                        {/* Avatar Container with Glow */}
+                                        <div className="relative mb-6">
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-primary to-orange-400 rounded-full blur-3xl opacity-30 animate-pulse" />
+                                            <div className="relative z-10 p-2 rounded-full glass border border-white/20 dark:border-white/10">
+                                                <Avatar className="w-32 h-32 md:w-40 md:h-40 shadow-2xl">
+                                                    <AvatarImage src={displayAvatar} alt={userProfile?.displayName} className="object-cover" />
+                                                    <AvatarFallback className="bg-white/10 text-4xl font-light">
+                                                        {userProfile?.displayName?.charAt(0)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                            </div>
+                                            {/* Edit Pencil Fab */}
+                                            <Button
+                                                size="icon"
+                                                className="absolute bottom-1 right-1 rounded-full z-20 shadow-xl gradient-primary hover:scale-110 transition-transform w-12 h-12"
+                                                onClick={() => setIsEditing(true)}
+                                            >
+                                                <Edit3 className="w-6 h-6 text-white" />
+                                            </Button>
                                         </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="mt-4 rounded-full px-6 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/50 transition-all"
-                                            onClick={() => setIsEditing(true)}
-                                        >
-                                            <Edit3 className="w-3 h-3 mr-2" />
-                                            プロフィールを編集
-                                        </Button>
+
+                                        {/* Name & Bio */}
+                                        <div className="text-center space-y-2 mb-8">
+                                            <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/40">
+                                                {nickname || displayName}
+                                            </h1>
+                                            {nickname && <p className="text-sm font-medium text-muted-foreground tracking-wide">{displayName}</p>}
+
+                                            {/* Email Badge */}
+                                            <div className="inline-flex items-center px-4 py-1.5 rounded-full glass border border-white/20 text-xs font-medium text-muted-foreground/80 mt-3 shadow-sm">
+                                                <Mail className="w-3.5 h-3.5 mr-2 opacity-70" />
+                                                {userProfile?.email}
+                                            </div>
+                                        </div>
+
+                                        {/* Decorative Divider */}
+                                        <div className="w-24 h-1 rounded-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent mb-8" />
                                     </motion.div>
                                 ) : (
                                     <motion.div key="edit" className="w-full max-w-md mt-4" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>

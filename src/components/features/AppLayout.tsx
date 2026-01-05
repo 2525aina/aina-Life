@@ -31,9 +31,16 @@ export function AppLayout({ children }: AppLayoutProps) {
     if (!user) return null;
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen relative overflow-hidden bg-background">
+            {/* Living Background */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob" />
+                <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-orange-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000" />
+                <div className="absolute bottom-[-10%] left-[20%] w-96 h-96 bg-pink-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000" />
+            </div>
+
             <Header />
-            <main className="pb-20 max-w-2xl mx-auto">{children}</main>
+            <main className="relative z-10 pb-32 max-w-2xl mx-auto px-4">{children}</main>
             <BottomNav />
         </div>
     );

@@ -124,59 +124,72 @@ export default function NewPetPage() {
 
     return (
         <AppLayout>
-            <div className="pb-24">
-                {/* ヘッダーエリア */}
-                <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 pb-8 pt-6 px-4 -mx-4 md:mx-0 md:rounded-b-3xl">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="md:container max-w-2xl mx-auto flex flex-col items-center text-center">
-                        <div className="relative group mb-4">
-                            <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-                                <AvatarImage src={avatarPreview || undefined} className="object-cover" />
-                                <AvatarFallback className="bg-primary/10 text-4xl"><PawPrint className="w-12 h-12 text-primary" /></AvatarFallback>
-                            </Avatar>
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
-                            >
-                                <Camera className="w-5 h-5" />
-                            </button>
-                            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-                        </div>
-                        {avatarPreview && (
-                            <Button type="button" variant="ghost" size="sm" onClick={handleRemoveImage} className="text-destructive text-xs hover:bg-destructive/10 mb-2">
-                                画像を削除
+            <div className="pb-32 min-h-screen">
+                {/* Header Area */}
+                <div className="relative">
+                    <div className="absolute inset-0 h-[40vh] bg-gradient-to-b from-primary/20 via-primary/5 to-transparent -z-10 rounded-b-[4rem]" />
+
+                    <div className="md:container max-w-xl mx-auto px-4 pt-6">
+                        <div className="flex items-center gap-3 mb-6">
+                            <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/20 text-muted-foreground hover:text-foreground transition-colors" onClick={() => router.back()}>
+                                <ArrowLeft className="w-5 h-5" />
                             </Button>
-                        )}
-                        <h1 className="text-2xl font-bold">新しいペット</h1>
-                        <p className="text-sm text-muted-foreground mt-1">ペットの情報を入力してください</p>
-                    </motion.div>
-                </div>
+                        </div>
 
-                <div className="px-4 md:container max-w-2xl mx-auto mt-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft className="w-5 h-5" /></Button>
-                        <span className="text-sm text-muted-foreground">戻る</span>
-                    </div>
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center text-center mb-8">
+                            <h1 className="text-3xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Welcome</h1>
+                            <p className="text-sm font-medium text-muted-foreground mb-8">新しい家族を迎えましょう</p>
 
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <Card>
-                                <CardHeader className="pb-2"><CardTitle className="text-base">基本情報</CardTitle></CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <Label htmlFor="name">名前 <span className="text-destructive">*</span></Label>
-                                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="ペットの名前" maxLength={20} className="mt-1" />
+                            <div className="relative group mb-6">
+                                <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-orange-400 rounded-full opacity-30 blur-xl group-hover:opacity-40 transition duration-1000 animate-pulse" />
+                                <Avatar className="w-40 h-40 border-4 border-white/50 dark:border-white/10 shadow-2xl relative z-10">
+                                    <AvatarImage src={avatarPreview || undefined} className="object-cover" />
+                                    <AvatarFallback className="bg-white/50 dark:bg-black/20 text-4xl backdrop-blur-md"><PawPrint className="w-16 h-16 text-primary/50" /></AvatarFallback>
+                                </Avatar>
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 hover:scale-110 transition-all z-20"
+                                >
+                                    <Camera className="w-5 h-5" />
+                                </button>
+                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                                {avatarPreview && (
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveImage}
+                                        className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-destructive text-white flex items-center justify-center shadow-lg hover:bg-destructive/90 hover:scale-110 transition-all z-20"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                        </motion.div>
+
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                            <form onSubmit={handleSubmit} className="space-y-8">
+                                <div className="glass rounded-[2.5rem] p-8 shadow-xl space-y-6 relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary opacity-50" />
+
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1 h-4 bg-primary rounded-full" />
+                                        <h3 className="font-bold text-lg text-foreground/80">基本情報</h3>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name" className="text-xs font-bold text-muted-foreground ml-1">名前 <span className="text-destructive">*</span></Label>
+                                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="ペットの名前" maxLength={20} className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20 focus:scale-[1.01] transition-transform" />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor="breed">品種</Label>
-                                            <Input id="breed" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="例：柴犬" className="mt-1" />
+                                        <div className="space-y-2">
+                                            <Label htmlFor="breed" className="text-xs font-bold text-muted-foreground ml-1">品種</Label>
+                                            <Input id="breed" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="例：柴犬" className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20" />
                                         </div>
-                                        <div>
-                                            <Label>性別</Label>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-muted-foreground ml-1">性別</Label>
                                             <Select value={gender} onValueChange={(val: any) => setGender(val)}>
-                                                <SelectTrigger className="mt-1">
+                                                <SelectTrigger className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20">
                                                     <SelectValue placeholder="選択" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -189,17 +202,17 @@ export default function NewPetPage() {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label>誕生日</Label>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-muted-foreground ml-1">誕生日</Label>
                                             <div className="relative">
                                                 <Popover>
                                                     <PopoverTrigger asChild>
-                                                        <Button variant="outline" className={cn('w-full mt-1 justify-start text-left font-normal pl-3 pr-10', !birthday && 'text-muted-foreground')}>
+                                                        <Button variant="outline" className={cn('w-full h-12 justify-start text-left font-normal pl-3 pr-10 rounded-xl bg-white/50 dark:bg-black/20 border-white/20', !birthday && 'text-muted-foreground')}>
                                                             <CalendarIcon className="mr-2 h-4 w-4" />
                                                             {birthday ? format(birthday, 'yyyy/MM/dd') : '選択'}
                                                         </Button>
                                                     </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                    <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
                                                         <Calendar mode="single" selected={birthday} onSelect={setBirthday} locale={ja} disabled={(date) => date > new Date()} initialFocus />
                                                     </PopoverContent>
                                                 </Popover>
@@ -210,17 +223,17 @@ export default function NewPetPage() {
                                                 )}
                                             </div>
                                         </div>
-                                        <div>
-                                            <Label>お迎え日</Label>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-muted-foreground ml-1">お迎え日</Label>
                                             <div className="relative">
                                                 <Popover>
                                                     <PopoverTrigger asChild>
-                                                        <Button variant="outline" className={cn('w-full mt-1 justify-start text-left font-normal pl-3 pr-10', !adoptionDate && 'text-muted-foreground')}>
+                                                        <Button variant="outline" className={cn('w-full h-12 justify-start text-left font-normal pl-3 pr-10 rounded-xl bg-white/50 dark:bg-black/20 border-white/20', !adoptionDate && 'text-muted-foreground')}>
                                                             <CalendarIcon className="mr-2 h-4 w-4" />
                                                             {adoptionDate ? format(adoptionDate, 'yyyy/MM/dd') : '選択'}
                                                         </Button>
                                                     </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                    <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
                                                         <Calendar mode="single" selected={adoptionDate} onSelect={setAdoptionDate} locale={ja} disabled={(date) => date > new Date()} initialFocus />
                                                     </PopoverContent>
                                                 </Popover>
@@ -233,19 +246,19 @@ export default function NewPetPage() {
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <Label htmlFor="microchipId">マイクロチップID</Label>
-                                        <Input id="microchipId" value={microchipId} onChange={(e) => setMicrochipId(e.target.value)} placeholder="マイクロチップID（任意）" className="mt-1" />
+                                    <div className="space-y-2">
+                                        <Label htmlFor="microchipId" className="text-xs font-bold text-muted-foreground ml-1">マイクロチップID</Label>
+                                        <Input id="microchipId" value={microchipId} onChange={(e) => setMicrochipId(e.target.value)} placeholder="マイクロチップID（任意）" className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20" />
                                     </div>
-                                </CardContent>
-                            </Card>
+                                </div>
 
-                            <Button type="submit" disabled={isSubmitting || !name.trim() || uploading} className="w-full h-12 text-base gradient-primary shadow-lg">
-                                <Save className="w-5 h-5 mr-2" />
-                                {isSubmitting ? '登録中...' : '登録する'}
-                            </Button>
-                        </form>
-                    </motion.div>
+                                <Button type="submit" disabled={isSubmitting || !name.trim() || uploading} className="w-full h-14 text-lg font-bold gradient-primary shadow-xl rounded-full hover:scale-105 transition-transform">
+                                    <Save className="w-5 h-5 mr-2" />
+                                    {isSubmitting ? '登録中...' : '登録する'}
+                                </Button>
+                            </form>
+                        </motion.div>
+                    </div>
                 </div>
 
                 <ImageCropper
