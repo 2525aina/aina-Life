@@ -368,7 +368,7 @@ function PetSettingsContent() {
                                 </div>
 
                                 {canEdit && (
-                                    <div className="sticky bottom-8 z-20 mx-auto max-w-sm px-4">
+                                    <div className="sticky bottom-24 z-20 mx-auto max-w-sm px-4 pt-6">
                                         <Button onClick={handleUpdatePet} className="w-full shadow-2xl gradient-primary h-14 text-base font-bold rounded-full hover:scale-105 transition-transform">
                                             変更を保存
                                         </Button>

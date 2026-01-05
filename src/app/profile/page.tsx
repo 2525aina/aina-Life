@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
-import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, Save, User, Bell, MessageSquare, Clock, ArrowLeft, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
+import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, Save, User, MessageSquare, Clock, ArrowLeft, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePets } from '@/hooks/usePets';
@@ -41,7 +41,6 @@ export default function ProfilePage() {
     const [introduction, setIntroduction] = useState('');
 
     // 設定
-    const [notifications, setNotifications] = useState({ dailySummary: false });
     const [timeFormat, setTimeFormat] = useState('HH:mm');
     const [toastPosition, setToastPosition] = useState('bottom-right');
 
@@ -65,7 +64,6 @@ export default function ProfilePage() {
             setGender(userProfile.gender || '');
             setIntroduction(userProfile.introduction || '');
             if (userProfile.settings) {
-                setNotifications(userProfile.settings.notifications || { dailySummary: false });
                 setTimeFormat(userProfile.settings.timeFormat || 'HH:mm');
                 setToastPosition(userProfile.settings.toastPosition || 'bottom-right');
             }
@@ -76,7 +74,6 @@ export default function ProfilePage() {
         if (!user) return;
 
         // Optimistic update
-        if (key === 'notifications') setNotifications(value);
         if (key === 'timeFormat') setTimeFormat(value);
         if (key === 'toastPosition') setToastPosition(value);
 
@@ -326,13 +323,16 @@ export default function ProfilePage() {
                                                         placeholder="ひとこと..."
                                                     />
                                                 </div>
+                                            </div>
+                                        </div>
 
-                                                <div className="flex gap-3 pt-2">
-                                                    <Button variant="ghost" className="flex-1 rounded-xl h-11" onClick={handleCancelEdit}>キャンセル</Button>
-                                                    <Button className="flex-1 gradient-primary shadow-lg rounded-xl h-11" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
-                                                        <Save className="w-4 h-4 mr-2" />{isSaving ? '保存中...' : '保存'}
-                                                    </Button>
-                                                </div>
+                                        {/* Sticky buttons */}
+                                        <div className="sticky bottom-24 z-20 pt-4">
+                                            <div className="flex gap-3">
+                                                <Button variant="ghost" className="flex-1 rounded-full h-12 bg-white/50 backdrop-blur-md shadow-lg" onClick={handleCancelEdit}>キャンセル</Button>
+                                                <Button className="flex-1 gradient-primary shadow-2xl rounded-full h-12" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
+                                                    <Save className="w-4 h-4 mr-2" />{isSaving ? '保存中...' : '保存'}
+                                                </Button>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -389,12 +389,6 @@ export default function ProfilePage() {
                                         label="ダークモード"
                                         subLabel="画面の明度を調整します"
                                         action={<Switch checked={theme === 'dark'} onCheckedChange={(c) => setTheme(c ? 'dark' : 'light')} />}
-                                    />
-                                    <ListItem
-                                        icon={Bell}
-                                        label="デイリーサマリー"
-                                        subLabel="毎日の記録まとめを受け取る"
-                                        action={<Switch checked={notifications.dailySummary} onCheckedChange={(c) => handleUpdateSettings('notifications', { ...notifications, dailySummary: c })} />}
                                     />
                                     <ListItem
                                         icon={Clock}

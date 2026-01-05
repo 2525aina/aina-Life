@@ -331,12 +331,12 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                         </div>
                     </div>
 
-                    {/* Floating Save Button */}
-                    <div className="fixed bottom-24 left-0 right-0 px-6 flex justify-center pointer-events-none z-50">
+                    {/* Sticky Save Button */}
+                    <div className="sticky bottom-24 z-20 pt-4 mx-auto max-w-sm">
                         <Button
                             type="submit"
                             disabled={isSubmitting || tags.length === 0 || uploading}
-                            className="pointer-events-auto rounded-full gradient-primary shadow-2xl w-full max-w-sm h-14 text-lg font-bold hover:scale-105 active:scale-95 transition-all"
+                            className="rounded-full gradient-primary shadow-2xl w-full h-14 text-lg font-bold hover:scale-105 active:scale-95 transition-all"
                         >
                             {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6 mr-2" />}
                             保存する
