@@ -8,7 +8,7 @@ import { useEntries } from '@/hooks/useEntries';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
 import { ENTRY_TAGS, Entry } from '@/lib/types';
 import Link from 'next/link';
-import { CheckCircle2, Circle, Clock, ChevronDown, Sparkles, CalendarCheck } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, ChevronDown, Sparkles, CalendarCheck, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
@@ -40,11 +40,10 @@ function SectionHeader({
     return (
         <button
             onClick={onToggle}
-            disabled={!isCollapsible}
             className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all",
                 `bg-gradient-to-r ${colorClasses[color]}`,
-                isCollapsible && "cursor-pointer hover:opacity-90 active:scale-[0.99]"
+                "cursor-pointer hover:opacity-90 active:scale-[0.99]"
             )}
         >
             <div className={cn(
@@ -57,12 +56,10 @@ function SectionHeader({
             <span className="text-xs font-bold opacity-60 bg-white/30 dark:bg-black/20 px-2.5 py-1 rounded-full">
                 {count}
             </span>
-            {isCollapsible && (
-                <ChevronDown className={cn(
-                    "w-4 h-4 transition-transform duration-300",
-                    !isOpen && "-rotate-90"
-                )} />
-            )}
+            <ChevronDown className={cn(
+                "w-4 h-4 transition-transform duration-300",
+                !isOpen && "-rotate-90"
+            )} />
         </button>
     );
 }
@@ -137,24 +134,24 @@ function EntryCard({
                             : "bg-white/60 dark:bg-zinc-900/60 border-white/30 dark:border-white/5 backdrop-blur-xl"
                 )}>
                     {/* Time */}
-                    <div className="w-16 flex-shrink-0 text-right">
+                    <div className="w-14 sm:w-16 flex-shrink-0 text-right">
                         {renderTime()}
                     </div>
 
                     {/* Emoji */}
                     <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
+                        "w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0",
                         "bg-gradient-to-br from-white/80 to-white/40 dark:from-white/10 dark:to-white/5",
                         "shadow-sm border border-white/50 dark:border-white/10"
                     )}>
-                        <span className="text-xl">{mainEmoji}</span>
+                        <span className="text-lg sm:text-xl">{mainEmoji}</span>
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                        <div className="flex items-center gap-1.5">
                             {entry.tags.length > 1 && (
-                                <div className="flex -space-x-1 opacity-70">
+                                <div className="flex -space-x-1 opacity-70 flex-shrink-0">
                                     {entry.tags.slice(1, 3).map(tag => {
                                         const t = tasks.find(x => x.name === tag) || ENTRY_TAGS.find(x => x.value === tag);
                                         return <span key={tag} className="text-xs">{t?.emoji}</span>;
@@ -170,7 +167,7 @@ function EntryCard({
                         </div>
                         {!isCompact && entry.body && (
                             <p className={cn(
-                                "text-xs text-muted-foreground line-clamp-1 mt-0.5",
+                                "text-xs text-muted-foreground truncate mt-0.5",
                                 entry.isCompleted && "line-through"
                             )}>
                                 {entry.body}
@@ -178,10 +175,21 @@ function EntryCard({
                         )}
                     </div>
 
-                    {/* Images thumbnail */}
+                    {/* Images - scrollable on mobile */}
                     {entry.imageUrls.length > 0 && (
-                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 ring-1 ring-border/50">
-                            <img src={entry.imageUrls[0]} alt="" className="w-full h-full object-cover" />
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="flex -space-x-2 overflow-hidden">
+                                {entry.imageUrls.slice(0, 2).map((url, i) => (
+                                    <div key={i} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden ring-2 ring-background flex-shrink-0">
+                                        <img src={url} alt="" className="w-full h-full object-cover" />
+                                    </div>
+                                ))}
+                            </div>
+                            {entry.imageUrls.length > 2 && (
+                                <div className="w-6 h-6 rounded-full bg-muted/50 flex items-center justify-center">
+                                    <span className="text-[10px] font-bold text-muted-foreground">+{entry.imageUrls.length - 2}</span>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -192,8 +200,8 @@ function EntryCard({
                             className="flex-shrink-0 text-muted-foreground hover:text-green-500 transition-colors z-20"
                         >
                             {entry.isCompleted
-                                ? <CheckCircle2 className="w-6 h-6 text-green-500" />
-                                : <Circle className="w-6 h-6" />
+                                ? <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
+                                : <Circle className="w-5 h-5 sm:w-6 sm:h-6" />
                             }
                         </button>
                     )}
@@ -208,6 +216,10 @@ export function TimelineView() {
     const { entries, loading, updateEntry } = useEntries(selectedPet?.id || null);
     const { tasks } = useCustomTasks(selectedPet?.id || null);
     const { formatTime } = useTimeFormat();
+
+    // Collapsible section states
+    const [showSchedules, setShowSchedules] = useState(true);
+    const [showRecords, setShowRecords] = useState(true);
     const [showCompleted, setShowCompleted] = useState(false);
 
     const now = new Date();
@@ -310,20 +322,29 @@ export function TimelineView() {
                         title="今日の予定"
                         count={upcomingSchedules.length}
                         color="blue"
+                        isOpen={showSchedules}
+                        onToggle={() => setShowSchedules(!showSchedules)}
                     />
-                    <div className="space-y-2 pl-2">
-                        <AnimatePresence>
-                            {upcomingSchedules.map(entry => (
-                                <EntryCard
-                                    key={entry.id}
-                                    entry={entry}
-                                    tasks={tasks}
-                                    formatTime={formatTime}
-                                    onToggleComplete={handleToggleComplete}
-                                />
-                            ))}
-                        </AnimatePresence>
-                    </div>
+                    <AnimatePresence>
+                        {showSchedules && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="space-y-2 pl-2 overflow-hidden"
+                            >
+                                {upcomingSchedules.map(entry => (
+                                    <EntryCard
+                                        key={entry.id}
+                                        entry={entry}
+                                        tasks={tasks}
+                                        formatTime={formatTime}
+                                        onToggleComplete={handleToggleComplete}
+                                    />
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             )}
 
@@ -340,20 +361,29 @@ export function TimelineView() {
                         title="今日の記録"
                         count={pastRecords.length}
                         color="primary"
+                        isOpen={showRecords}
+                        onToggle={() => setShowRecords(!showRecords)}
                     />
-                    <div className="space-y-2 pl-2">
-                        <AnimatePresence>
-                            {pastRecords.map(entry => (
-                                <EntryCard
-                                    key={entry.id}
-                                    entry={entry}
-                                    tasks={tasks}
-                                    formatTime={formatTime}
-                                    onToggleComplete={handleToggleComplete}
-                                />
-                            ))}
-                        </AnimatePresence>
-                    </div>
+                    <AnimatePresence>
+                        {showRecords && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="space-y-2 pl-2 overflow-hidden"
+                            >
+                                {pastRecords.map(entry => (
+                                    <EntryCard
+                                        key={entry.id}
+                                        entry={entry}
+                                        tasks={tasks}
+                                        formatTime={formatTime}
+                                        onToggleComplete={handleToggleComplete}
+                                    />
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             )}
 
