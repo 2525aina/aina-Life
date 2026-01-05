@@ -83,8 +83,7 @@ export function PetBasicInfoForm({ data, onChange, disabled = false, className }
                 <div className="space-y-2">
                     <Label htmlFor="species" className="text-xs font-bold text-muted-foreground ml-1">種類</Label>
                     <Select value={data.species} onValueChange={(val) => {
-                        handleChange('species', val);
-                        handleChange('breed', ''); // Reset breed when species changes
+                        onChange({ ...data, species: val, breed: '' });
                     }} disabled={disabled}>
                         <SelectTrigger className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20">
                             <SelectValue placeholder="選択" />
