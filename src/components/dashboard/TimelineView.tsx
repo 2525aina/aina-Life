@@ -68,7 +68,23 @@ export function TimelineView() {
             <div className="space-y-8">
                 {todayEntries.map((entry, index) => {
                     const isSchedule = entry.type === 'schedule';
-                    const timeStr = formatTime(entry.date.toDate());
+                    const startTime = formatTime(entry.date.toDate());
+
+                    // Range time display
+                    let timeStr = startTime;
+                    if (entry.timeType === 'range' && entry.endDate) {
+                        const endDateTime = entry.endDate.toDate();
+                        const startDate = entry.date.toDate();
+                        const endTime = formatTime(endDateTime);
+
+                        // Check if end date is different day
+                        const isSameDay = startDate.toDateString() === endDateTime.toDateString();
+                        if (isSameDay) {
+                            timeStr = `${startTime} - ${endTime}`;
+                        } else {
+                            timeStr = `${startTime} - 翌${endTime}`;
+                        }
+                    }
 
                     // Determine main emoji (Node)
                     const firstTag = entry.tags[0];

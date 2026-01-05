@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ENTRY_TAGS } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { ArrowLeft, Trash2, Edit, Calendar, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -116,6 +116,19 @@ function EntryDetailContent() {
                                 <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> {format(entryDate, 'yyyy/MM/dd (E)', { locale: ja })}</span>
                                 <span className="w-px h-3 bg-foreground/20" />
                                 <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> {formatTime(entryDate)}</span>
+
+                                {entry.timeType === 'range' && entry.endDate && (
+                                    <>
+                                        <span className="text-primary/50">→</span>
+                                        {!isSameDay(entryDate, entry.endDate.toDate()) && (
+                                            <>
+                                                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary/70" /> {format(entry.endDate.toDate(), 'MM/dd (E)', { locale: ja })}</span>
+                                                <span className="w-px h-3 bg-foreground/20" />
+                                            </>
+                                        )}
+                                        <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary/70" /> {formatTime(entry.endDate.toDate())}</span>
+                                    </>
+                                )}
                             </div>
                         </div>
 

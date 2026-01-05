@@ -7,13 +7,14 @@ import { useMembers } from '@/hooks/useMembers';
 import { useEntries } from '@/hooks/useEntries';
 import { Button } from '@/components/ui/button';
 import { ENTRY_TAGS } from '@/lib/types';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
+import { useTimeFormat } from '@/hooks/useTimeFormat';
 
 type ViewMode = 'month' | 'week' | 'day';
 
@@ -22,17 +23,33 @@ export default function CalendarPage() {
     const { canEdit } = useMembers(selectedPet?.id || null);
     const { entries, loading } = useEntries(selectedPet?.id || null);
     const { tasks } = useCustomTasks(selectedPet?.id || null);
+    const { formatTime } = useTimeFormat();
     const [viewMode, setViewMode] = useState<ViewMode>('month');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
 
+    // Group entries by date, including multi-day entries on all spanned days
     const entriesByDate = useMemo(() => {
         const grouped: Record<string, typeof entries> = {};
+
         entries.forEach((entry) => {
-            const dateKey = format(entry.date.toDate(), 'yyyy-MM-dd');
-            if (!grouped[dateKey]) grouped[dateKey] = [];
-            grouped[dateKey].push(entry);
+            const startDate = startOfDay(entry.date.toDate());
+            const endDate = entry.timeType === 'range' && entry.endDate
+                ? startOfDay(entry.endDate.toDate())
+                : startDate;
+
+            // Add entry to all days it spans
+            const daysToAdd = eachDayOfInterval({ start: startDate, end: endDate });
+            daysToAdd.forEach((day) => {
+                const dateKey = format(day, 'yyyy-MM-dd');
+                if (!grouped[dateKey]) grouped[dateKey] = [];
+                // Avoid duplicates
+                if (!grouped[dateKey].find(e => e.id === entry.id)) {
+                    grouped[dateKey].push(entry);
+                }
+            });
         });
+
         return grouped;
     }, [entries]);
 
@@ -212,8 +229,16 @@ export default function CalendarPage() {
                                                             : "glass border-white/40 dark:border-white/10"
                                                     )}
                                                 >
-                                                    <div className="flex flex-col items-center flex-shrink-0 w-10">
-                                                        <span className="text-xs font-bold text-muted-foreground">{format(entry.date.toDate(), 'H:mm')}</span>
+                                                    <div className="flex flex-col items-center flex-shrink-0 w-14">
+                                                        {entry.timeType === 'range' && entry.endDate ? (
+                                                            <div className="flex flex-col items-center text-[10px] font-bold text-muted-foreground leading-tight">
+                                                                <span>{format(entry.date.toDate(), 'H:mm')}</span>
+                                                                <ArrowRight className="w-3 h-3 my-0.5 opacity-50" />
+                                                                <span>{format(entry.endDate.toDate(), 'H:mm')}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs font-bold text-muted-foreground">{format(entry.date.toDate(), 'H:mm')}</span>
+                                                        )}
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">
