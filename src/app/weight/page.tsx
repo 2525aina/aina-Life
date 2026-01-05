@@ -10,13 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
+import { format, subMonths, isAfter, startOfDay } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Plus, Calendar as CalendarIcon, TrendingUp, TrendingDown, Minus, Trash2 } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, Trash2, Activity, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -29,8 +28,31 @@ export default function WeightPage() {
     const [newUnit, setNewUnit] = useState<'kg' | 'g'>('kg');
     const [newDate, setNewDate] = useState<Date>(new Date());
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [range, setRange] = useState<'1m' | '3m' | 'all'>('3m');
 
-    const chartData = useMemo(() => [...weights].sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()).map((w) => ({ date: format(w.date.toDate(), 'M/d'), fullDate: format(w.date.toDate(), 'yyyy/MM/dd'), weight: w.unit === 'g' ? w.value / 1000 : w.value })), [weights]);
+    const chartData = useMemo(() => {
+        let filtered = [...weights];
+
+        if (range !== 'all') {
+            const now = new Date();
+            const months = range === '1m' ? 1 : 3;
+            const threshold = startOfDay(subMonths(now, months));
+            filtered = filtered.filter(w => isAfter(w.date.toDate(), threshold));
+        }
+
+        return filtered
+            .sort((a, b) => {
+                const dateDiff = a.date.toMillis() - b.date.toMillis();
+                if (dateDiff !== 0) return dateDiff;
+                return a.createdAt.toMillis() - b.createdAt.toMillis();
+            })
+            .map((w) => ({
+                date: format(w.date.toDate(), 'M/d'),
+                fullDate: format(w.date.toDate(), 'yyyy/MM/dd'),
+                weight: w.unit === 'g' ? w.value / 1000 : w.value,
+                unit: 'kg'
+            }));
+    }, [weights, range]);
 
     const latestWeight = weights[0];
     const previousWeight = weights[1];
@@ -67,7 +89,7 @@ export default function WeightPage() {
                     <div className="flex items-center justify-between z-10 relative">
                         <div>
                             <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 tracking-tight">
-                                Weight Log
+                                体重記録
                             </h1>
                             <p className="text-xs font-bold text-muted-foreground ml-1">{selectedPet.name}の成長記録</p>
                         </div>
@@ -109,20 +131,12 @@ export default function WeightPage() {
                                                 </Select>
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-medium text-muted-foreground ml-1">日付</Label>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant="outline" className={cn('w-full h-12 justify-start text-left font-normal rounded-xl bg-white/50 border-white/20')}>
-                                                        <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                                                        {format(newDate, 'yyyy年M月d日', { locale: ja })}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0 rounded-xl" align="start">
-                                                    <Calendar mode="single" selected={newDate} onSelect={(d) => d && setNewDate(d)} locale={ja} initialFocus />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
+                                        <DatePickerDropdown
+                                            date={newDate}
+                                            setDate={(d) => d && setNewDate(d)}
+                                            label="日付"
+                                            toDate={new Date()}
+                                        />
                                         <Button type="submit" disabled={isSubmitting} className="w-full h-12 rounded-xl gradient-primary text-base font-bold shadow-lg">
                                             {isSubmitting ? '保存中...' : '保存する'}
                                         </Button>
@@ -137,89 +151,146 @@ export default function WeightPage() {
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="glass rounded-[2.5rem] p-8 text-center relative overflow-hidden shadow-2xl ring-1 ring-white/20"
+                            className="glass rounded-[2rem] p-5 relative overflow-hidden shadow-xl ring-1 ring-white/20 flex items-center justify-between"
                         >
                             {/* Decorative background glow */}
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary opacity-50" />
-                            <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl" />
+                            <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
 
-                            <p className="text-sm font-medium text-muted-foreground mb-4">現在の体重</p>
-                            <div className="flex items-baseline justify-center gap-2">
-                                <span className="text-6xl font-extrabold tracking-tighter text-foreground filter drop-shadow-sm">
-                                    {latestWeight.value}
-                                </span>
-                                <span className="text-xl text-muted-foreground font-medium">{latestWeight.unit}</span>
+                            <div>
+                                <p className="text-xs font-bold text-muted-foreground mb-1">現在の体重</p>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black tracking-tighter text-foreground filter drop-shadow-sm">
+                                        {latestWeight.value}
+                                    </span>
+                                    <span className="text-sm text-muted-foreground font-bold">{latestWeight.unit}</span>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground/50 mt-1 font-mono">
+                                    最終更新: {format(latestWeight.date.toDate(), 'yyyy/MM/dd')}
+                                </p>
                             </div>
 
                             {weightChange !== null && (
                                 <div className={cn(
-                                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold mt-4 border border-white/10 backdrop-blur-sm shadow-sm',
-                                    weightChange > 0 ? 'bg-red-500/10 text-red-500' :
-                                        weightChange < 0 ? 'bg-green-500/10 text-green-500' : 'bg-muted text-muted-foreground'
+                                    'flex flex-col items-end px-3 py-2 rounded-xl text-xs font-bold border border-white/10 backdrop-blur-sm shadow-sm ml-auto',
+                                    weightChange > 0 ? 'bg-red-500/5 text-red-500' :
+                                        weightChange < 0 ? 'bg-green-500/5 text-green-500' : 'bg-muted/50 text-muted-foreground'
                                 )}>
-                                    {weightChange > 0 ? <TrendingUp className="w-3.5 h-3.5" /> :
-                                        weightChange < 0 ? <TrendingDown className="w-3.5 h-3.5" /> :
-                                            <Minus className="w-3.5 h-3.5" />}
-                                    <span>{weightChange > 0 ? '+' : ''}{weightChange.toFixed(2)} kg</span>
+                                    <span className="text-[10px] opacity-70 mb-0.5">前回比</span>
+                                    <div className="flex items-center gap-1 text-base">
+                                        {weightChange > 0 ? <TrendingUp className="w-4 h-4" /> :
+                                            weightChange < 0 ? <TrendingDown className="w-4 h-4" /> :
+                                                <Minus className="w-4 h-4" />}
+                                        <span>{weightChange > 0 ? '+' : ''}{weightChange.toFixed(2)}</span>
+                                    </div>
                                 </div>
                             )}
-                            <p className="text-[10px] text-muted-foreground/50 mt-4 font-mono">
-                                Last updated: {format(latestWeight.date.toDate(), 'yyyy/MM/dd')}
-                            </p>
                         </motion.div>
                     )}
 
                     {/* Chart Section */}
-                    {chartData.length > 1 && (
+                    {weights.length > 0 && (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="glass rounded-[2rem] p-6 w-full shadow-lg ring-1 ring-white/10"
+                            className="glass rounded-[2.5rem] p-6 w-full shadow-2xl ring-1 ring-white/10 relative"
                         >
-                            <div className="flex items-center gap-2 mb-6">
-                                <div className="w-1 h-4 rounded-full bg-primary" />
-                                <h3 className="font-bold text-foreground/80">推移グラフ</h3>
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 rounded-full bg-orange-500/10 text-orange-500 shadow-inner">
+                                        <Activity className="w-5 h-5" />
+                                    </div>
+                                    <h3 className="text-lg font-black text-foreground/80 tracking-tight">推移</h3>
+                                </div>
+
+                                {/* Range Selector */}
+                                <div className="flex p-1 bg-muted/50 rounded-full text-xs font-medium">
+                                    {(['1m', '3m', 'all'] as const).map((r) => (
+                                        <button
+                                            key={r}
+                                            onClick={() => setRange(r)}
+                                            className={cn(
+                                                "px-3 py-1.5 rounded-full transition-all",
+                                                range === r
+                                                    ? "bg-white dark:bg-zinc-800 shadow-sm text-foreground font-bold"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            )}
+                                        >
+                                            {r === '1m' ? '1ヶ月' : r === '3m' ? '3ヶ月' : '全期間'}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="h-[250px] w-full -ml-2">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={chartData}>
-                                        <defs>
-                                            <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.3} />
-                                        <XAxis
-                                            dataKey="date"
-                                            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            dy={10}
-                                        />
-                                        <YAxis
-                                            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickCount={5}
-                                            domain={['auto', 'auto']}
-                                        />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                            formatter={(v) => [`${Number(v).toFixed(2)} kg`, '体重']}
-                                            labelStyle={{ color: 'hsl(var(--muted-foreground))', fontSize: '12px' }}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="weight"
-                                            stroke="hsl(var(--primary))"
-                                            strokeWidth={3}
-                                            fill="url(#weightGradient)"
-                                            animationDuration={1500}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+
+                            <div className="h-[320px] w-full -ml-3">
+                                {chartData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.5} />
+                                                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                                            <XAxis
+                                                dataKey="date"
+                                                tick={{ fontSize: 10, fill: 'var(--foreground)', opacity: 0.7 }}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                dy={10}
+                                                minTickGap={30}
+                                            />
+                                            <YAxis
+                                                tick={{ fontSize: 10, fill: 'var(--foreground)', opacity: 0.7 }}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickCount={5}
+                                                domain={['dataMin - 0.5', 'auto']}
+                                                dx={-5}
+                                            />
+                                            <Tooltip
+                                                content={({ active, payload }) => {
+                                                    if (active && payload && payload.length) {
+                                                        const data = payload[0].payload;
+                                                        return (
+                                                            <div className="glass-capsule px-4 py-2 border border-white/20 shadow-xl !bg-white/80 dark:!bg-black/80 backdrop-blur-xl">
+                                                                <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{data.fullDate}</p>
+                                                                <p className="text-lg font-black text-orange-500 leading-none">
+                                                                    {Number(data.weight).toFixed(2)}
+                                                                    <span className="text-xs text-muted-foreground ml-1 font-medium">kg</span>
+                                                                </p>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                }}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="weight"
+                                                stroke="#f97316"
+                                                strokeWidth={3}
+                                                fill="url(#weightGradient)"
+                                                animationDuration={1000}
+                                                activeDot={{
+                                                    r: 6,
+                                                    fill: "#f97316",
+                                                    stroke: "var(--background)",
+                                                    strokeWidth: 4,
+                                                    className: "filter drop-shadow-lg"
+                                                }}
+                                            // Data dots
+                                            // dot={{ r: 3, fill: "#f97316", strokeWidth: 0, opacity: 0.5 }} // Optional: can be noisy if too many points
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                                        データがありません
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     )}

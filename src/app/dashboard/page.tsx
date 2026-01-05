@@ -27,7 +27,7 @@ export default function DashboardPage() {
                         <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6 ring-4 ring-white/50">
                             <PawPrint className="w-12 h-12 text-primary" />
                         </div>
-                        <h2 className="text-2xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Welcome!</h2>
+                        <h2 className="text-2xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">ようこそ！</h2>
                         <p className="text-muted-foreground mb-8 leading-relaxed">
                             まずはペットを登録して、<br />
                             新しい思い出作りを始めましょう。

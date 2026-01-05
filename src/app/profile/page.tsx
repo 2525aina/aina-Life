@@ -11,11 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
-import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, CalendarIcon, Save, User, Bell, MessageSquare, Clock, ArrowLeft, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
+import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, Save, User, Bell, MessageSquare, Clock, ArrowLeft, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePets } from '@/hooks/usePets';
@@ -311,20 +310,11 @@ export default function ProfilePage() {
                                                             </SelectContent>
                                                         </Select>
                                                     </div>
-                                                    <div>
-                                                        <Label className="text-xs font-bold text-muted-foreground ml-1">誕生日</Label>
-                                                        <Popover>
-                                                            <PopoverTrigger asChild>
-                                                                <Button variant="outline" className={cn('w-full bg-white/50 border-white/20 rounded-xl h-11 justify-start text-left font-normal', !birthday && 'text-muted-foreground')}>
-                                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                                    {birthday ? format(birthday, 'yyyy/MM/dd') : '選択'}
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className="w-auto p-0 rounded-xl" align="start">
-                                                                <Calendar mode="single" selected={birthday} onSelect={setBirthday} locale={ja} disabled={(date) => date > new Date()} />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                    </div>
+                                                    <DatePickerDropdown
+                                                        date={birthday}
+                                                        setDate={setBirthday}
+                                                        label="誕生日"
+                                                    />
                                                 </div>
                                                 <div>
                                                     <Label className="text-xs font-bold text-muted-foreground ml-1">自己紹介</Label>

@@ -8,15 +8,13 @@ import { useCustomTasks } from '@/hooks/useCustomTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
+import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
+import { TimePickerInput } from '@/components/ui/time-picker-input';
 import { ENTRY_TAGS, type EntryTag, type TimeType, type Entry } from '@/lib/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { CalendarIcon, Clock, ImagePlus, X, ArrowLeft, Save, Loader2, ArrowRight } from 'lucide-react';
+import { Clock, ImagePlus, X, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -200,7 +198,7 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                         <div className="flex items-center justify-between text-muted-foreground mb-1">
                             <div className="flex items-center gap-2">
                                 <Clock className="w-4 h-4" />
-                                <span className="text-xs font-bold tracking-wider">DATE & TIME</span>
+                                <span className="text-xs font-bold tracking-wider">日時</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Label htmlFor="time-type" className="text-[10px] font-medium">範囲</Label>
@@ -213,58 +211,40 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between group">
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button variant="ghost" className="h-auto p-0 hover:bg-transparent font-normal text-left">
-                                            <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 group-hover:to-foreground transition-all">
-                                                {format(date, 'M/d')}
-                                                <span className="text-base ml-1 text-muted-foreground font-medium">{format(date, '(E)', { locale: ja })}</span>
-                                            </div>
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0 rounded-xl" align="start">
-                                        <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} locale={ja} initialFocus />
-                                    </PopoverContent>
-                                </Popover>
-                                <input
-                                    type="time"
-                                    value={time}
-                                    onChange={(e) => setTime(e.target.value)}
-                                    className="bg-transparent text-3xl font-bold outline-none w-28 text-right border-b-2 border-transparent focus:border-primary/50 transition-colors font-mono tracking-tight"
-                                />
-                            </div>
-
-                            {/* End Time for Range */}
-                            {timeType === 'range' && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    className="flex items-center justify-between pt-4 border-t border-white/10"
-                                >
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="ghost" className="h-auto p-0 hover:bg-transparent font-normal text-left">
-                                                <div className="text-xl font-medium text-muted-foreground">
-                                                    {format(endDate, 'M/d')}
-                                                    <span className="text-sm ml-1 text-muted-foreground/50">{format(endDate, '(E)', { locale: ja })}</span>
-                                                </div>
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0 rounded-xl" align="start">
-                                            <Calendar mode="single" selected={endDate} onSelect={(d) => d && setEndDate(d)} locale={ja} />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <input
-                                        type="time"
-                                        value={endTime}
-                                        onChange={(e) => setEndTime(e.target.value)}
-                                        className="bg-transparent text-xl font-medium text-muted-foreground outline-none w-24 text-right border-b-2 border-transparent focus:border-primary/50 transition-colors font-mono"
-                                    />
-                                </motion.div>
-                            )}
+                        <div className="grid grid-cols-2 gap-3">
+                            <DatePickerDropdown
+                                date={date}
+                                setDate={(d) => d && setDate(d)}
+                                label="開始日"
+                                toDate={undefined}
+                            />
+                            <TimePickerInput
+                                time={time}
+                                setTime={setTime}
+                                label="時間"
+                            />
                         </div>
+
+                        {/* End Time for Range */}
+                        {timeType === 'range' && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                className="grid grid-cols-2 gap-3 pt-4 border-t border-white/10"
+                            >
+                                <DatePickerDropdown
+                                    date={endDate}
+                                    setDate={(d) => d && setEndDate(d)}
+                                    label="終了日"
+                                    toDate={undefined}
+                                />
+                                <TimePickerInput
+                                    time={endTime}
+                                    setTime={setEndTime}
+                                    label="終了時間"
+                                />
+                            </motion.div>
+                        )}
                     </div>
 
                     {/* Tags */}

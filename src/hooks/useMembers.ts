@@ -65,7 +65,7 @@ export function useMembers(petId: string | null) {
             setMembers(activeMembers);
 
             // 現在のユーザーのロールを取得
-            const currentMember = activeMembers.find((m) => m.userId === user.uid);
+            const currentMember = activeMembers.find((m) => m.userId === user.uid || m.id === user.uid);
             setCurrentUserRole(currentMember?.role || null);
 
             setLoading(false);
@@ -213,7 +213,7 @@ export function useMembers(petId: string | null) {
         });
 
         // 現在のユーザーを editor に変更
-        const currentMember = members.find((m) => m.userId === user.uid);
+        const currentMember = members.find((m) => m.userId === user.uid || m.id === user.uid);
         if (currentMember) {
             const currentMemberRef = doc(db, 'pets', petId, 'members', currentMember.id);
             await updateDoc(currentMemberRef, {
@@ -256,7 +256,7 @@ export function useMembers(petId: string | null) {
             }
         }
 
-        const currentMember = members.find((m) => m.userId === user.uid);
+        const currentMember = members.find((m) => m.userId === user.uid || m.id === user.uid);
         if (!currentMember) throw new Error('メンバーが見つかりません');
 
         const batch = writeBatch(db);

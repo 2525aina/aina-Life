@@ -23,6 +23,13 @@ export function useWeights(petId: string | null) {
         const weightsQuery = query(collection(db, 'pets', petId, 'weights'), orderBy('date', 'desc'));
         const unsubscribe = onSnapshot(weightsQuery, (snapshot) => {
             const weightsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Weight[];
+            // クライアントサイドでソート（同じ日付の場合は作成順）
+            weightsData.sort((a, b) => {
+                const dateDiff = b.date.toMillis() - a.date.toMillis();
+                if (dateDiff !== 0) return dateDiff;
+                // 日付が同じ場合は作成日時で降順（新しいものが上）
+                return b.createdAt.toMillis() - a.createdAt.toMillis();
+            });
             setWeights(weightsData);
             setLoading(false);
         });

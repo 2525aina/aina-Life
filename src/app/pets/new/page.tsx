@@ -108,7 +108,7 @@ export default function NewPetPage() {
                         </div>
 
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center text-center mb-8">
-                            <h1 className="text-3xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Welcome</h1>
+                            <h1 className="text-3xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">ようこそ</h1>
                             <p className="text-sm font-medium text-muted-foreground mb-8">新しい家族を迎えましょう</p>
 
                             <div className="mb-6">
