@@ -55,8 +55,8 @@ function FriendDetailContent() {
                         className="w-full h-full object-cover"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-primary/10 text-6xl">
-                        🐕
+                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                        <img src="/ogp.webp" alt="No image" className="w-32 h-32 object-contain opacity-20 grayscale" />
                     </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />

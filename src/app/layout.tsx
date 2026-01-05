@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description: "大切な日々を記録し共有する生活日記アプリ",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.webp",
-    apple: "/favicon.webp",
+    icon: '/ogp.webp',
+    apple: '/ogp.webp',
   },
   openGraph: {
     title: "aina-life - 生活日記",

@@ -27,7 +27,9 @@ export function Header() {
                             <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full">
                                 <Avatar className="w-8 h-8">
                                     <AvatarImage src={userProfile?.avatarUrl} alt={userProfile?.displayName} />
-                                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">{userProfile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                                    <AvatarFallback className="bg-primary/10 flex items-center justify-center overflow-hidden">
+                                        <img src="/ogp.webp" alt="User" className="w-full h-full object-cover opacity-50 grayscale" />
+                                    </AvatarFallback>
                                 </Avatar>
                             </Button>
                         </DropdownMenuTrigger>

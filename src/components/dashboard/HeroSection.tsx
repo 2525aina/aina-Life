@@ -68,8 +68,8 @@ export function HeroSection() {
                     <div className="absolute inset-0 bg-white/30 blur-xl rounded-full scale-110" />
                     <Avatar className="w-24 h-24 border-4 border-white/20 shadow-2xl relative z-10">
                         <AvatarImage src={selectedPet.avatarUrl} alt={selectedPet.name} className="object-cover" />
-                        <AvatarFallback className="bg-white/20 text-white text-2xl">
-                            <PawPrint className="w-10 h-10" />
+                        <AvatarFallback className="bg-white/20 flex items-center justify-center overflow-hidden">
+                            <img src="/ogp.webp" alt="Pet" className="w-full h-full object-cover opacity-50 grayscale" />
                         </AvatarFallback>
                     </Avatar>
                     {/* Status Indicator (Mockup for now) */}

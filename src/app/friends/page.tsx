@@ -94,8 +94,8 @@ export default function FriendsPage() {
                                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-4xl bg-primary/5 text-primary/30">
-                                                    🐕
+                                                <div className="w-full h-full flex items-center justify-center bg-primary/5">
+                                                    <img src="/ogp.webp" alt="No image" className="w-1/2 h-1/2 object-contain opacity-20 grayscale" />
                                                 </div>
                                             )}
                                         </div>

@@ -434,14 +434,18 @@ function PetSettingsContent() {
                                                     <div key={member.id} className="flex items-center p-4 rounded-2xl glass hover:bg-white/40 border-white/10 transition-colors gap-4">
                                                         <Avatar className="w-12 h-12 flex-shrink-0 border-2 border-white/20 shadow-sm">
                                                             <AvatarImage src={member.userProfile?.avatarUrl} alt={member.userProfile?.displayName} />
-                                                            <AvatarFallback className="bg-primary/10">{getRoleIcon(member.role)}</AvatarFallback>
+                                                            <AvatarFallback className="bg-primary/10 flex items-center justify-center overflow-hidden">
+                                                                <img src="/ogp.webp" alt="Role" className="w-full h-full object-cover opacity-50 grayscale" />
+                                                            </AvatarFallback>
                                                         </Avatar>
                                                         <div className="flex-1 min-w-0 flex flex-col gap-1">
                                                             <div className="flex flex-wrap items-center gap-2">
                                                                 <span className="font-bold text-sm truncate max-w-[120px]">
-                                                                    {member.userId === user?.uid
-                                                                        ? `あなた`
-                                                                        : (member.userProfile?.nickname || member.userProfile?.displayName || '未登録ユーザー')}
+                                                                    {
+                                                                        member.userId === user?.uid
+                                                                            ? `あなた`
+                                                                            : (member.userProfile?.nickname || member.userProfile?.displayName || '未登録ユーザー')
+                                                                    }
                                                                 </span>
                                                                 <span className={cn('text-[10px] px-2 py-0.5 rounded-full font-bold border',
                                                                     member.role === 'owner' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
@@ -504,7 +508,7 @@ function PetSettingsContent() {
                                         )}
                                     </div>
                                 </div>
-                            </TabsContent>
+                            </TabsContent >
 
                             <TabsContent value="danger" className="space-y-4 animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
                                 <div className="glass rounded-[2.5rem] p-8 shadow-xl border-destructive/20 overflow-hidden">
@@ -551,9 +555,9 @@ function PetSettingsContent() {
                                     </div>
                                 </div>
                             </TabsContent>
-                        </Tabs>
-                    </div>
-                </div>
+                        </Tabs >
+                    </div >
+                </div >
 
                 <Dialog open={confirmDeleteAvatarOpen} onOpenChange={setConfirmDeleteAvatarOpen}>
                     <DialogContent className="glass border-white/20 rounded-[2rem]">
@@ -567,8 +571,8 @@ function PetSettingsContent() {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
-            </div>
-        </AppLayout>
+            </div >
+        </AppLayout >
     );
 }
 

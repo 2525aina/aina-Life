@@ -145,7 +145,9 @@ function EntryDetailContent() {
                                                     {friend.images?.[0] ? (
                                                         <img src={friend.images[0]} alt={friend.name} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <div className="w-full h-full bg-muted flex items-center justify-center text-xs">🐕</div>
+                                                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                                                            <img src="/ogp.webp" alt="No image" className="w-full h-full object-cover opacity-50 grayscale" />
+                                                        </div>
                                                     )}
                                                 </div>
                                             );

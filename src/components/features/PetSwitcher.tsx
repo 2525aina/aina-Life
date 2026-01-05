@@ -59,7 +59,9 @@ export function PetSwitcher() {
                 <Button variant="ghost" className="gap-2 h-10 px-3">
                     <Avatar className="w-7 h-7">
                         <AvatarImage src={selectedPet?.avatarUrl} alt={selectedPet?.name} />
-                        <AvatarFallback className="bg-primary/10"><PawPrint className="w-4 h-4 text-primary" /></AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 flex items-center justify-center overflow-hidden">
+                            <img src="/ogp.webp" alt="Pet" className="w-full h-full object-cover opacity-50 grayscale" />
+                        </AvatarFallback>
                     </Avatar>
                     <span className="font-medium max-w-[100px] truncate">{selectedPet?.name || 'ペットを選択'}</span>
                     <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -70,7 +72,9 @@ export function PetSwitcher() {
                     <DropdownMenuItem key={pet.id} onClick={() => setSelectedPet(pet)} className="gap-3 cursor-pointer">
                         <Avatar className="w-8 h-8">
                             <AvatarImage src={pet.avatarUrl} alt={pet.name} />
-                            <AvatarFallback className="bg-primary/10"><PawPrint className="w-4 h-4 text-primary" /></AvatarFallback>
+                            <AvatarFallback className="bg-primary/10 flex items-center justify-center overflow-hidden">
+                                <img src="/ogp.webp" alt="Pet" className="w-full h-full object-cover opacity-50 grayscale" />
+                            </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{pet.name}</p>

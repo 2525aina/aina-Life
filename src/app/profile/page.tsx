@@ -218,8 +218,8 @@ export default function ProfilePage() {
                                 <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-orange-400 rounded-full opacity-40 blur-2xl group-hover:opacity-60 transition duration-1000 animate-pulse"></div>
                                 <Avatar className="w-36 h-36 border-4 border-white/50 dark:border-white/10 shadow-2xl relative z-10">
                                     <AvatarImage src={displayAvatar} alt={userProfile?.displayName} className="object-cover" />
-                                    <AvatarFallback className="bg-white/20 text-primary text-5xl font-light backdrop-blur-md">
-                                        {userProfile?.displayName?.charAt(0) || <User className="w-16 h-16" />}
+                                    <AvatarFallback className="bg-white/20 backdrop-blur-md">
+                                        <img src="/ogp.webp" alt="User" className="w-full h-full object-cover opacity-50 grayscale" />
                                     </AvatarFallback>
                                 </Avatar>
 
@@ -354,7 +354,9 @@ export default function ProfilePage() {
                                             <div className="flex items-center gap-4 p-4 rounded-2xl glass border-white/20 hover:bg-white/40 hover:scale-[1.02] transition-all duration-300 group shadow-sm">
                                                 <Avatar className="w-14 h-14 border-2 border-white/50 shadow-md group-hover:scale-105 transition-transform duration-300">
                                                     <AvatarImage src={pet.avatarUrl} alt={pet.name} className="object-cover" />
-                                                    <AvatarFallback className="bg-orange-100 text-orange-500"><PawPrint className="w-6 h-6" /></AvatarFallback>
+                                                    <AvatarFallback className="bg-orange-100 flex items-center justify-center overflow-hidden">
+                                                        <img src="/ogp.webp" alt="Pet" className="w-full h-full object-cover opacity-50 grayscale" />
+                                                    </AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-bold text-base truncate group-hover:text-primary transition-colors">{pet.name}</p>

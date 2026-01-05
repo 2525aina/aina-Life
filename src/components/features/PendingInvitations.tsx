@@ -94,8 +94,8 @@ function InvitationItem({
             <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
                     <AvatarImage src={invitation.pet.avatarUrl} alt={invitation.pet.name} />
-                    <AvatarFallback className="bg-primary/10">
-                        <PawPrint className="w-5 h-5 text-primary" />
+                    <AvatarFallback className="bg-primary/10 flex items-center justify-center overflow-hidden">
+                        <img src="/ogp.webp" alt="Pet" className="w-full h-full object-cover opacity-50 grayscale" />
                     </AvatarFallback>
                 </Avatar>
                 <div>
