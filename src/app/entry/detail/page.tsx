@@ -112,21 +112,18 @@ function EntryDetailContent() {
 
                         {/* Date & Time Badge */}
                         <div className="flex justify-center">
-                            <div className="glass-capsule px-6 py-3 flex items-center gap-4 text-sm font-bold text-foreground/80 shadow-lg backdrop-blur-xl bg-white/40 dark:bg-black/40 border border-white/20">
-                                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> {format(entryDate, 'yyyy/MM/dd (E)', { locale: ja })}</span>
-                                <span className="w-px h-3 bg-foreground/20" />
-                                <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> {formatTime(entryDate)}</span>
+                            <div className="glass-capsule px-4 sm:px-6 py-2 sm:py-3 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm font-bold text-foreground/80 shadow-lg backdrop-blur-xl bg-white/40 dark:bg-black/40 border border-white/20">
+                                <span className="flex items-center gap-1.5 sm:gap-2"><Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" /> {format(entryDate, 'M/d (E)', { locale: ja })}</span>
+                                <span className="w-px h-3 bg-foreground/20 hidden sm:block" />
+                                <span className="flex items-center gap-1.5 sm:gap-2"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" /> {formatTime(entryDate)}</span>
 
                                 {entry.timeType === 'range' && entry.endDate && (
                                     <>
                                         <span className="text-primary/50">→</span>
                                         {!isSameDay(entryDate, entry.endDate.toDate()) && (
-                                            <>
-                                                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary/70" /> {format(entry.endDate.toDate(), 'MM/dd (E)', { locale: ja })}</span>
-                                                <span className="w-px h-3 bg-foreground/20" />
-                                            </>
+                                            <span className="flex items-center gap-1.5 sm:gap-2"><Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary/70" /> {format(entry.endDate.toDate(), 'M/d (E)', { locale: ja })}</span>
                                         )}
-                                        <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary/70" /> {formatTime(entry.endDate.toDate())}</span>
+                                        <span className="flex items-center gap-1.5 sm:gap-2"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary/70" /> {formatTime(entry.endDate.toDate())}</span>
                                     </>
                                 )}
                             </div>

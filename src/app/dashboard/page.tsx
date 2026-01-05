@@ -53,30 +53,30 @@ export default function DashboardPage() {
 
                 <div className="fixed bottom-0 right-0 w-[80%] h-[50%] bg-blue-400/5 rounded-full blur-[100px] -z-20 pointer-events-none" />
 
-                <div className="px-4 pt-6 space-y-6">
+                <div className="sticky top-0 z-20 px-4 pt-6 pb-4 bg-gradient-to-b from-background via-background/95 to-transparent backdrop-blur-sm">
                     <PendingInvitations />
 
                     {/* Header */}
-                    <div className="flex items-end justify-between z-10 relative mb-4">
+                    <div className="flex items-end justify-between relative mt-2">
                         <div>
                             <p className="text-xs font-bold text-muted-foreground mb-1 pl-1">
                                 {format(new Date(), 'yyyy年M月d日 (E)', { locale: ja })}
                             </p>
-                            <h1 className="text-4xl font-black tracking-tighter filter drop-shadow-sm">
+                            <h1 className="text-3xl sm:text-4xl font-black tracking-tighter filter drop-shadow-sm">
                                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/80">
                                     {selectedPet.name}
                                 </span>
                             </h1>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex gap-2 sm:gap-3">
                             <Link href="/calendar">
-                                <Button variant="ghost" size="icon" className="rounded-full w-12 h-12 bg-white/40 dark:bg-black/20 hover:bg-white/50 backdrop-blur-md shadow-sm border border-white/20 transition-all hover:scale-110 active:scale-95">
-                                    <CalendarIcon className="w-6 h-6 text-foreground/80" />
+                                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 sm:w-12 sm:h-12 bg-white/40 dark:bg-black/20 hover:bg-white/50 backdrop-blur-md shadow-sm border border-white/20 transition-all hover:scale-110 active:scale-95">
+                                    <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/80" />
                                 </Button>
                             </Link>
                             <Link href={`/pets/settings?id=${selectedPet.id}`}>
-                                <Button variant="ghost" size="icon" className="rounded-full w-12 h-12 bg-white/40 dark:bg-black/20 hover:bg-white/50 backdrop-blur-md shadow-sm border border-white/20 transition-all hover:scale-110 active:scale-95">
-                                    <Settings className="w-6 h-6 text-foreground/80" />
+                                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 sm:w-12 sm:h-12 bg-white/40 dark:bg-black/20 hover:bg-white/50 backdrop-blur-md shadow-sm border border-white/20 transition-all hover:scale-110 active:scale-95">
+                                    <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/80" />
                                 </Button>
                             </Link>
                         </div>

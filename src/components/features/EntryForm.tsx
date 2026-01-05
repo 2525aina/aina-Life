@@ -194,7 +194,7 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                     </div>
 
                     {/* Date & Time */}
-                    <div className="glass rounded-[2rem] p-6 space-y-4 shadow-sm">
+                    <div className="glass rounded-[2rem] p-4 sm:p-6 space-y-4 shadow-sm">
                         <div className="flex items-center justify-between text-muted-foreground mb-1">
                             <div className="flex items-center gap-2">
                                 <Clock className="w-4 h-4" />
@@ -211,7 +211,7 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <DatePickerDropdown
                                 date={date}
                                 setDate={(d) => d && setDate(d)}
@@ -230,7 +230,7 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                             <motion.div
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: 'auto', opacity: 1 }}
-                                className="grid grid-cols-2 gap-3 pt-4 border-t border-white/10"
+                                className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-white/10"
                             >
                                 <DatePickerDropdown
                                     date={endDate}

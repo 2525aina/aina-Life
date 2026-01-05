@@ -285,9 +285,9 @@ export default function ProfilePage() {
                                     </motion.div>
                                 ) : (
                                     <motion.div key="edit" className="w-full max-w-md mt-4 relative z-20" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-                                        <div className="glass rounded-[2rem] p-6 shadow-xl border-white/20">
+                                        <div className="glass rounded-[2rem] p-4 sm:p-6 shadow-xl border-white/20">
                                             <div className="space-y-4">
-                                                <div className="grid gap-4">
+                                                <div className="grid gap-3 sm:gap-4">
                                                     <div>
                                                         <Label className="text-xs font-bold text-muted-foreground ml-1">表示名</Label>
                                                         <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-white/50 border-white/20 rounded-xl h-11" placeholder="お名前" />
@@ -298,7 +298,7 @@ export default function ProfilePage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                                     <div>
                                                         <Label className="text-xs font-bold text-muted-foreground ml-1">性別</Label>
                                                         <Select value={gender} onValueChange={(v) => setGender(v as any)}>
@@ -328,8 +328,8 @@ export default function ProfilePage() {
                                                 </div>
 
                                                 <div className="flex gap-3 pt-2">
-                                                    <Button variant="ghost" className="flex-1 rounded-xl" onClick={handleCancelEdit}>キャンセル</Button>
-                                                    <Button className="flex-1 gradient-primary shadow-lg rounded-xl" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
+                                                    <Button variant="ghost" className="flex-1 rounded-xl h-11" onClick={handleCancelEdit}>キャンセル</Button>
+                                                    <Button className="flex-1 gradient-primary shadow-lg rounded-xl h-11" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
                                                         <Save className="w-4 h-4 mr-2" />{isSaving ? '保存中...' : '保存'}
                                                     </Button>
                                                 </div>

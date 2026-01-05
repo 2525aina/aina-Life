@@ -122,18 +122,30 @@ export default function NewPetPage() {
                         </motion.div>
 
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                            <form onSubmit={handleSubmit} className="space-y-8">
+                            <form onSubmit={handleSubmit} className="space-y-8 pb-24">
                                 <PetBasicInfoForm
                                     data={formData}
                                     onChange={setFormData}
                                     disabled={isSubmitting || uploading}
                                 />
+                            </form>
 
-                                <Button type="submit" disabled={isSubmitting || !formData.name.trim() || uploading} className="w-full h-14 text-lg font-bold gradient-primary shadow-xl rounded-full hover:scale-105 transition-transform">
+                            {/* Sticky Submit Button */}
+                            <div className="fixed bottom-24 left-0 right-0 px-6 flex justify-center pointer-events-none z-50">
+                                <Button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        const form = document.querySelector('form');
+                                        if (form) form.requestSubmit();
+                                    }}
+                                    disabled={isSubmitting || !formData.name.trim() || uploading}
+                                    className="pointer-events-auto w-full max-w-sm h-14 text-lg font-bold gradient-primary shadow-xl rounded-full hover:scale-105 transition-transform"
+                                >
                                     <Save className="w-5 h-5 mr-2" />
                                     {isSubmitting ? '登録中...' : '登録する'}
                                 </Button>
-                            </form>
+                            </div>
                         </motion.div>
                     </div>
                 </div>
