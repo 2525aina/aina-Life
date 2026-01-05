@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { CustomTaskEditor } from '@/components/features/CustomTaskEditor';
 import { ImageCropper } from '@/components/ui/image-cropper';
+import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -382,36 +383,20 @@ function PetSettingsContent() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold text-muted-foreground ml-1">誕生日</Label>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant="outline" disabled={!canEdit} className={cn('w-full h-12 justify-start text-left font-normal rounded-xl bg-white/50 dark:bg-black/20 border-white/20', !petBirthday && 'text-muted-foreground')}>
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                                        {petBirthday ? format(petBirthday, 'yyyy/MM/dd') : '選択'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
-                                                    <Calendar mode="single" selected={petBirthday} onSelect={setPetBirthday} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
+                                        <DatePickerDropdown
+                                            label="誕生日"
+                                            date={petBirthday}
+                                            setDate={setPetBirthday}
+                                            disabled={!canEdit}
+                                        />
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold text-muted-foreground ml-1">お迎え日</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" disabled={!canEdit} className={cn('w-full h-12 justify-start text-left font-normal rounded-xl bg-white/50 dark:bg-black/20 border-white/20', !petAdoptionDate && 'text-muted-foreground')}>
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {petAdoptionDate ? format(petAdoptionDate, 'yyyy/MM/dd') : '選択'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
-                                                <Calendar mode="single" selected={petAdoptionDate} onSelect={setPetAdoptionDate} locale={ja} captionLayout="dropdown" disabled={(date) => date > new Date()} />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
+                                    <DatePickerDropdown
+                                        label="お迎え日"
+                                        date={petAdoptionDate}
+                                        setDate={setPetAdoptionDate}
+                                        disabled={!canEdit}
+                                    />
                                 </div>
 
                                 <div className="glass rounded-[2.5rem] p-8 shadow-xl space-y-8">

@@ -16,6 +16,8 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
 import { useMembers } from '@/hooks/useMembers';
+import { useEntry } from '@/hooks/useEntry';
+import { useTimeFormat } from '@/hooks/useTimeFormat';
 
 function EntryDetailContent() {
     const router = useRouter();
@@ -23,13 +25,13 @@ function EntryDetailContent() {
     const entryId = searchParams.get('id');
 
     const { selectedPet } = usePetContext();
-    const { entries, deleteEntry, loading } = useEntries(selectedPet?.id || null);
+    const { deleteEntry } = useEntries(selectedPet?.id || null); // Keep for delete
+    const { entry, loading } = useEntry(selectedPet?.id || null, entryId); // Use for data
     const { tasks } = useCustomTasks(selectedPet?.id || null);
+    const { formatTime } = useTimeFormat();
 
     // Check permissions
     const { canEdit } = useMembers(selectedPet?.id || null);
-
-    const entry = entries.find((e) => e.id === entryId);
 
     const handleDelete = async () => {
         if (!entryId || !canEdit) return; // double check
@@ -113,7 +115,7 @@ function EntryDetailContent() {
                             <div className="glass-capsule px-6 py-3 flex items-center gap-4 text-sm font-bold text-foreground/80 shadow-lg backdrop-blur-xl bg-white/40 dark:bg-black/40 border border-white/20">
                                 <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> {format(entryDate, 'yyyy/MM/dd (E)', { locale: ja })}</span>
                                 <span className="w-px h-3 bg-foreground/20" />
-                                <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> {format(entryDate, 'HH:mm')}</span>
+                                <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> {formatTime(entryDate)}</span>
                             </div>
                         </div>
 

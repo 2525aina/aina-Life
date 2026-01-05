@@ -11,10 +11,13 @@ import { CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+import { useTimeFormat } from '@/hooks/useTimeFormat';
+
 export function TimelineView() {
     const { selectedPet } = usePetContext();
     const { entries, loading, updateEntry } = useEntries(selectedPet?.id || null);
     const { tasks } = useCustomTasks(selectedPet?.id || null);
+    const { formatTime } = useTimeFormat();
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -65,7 +68,7 @@ export function TimelineView() {
             <div className="space-y-8">
                 {todayEntries.map((entry, index) => {
                     const isSchedule = entry.type === 'schedule';
-                    const timeStr = format(entry.date.toDate(), 'H:mm');
+                    const timeStr = formatTime(entry.date.toDate());
 
                     // Determine main emoji (Node)
                     const firstTag = entry.tags[0];

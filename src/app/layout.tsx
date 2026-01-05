@@ -4,6 +4,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { PetProvider } from "@/contexts/PetContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
+import { ClientToaster } from "@/components/features/ClientToaster";
 
 export const metadata: Metadata = {
   title: "aina-life - ペットの生活日記",
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <PetProvider>
               {children}
-              <Toaster position="top-center" richColors closeButton />
+              <ClientToaster />
             </PetProvider>
           </AuthProvider>
         </ThemeProvider>

@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ImageCropper } from '@/components/ui/image-cropper';
+import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { ArrowLeft, CalendarIcon, PawPrint, Save, Camera, X } from 'lucide-react';
@@ -202,48 +203,17 @@ export default function NewPetPage() {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold text-muted-foreground ml-1">誕生日</Label>
-                                            <div className="relative">
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button variant="outline" className={cn('w-full h-12 justify-start text-left font-normal pl-3 pr-10 rounded-xl bg-white/50 dark:bg-black/20 border-white/20', !birthday && 'text-muted-foreground')}>
-                                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                                            {birthday ? format(birthday, 'yyyy/MM/dd') : '選択'}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
-                                                        <Calendar mode="single" selected={birthday} onSelect={setBirthday} locale={ja} disabled={(date) => date > new Date()} initialFocus />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                {birthday && (
-                                                    <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
-                                                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); setBirthday(undefined); }}><X className="w-4 h-4" /></Button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold text-muted-foreground ml-1">お迎え日</Label>
-                                            <div className="relative">
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button variant="outline" className={cn('w-full h-12 justify-start text-left font-normal pl-3 pr-10 rounded-xl bg-white/50 dark:bg-black/20 border-white/20', !adoptionDate && 'text-muted-foreground')}>
-                                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                                            {adoptionDate ? format(adoptionDate, 'yyyy/MM/dd') : '選択'}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
-                                                        <Calendar mode="single" selected={adoptionDate} onSelect={setAdoptionDate} locale={ja} disabled={(date) => date > new Date()} initialFocus />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                {adoptionDate && (
-                                                    <div className="absolute right-1 top-1 bottom-0 mt-1 flex items-center">
-                                                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); setAdoptionDate(undefined); }}><X className="w-4 h-4" /></Button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <DatePickerDropdown
+                                            label="誕生日"
+                                            date={birthday}
+                                            setDate={setBirthday}
+                                        />
+
+                                        <DatePickerDropdown
+                                            label="お迎え日"
+                                            date={adoptionDate}
+                                            setDate={setAdoptionDate}
+                                        />
                                     </div>
 
                                     <div className="space-y-2">
