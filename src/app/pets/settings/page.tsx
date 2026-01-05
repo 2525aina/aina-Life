@@ -8,25 +8,21 @@ import { usePets } from '@/hooks/usePets';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { CustomTaskEditor } from '@/components/features/CustomTaskEditor';
-import { ImageCropper } from '@/components/ui/image-cropper';
-import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
+import { PetBasicInfoForm, type PetBasicInfoData } from '@/components/features/pet-basic-info-form';
+import { PetAvatarEditor } from '@/components/features/pet-avatar-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, UserPlus, Crown, Trash2, LogOut, Mail, Clock, Eye, Edit, Camera, Plus, X, CalendarIcon, PawPrint, Settings, Users, AlertTriangle, ListTodo, Shield, Info, Phone } from 'lucide-react';
+import { ArrowLeft, UserPlus, Crown, Trash2, Mail, Clock, Eye, Edit, Plus, X, PawPrint, Settings, Users, AlertTriangle, ListTodo, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { MEMBER_ROLES, type MemberRole, type VetInfo } from '@/lib/types';
 import { format, parse } from 'date-fns';
-import { ja } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { deleteField } from 'firebase/firestore';
 
@@ -39,19 +35,20 @@ function PetSettingsContent() {
     const { pets, updatePet, deletePet } = usePets();
     const { members, loading, isOwner, canEdit, canManageMembers, inviteMember, updateMemberRole, removeMember, leaveTeam } = useMembers(petId);
     const { uploadPetAvatar, uploading } = useImageUpload();
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const pet = pets.find((p) => p.id === petId);
 
-    // 基本情報
-    const [petName, setPetName] = useState('');
-    const [petBreed, setPetBreed] = useState('');
-    const [petBirthday, setPetBirthday] = useState<Date | undefined>(undefined);
-    const [petGender, setPetGender] = useState<'male' | 'female' | 'other' | ''>('');
-    const [petAdoptionDate, setPetAdoptionDate] = useState<Date | undefined>(undefined);
+    // 基本情報 (FormData)
+    const [formData, setFormData] = useState<PetBasicInfoData>({
+        name: '',
+        breed: '',
+        gender: '',
+        birthday: undefined,
+        adoptionDate: undefined,
+        microchipId: '',
+    });
 
-    // 詳細情報
-    const [petMicrochipId, setPetMicrochipId] = useState('');
+    // 詳細情報 (別途管理)
     const [petMedicalNotes, setPetMedicalNotes] = useState('');
     const [petVetInfo, setPetVetInfo] = useState<VetInfo[]>([]);
 
@@ -69,45 +66,30 @@ function PetSettingsContent() {
 
     useEffect(() => {
         if (pet) {
-            setPetName(pet.name);
-            setPetBreed(pet.breed || '');
-            setPetBirthday(pet.birthday ? parse(pet.birthday, 'yyyy-MM-dd', new Date()) : undefined);
-            setPetGender(pet.gender || '');
-            setPetAdoptionDate(pet.adoptionDate ? parse(pet.adoptionDate, 'yyyy-MM-dd', new Date()) : undefined);
-            setPetMicrochipId(pet.microchipId || '');
+            setFormData({
+                name: pet.name,
+                breed: pet.breed || '',
+                gender: pet.gender || '',
+                birthday: pet.birthday ? parse(pet.birthday, 'yyyy-MM-dd', new Date()) : undefined,
+                adoptionDate: pet.adoptionDate ? parse(pet.adoptionDate, 'yyyy-MM-dd', new Date()) : undefined,
+                microchipId: pet.microchipId || '',
+            });
             setPetMedicalNotes(pet.medicalNotes || '');
             setPetVetInfo(pet.vetInfo || []);
         }
     }, [pet]);
 
-    const [cropperOpen, setCropperOpen] = useState(false);
-    const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
-
-    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.[0]) return;
-        const file = e.target.files[0];
-        const url = URL.createObjectURL(file);
-        setOriginalImageSrc(url);
-        setCropperOpen(true);
-        e.target.value = '';
-    };
-
-    const handleCropComplete = (croppedBlob: Blob) => {
-        const file = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
+    const handleImageChange = (file: File) => {
         setPendingAvatarFile(file);
         setAvatarPreview(URL.createObjectURL(file));
         setRemoveAvatar(false);
-        setCropperOpen(false);
     };
 
-    const handleCropCancel = () => {
-        setCropperOpen(false);
-        if (!pendingAvatarFile) {
-            setOriginalImageSrc(null);
-        }
+    const handleImageRemoveRequest = () => {
+        setConfirmDeleteAvatarOpen(true);
     };
 
-    const handleRemoveAvatar = () => {
+    const handleRemoveAvatarConfirmed = () => {
         setPendingAvatarFile(null);
         setAvatarPreview(null);
         setRemoveAvatar(true);
@@ -115,7 +97,7 @@ function PetSettingsContent() {
     };
 
     const handleUpdatePet = async () => {
-        if (!petId || !petName.trim()) {
+        if (!petId || !formData.name.trim()) {
             toast.error('名前を入力してください');
             return;
         }
@@ -129,12 +111,12 @@ function PetSettingsContent() {
             }
 
             await updatePet(petId, {
-                name: petName.trim(),
-                breed: petBreed.trim() || undefined,
-                birthday: petBirthday ? format(petBirthday, 'yyyy-MM-dd') : undefined,
-                gender: petGender || undefined,
-                adoptionDate: petAdoptionDate ? format(petAdoptionDate, 'yyyy-MM-dd') : undefined,
-                microchipId: petMicrochipId.trim() || undefined,
+                name: formData.name.trim(),
+                breed: formData.breed.trim() || undefined,
+                birthday: formData.birthday ? format(formData.birthday, 'yyyy-MM-dd') : undefined,
+                gender: formData.gender || undefined,
+                adoptionDate: formData.adoptionDate ? format(formData.adoptionDate, 'yyyy-MM-dd') : undefined,
+                microchipId: formData.microchipId.trim() || undefined,
                 medicalNotes: petMedicalNotes.trim() || undefined,
                 vetInfo: petVetInfo.length > 0 ? petVetInfo : undefined,
                 avatarUrl,
@@ -156,7 +138,7 @@ function PetSettingsContent() {
         setIsSubmitting(true);
         try {
             await inviteMember(inviteEmail.trim(), inviteRole, {
-                name: petName.trim(),
+                name: formData.name.trim(),
                 avatarUrl: pet?.avatarUrl,
             });
             toast.success('招待を送信しました');
@@ -262,7 +244,9 @@ function PetSettingsContent() {
 
     const activeMembers = members.filter((m) => m.status === 'active');
     const pendingMembers = members.filter((m) => m.status === 'pending');
-    const displayAvatar = avatarPreview || pet.avatarUrl;
+
+    // Determine display avatar: if removeAvatar is true, null. Else preview or pet.avatarUrl.
+    const displayAvatar = removeAvatar ? null : (avatarPreview || pet.avatarUrl);
 
     return (
         <AppLayout>
@@ -281,41 +265,14 @@ function PetSettingsContent() {
 
                         {/* Pet Identity */}
                         <div className="flex flex-col items-center mb-10">
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="relative group mb-6"
-                            >
-                                <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-orange-400 rounded-full opacity-30 blur-2xl group-hover:opacity-40 transition duration-1000 animate-pulse" />
-                                <div className="relative">
-                                    <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-white/50 dark:border-white/10 shadow-2xl relative z-10">
-                                        <AvatarImage src={displayAvatar} alt={pet.name} className="object-cover" />
-                                        <AvatarFallback className="bg-primary/10 text-primary-foreground/50"><PawPrint className="w-16 h-16" /></AvatarFallback>
-                                    </Avatar>
-
-                                    {canEdit && (
-                                        <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            onClick={() => fileInputRef.current?.click()}
-                                            disabled={uploading}
-                                            className="absolute bottom-1 right-1 w-12 h-12 rounded-full gradient-primary text-white flex items-center justify-center shadow-lg border-4 border-background z-20"
-                                        >
-                                            <Camera className="w-5 h-5" />
-                                        </motion.button>
-                                    )}
-                                </div>
-
-                                {canEdit && (avatarPreview || pet.avatarUrl) && !removeAvatar && (
-                                    <button
-                                        onClick={() => setConfirmDeleteAvatarOpen(true)}
-                                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-destructive/90 text-white flex items-center justify-center shadow-md border-2 border-background z-20 hover:scale-110 transition-transform"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                )}
-                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-                            </motion.div>
+                            <div className="relative mb-6">
+                                <PetAvatarEditor
+                                    imageUrl={displayAvatar}
+                                    onImageChange={handleImageChange}
+                                    onImageRemove={handleImageRemoveRequest}
+                                    disabled={!canEdit || uploading}
+                                />
+                            </div>
 
                             <div className="text-center space-y-4">
                                 <h1 className="text-4xl font-black tracking-tight text-foreground/90 flex items-center justify-center gap-3">
@@ -353,61 +310,20 @@ function PetSettingsContent() {
                             </TabsList>
 
                             <TabsContent value="general" className="space-y-6 animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
-                                <div className="glass rounded-[2.5rem] p-8 shadow-xl space-y-8">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <div className="w-1 h-4 bg-primary rounded-full" />
-                                            <h3 className="font-bold text-lg text-foreground/80">基本情報</h3>
-                                        </div>
-                                        <div className="grid gap-6 sm:grid-cols-2">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="name" className="text-xs font-bold text-muted-foreground ml-1">名前</Label>
-                                                <Input id="name" value={petName} onChange={(e) => setPetName(e.target.value)} className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20" disabled={!canEdit} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="breed" className="text-xs font-bold text-muted-foreground ml-1">品種</Label>
-                                                <Input id="breed" value={petBreed} onChange={(e) => setPetBreed(e.target.value)} placeholder="例：柴犬" className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20" disabled={!canEdit} />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid gap-6 sm:grid-cols-2">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold text-muted-foreground ml-1">性別</Label>
-                                            <Select value={petGender} onValueChange={(v) => setPetGender(v as any)} disabled={!canEdit}>
-                                                <SelectTrigger className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20"><SelectValue placeholder="選択" /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="male">オス ♂</SelectItem>
-                                                    <SelectItem value="female">メス ♀</SelectItem>
-                                                    <SelectItem value="other">その他</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <DatePickerDropdown
-                                            label="誕生日"
-                                            date={petBirthday}
-                                            setDate={setPetBirthday}
-                                            disabled={!canEdit}
-                                        />
-                                    </div>
-
-                                    <DatePickerDropdown
-                                        label="お迎え日"
-                                        date={petAdoptionDate}
-                                        setDate={setPetAdoptionDate}
-                                        disabled={!canEdit}
-                                    />
-                                </div>
+                                <PetBasicInfoForm
+                                    data={formData}
+                                    onChange={setFormData}
+                                    disabled={!canEdit}
+                                />
 
                                 <div className="glass rounded-[2.5rem] p-8 shadow-xl space-y-8">
                                     <div className="flex items-center gap-2 mb-4">
                                         <div className="w-1 h-4 bg-primary rounded-full" />
                                         <h3 className="font-bold text-lg text-foreground/80">医療・その他</h3>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="microchipId" className="text-xs font-bold text-muted-foreground ml-1">マイクロチップID</Label>
-                                        <Input id="microchipId" value={petMicrochipId} onChange={(e) => setPetMicrochipId(e.target.value)} placeholder="15桁の番号" className="h-12 rounded-xl bg-white/50 dark:bg-black/20 border-white/20" disabled={!canEdit} />
-                                    </div>
+
+                                    {/* Microchip moved to BasicInfoForm, so removed here */}
+
                                     <div className="space-y-2">
                                         <Label htmlFor="medicalNotes" className="text-xs font-bold text-muted-foreground ml-1">医療メモ</Label>
                                         <textarea
@@ -639,13 +555,6 @@ function PetSettingsContent() {
                     </div>
                 </div>
 
-                <ImageCropper
-                    open={cropperOpen}
-                    imageSrc={originalImageSrc}
-                    onCropComplete={handleCropComplete}
-                    onCancel={handleCropCancel}
-                />
-
                 <Dialog open={confirmDeleteAvatarOpen} onOpenChange={setConfirmDeleteAvatarOpen}>
                     <DialogContent className="glass border-white/20 rounded-[2rem]">
                         <DialogHeader>
@@ -654,7 +563,7 @@ function PetSettingsContent() {
                         </DialogHeader>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setConfirmDeleteAvatarOpen(false)} className="rounded-full">キャンセル</Button>
-                            <Button variant="destructive" onClick={handleRemoveAvatar} className="rounded-full">削除する</Button>
+                            <Button variant="destructive" onClick={handleRemoveAvatarConfirmed} className="rounded-full">削除する</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
