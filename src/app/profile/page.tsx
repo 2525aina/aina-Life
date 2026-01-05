@@ -173,16 +173,16 @@ export default function ProfilePage() {
 
     const displayAvatar = avatarPreview || (removeAvatar ? undefined : userProfile?.avatarUrl);
 
-    // Common List Item Component
+    // Common List Item Component (Glass Style)
     const ListItem = ({ icon: Icon, label, subLabel, action, className }: any) => (
-        <div className={cn("flex items-center justify-between p-4 rounded-xl bg-card border shadow-sm hover:shadow-md transition-all duration-300 group", className)}>
+        <div className={cn("flex items-center justify-between p-4 rounded-2xl glass border-white/20 hover:bg-white/40 transition-all duration-300 group", className)}>
             <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-primary/10 rounded-full text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                <div className="p-2.5 rounded-full bg-white/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300 shadow-sm">
                     <Icon className="w-5 h-5" />
                 </div>
                 <div className="space-y-0.5">
-                    <h3 className="font-medium text-sm leading-none">{label}</h3>
-                    {subLabel && <p className="text-xs text-muted-foreground">{subLabel}</p>}
+                    <h3 className="font-bold text-sm leading-none text-foreground/90">{label}</h3>
+                    {subLabel && <p className="text-xs font-medium text-muted-foreground">{subLabel}</p>}
                 </div>
             </div>
             <div>{action}</div>
@@ -194,57 +194,70 @@ export default function ProfilePage() {
             <div className="pb-32">
                 {/* Modern Hero Section */}
                 <div className="relative">
-                    <div className="absolute inset-0 h-64 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent -z-10" />
+                    {/* Global Header Gradient */}
+                    <div className="absolute inset-0 h-[40vh] bg-gradient-to-b from-primary/20 via-primary/5 to-transparent -z-10 rounded-b-[4rem]" />
 
                     <div className="md:container max-w-2xl mx-auto px-4 pt-8">
                         {/* Header Navigation */}
-                        <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center justify-between mb-8 relative z-10">
                             <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-background/80 hover:shadow-sm">
-                                    <ArrowLeft className="w-5 h-5" />
+                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/20 backdrop-blur-md">
+                                    <ArrowLeft className="w-6 h-6" />
                                 </Button>
                             </Link>
                             <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={signOut}>
+                                <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive backdrop-blur-md" onClick={signOut}>
                                     <LogOut className="w-5 h-5" />
                                 </Button>
                             </div>
                         </div>
 
                         {/* Profile Header Card */}
-                        <div className="flex flex-col items-center mb-8">
+                        <div className="flex flex-col items-center mb-10">
                             <motion.div
                                 initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="relative group mb-4"
+                                className="relative group mb-6"
                             >
-                                <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-violet-500 rounded-full opacity-30 blur group-hover:opacity-50 transition duration-500"></div>
-                                <Avatar className="w-32 h-32 border-4 border-background shadow-2xl relative">
+                                <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-orange-400 rounded-full opacity-40 blur-2xl group-hover:opacity-60 transition duration-1000 animate-pulse"></div>
+                                <Avatar className="w-36 h-36 border-4 border-white/50 dark:border-white/10 shadow-2xl relative z-10">
                                     <AvatarImage src={displayAvatar} alt={userProfile?.displayName} className="object-cover" />
-                                    <AvatarFallback className="bg-primary/5 text-primary text-4xl font-medium">
-                                        {userProfile?.displayName?.charAt(0) || <User className="w-12 h-12" />}
+                                    <AvatarFallback className="bg-white/20 text-primary text-5xl font-light backdrop-blur-md">
+                                        {userProfile?.displayName?.charAt(0) || <User className="w-16 h-16" />}
                                     </AvatarFallback>
                                 </Avatar>
-                                {isEditing && (
-                                    <motion.button
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-background z-10"
+
+                                {isEditing ? (
+                                    <>
+                                        <motion.button
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="absolute bottom-1 right-1 w-12 h-12 rounded-full gradient-primary text-white flex items-center justify-center shadow-lg border-4 border-background z-20"
+                                        >
+                                            <Camera className="w-5 h-5" />
+                                        </motion.button>
+                                        {!removeAvatar && (displayAvatar || userProfile?.avatarUrl) && (
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() => setConfirmDeleteAvatarOpen(true)}
+                                                className="absolute top-1 right-1 w-8 h-8 rounded-full bg-destructive text-white flex items-center justify-center shadow-lg border-2 border-background z-20"
+                                            >
+                                                <LogOut className="w-3 h-3 rotate-180" />
+                                            </motion.button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <Button
+                                        size="icon"
+                                        className="absolute bottom-1 right-1 rounded-full z-20 shadow-xl gradient-primary hover:scale-110 transition-transform w-12 h-12 border-4 border-background/50"
+                                        onClick={() => setIsEditing(true)}
                                     >
-                                        <Camera className="w-5 h-5" />
-                                    </motion.button>
+                                        <Edit3 className="w-5 h-5 text-white" />
+                                    </Button>
                                 )}
-                                {isEditing && !removeAvatar && (displayAvatar || userProfile?.avatarUrl) && (
-                                    <motion.button
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => setConfirmDeleteAvatarOpen(true)}
-                                        className="absolute top-0 right-0 w-8 h-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg border-2 border-background z-10"
-                                    >
-                                        <LogOut className="w-3 h-3 rotate-180" />
-                                    </motion.button>
-                                )}
+
                                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                             </motion.div>
 
@@ -257,64 +270,40 @@ export default function ProfilePage() {
                                         exit={{ opacity: 0, scale: 1.05 }}
                                         className="flex flex-col items-center relative z-10"
                                     >
-                                        {/* Avatar Container with Glow */}
-                                        <div className="relative mb-6">
-                                            <div className="absolute inset-0 bg-gradient-to-tr from-primary to-orange-400 rounded-full blur-3xl opacity-30 animate-pulse" />
-                                            <div className="relative z-10 p-2 rounded-full glass border border-white/20 dark:border-white/10">
-                                                <Avatar className="w-32 h-32 md:w-40 md:h-40 shadow-2xl">
-                                                    <AvatarImage src={displayAvatar} alt={userProfile?.displayName} className="object-cover" />
-                                                    <AvatarFallback className="bg-white/10 text-4xl font-light">
-                                                        {userProfile?.displayName?.charAt(0)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                            </div>
-                                            {/* Edit Pencil Fab */}
-                                            <Button
-                                                size="icon"
-                                                className="absolute bottom-1 right-1 rounded-full z-20 shadow-xl gradient-primary hover:scale-110 transition-transform w-12 h-12"
-                                                onClick={() => setIsEditing(true)}
-                                            >
-                                                <Edit3 className="w-6 h-6 text-white" />
-                                            </Button>
-                                        </div>
-
                                         {/* Name & Bio */}
-                                        <div className="text-center space-y-2 mb-8">
-                                            <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/40">
+                                        <div className="text-center space-y-2 mb-6">
+                                            <h1 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/60 filter drop-shadow-sm">
                                                 {nickname || displayName}
                                             </h1>
-                                            {nickname && <p className="text-sm font-medium text-muted-foreground tracking-wide">{displayName}</p>}
+                                            {nickname && <p className="text-sm font-bold text-muted-foreground tracking-wide">{displayName}</p>}
 
                                             {/* Email Badge */}
-                                            <div className="inline-flex items-center px-4 py-1.5 rounded-full glass border border-white/20 text-xs font-medium text-muted-foreground/80 mt-3 shadow-sm">
+                                            <div className="inline-flex items-center px-4 py-1.5 rounded-full glass-capsule border border-white/20 text-xs font-bold text-muted-foreground/80 mt-3 shadow-sm">
                                                 <Mail className="w-3.5 h-3.5 mr-2 opacity-70" />
                                                 {userProfile?.email}
                                             </div>
                                         </div>
-
-                                        {/* Decorative Divider */}
-                                        <div className="w-24 h-1 rounded-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent mb-8" />
                                     </motion.div>
                                 ) : (
-                                    <motion.div key="edit" className="w-full max-w-md mt-4" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-                                        <Card className="border-none shadow-xl bg-background/80 backdrop-blur-sm">
-                                            <CardContent className="p-6 space-y-4">
+                                    <motion.div key="edit" className="w-full max-w-md mt-4 relative z-20" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                                        <div className="glass rounded-[2rem] p-6 shadow-xl border-white/20">
+                                            <div className="space-y-4">
                                                 <div className="grid gap-4">
                                                     <div>
-                                                        <Label className="text-xs text-muted-foreground ml-1">表示名</Label>
-                                                        <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-muted/50" placeholder="お名前" />
+                                                        <Label className="text-xs font-bold text-muted-foreground ml-1">表示名</Label>
+                                                        <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-white/50 border-white/20 rounded-xl h-11" placeholder="お名前" />
                                                     </div>
                                                     <div>
-                                                        <Label className="text-xs text-muted-foreground ml-1">ニックネーム</Label>
-                                                        <Input value={nickname} onChange={(e) => setNickname(e.target.value)} className="bg-muted/50" placeholder="ニックネーム" />
+                                                        <Label className="text-xs font-bold text-muted-foreground ml-1">ニックネーム</Label>
+                                                        <Input value={nickname} onChange={(e) => setNickname(e.target.value)} className="bg-white/50 border-white/20 rounded-xl h-11" placeholder="ニックネーム" />
                                                     </div>
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <Label className="text-xs text-muted-foreground ml-1">性別</Label>
+                                                        <Label className="text-xs font-bold text-muted-foreground ml-1">性別</Label>
                                                         <Select value={gender} onValueChange={(v) => setGender(v as any)}>
-                                                            <SelectTrigger className="bg-muted/50"><SelectValue placeholder="選択" /></SelectTrigger>
+                                                            <SelectTrigger className="bg-white/50 border-white/20 rounded-xl h-11"><SelectValue placeholder="選択" /></SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem value="male">男性</SelectItem>
                                                                 <SelectItem value="female">女性</SelectItem>
@@ -323,83 +312,85 @@ export default function ProfilePage() {
                                                         </Select>
                                                     </div>
                                                     <div>
-                                                        <Label className="text-xs text-muted-foreground ml-1">誕生日</Label>
+                                                        <Label className="text-xs font-bold text-muted-foreground ml-1">誕生日</Label>
                                                         <Popover>
                                                             <PopoverTrigger asChild>
-                                                                <Button variant="outline" className={cn('w-full bg-muted/50 justify-start text-left font-normal', !birthday && 'text-muted-foreground')}>
+                                                                <Button variant="outline" className={cn('w-full bg-white/50 border-white/20 rounded-xl h-11 justify-start text-left font-normal', !birthday && 'text-muted-foreground')}>
                                                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                                                     {birthday ? format(birthday, 'yyyy/MM/dd') : '選択'}
                                                                 </Button>
                                                             </PopoverTrigger>
-                                                            <PopoverContent className="w-auto p-0" align="start">
+                                                            <PopoverContent className="w-auto p-0 rounded-xl" align="start">
                                                                 <Calendar mode="single" selected={birthday} onSelect={setBirthday} locale={ja} disabled={(date) => date > new Date()} />
                                                             </PopoverContent>
                                                         </Popover>
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <Label className="text-xs text-muted-foreground ml-1">自己紹介</Label>
+                                                    <Label className="text-xs font-bold text-muted-foreground ml-1">自己紹介</Label>
                                                     <textarea
                                                         value={introduction}
                                                         onChange={(e) => setIntroduction(e.target.value)}
                                                         rows={2}
-                                                        className="w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus:bg-background transition-colors resize-none"
+                                                        className="w-full rounded-xl border border-white/20 bg-white/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus:bg-background transition-colors resize-none"
                                                         placeholder="ひとこと..."
                                                     />
                                                 </div>
 
-                                                <div className="flex gap-2 pt-2">
-                                                    <Button variant="ghost" className="flex-1" onClick={handleCancelEdit}>キャンセル</Button>
-                                                    <Button className="flex-1 gradient-primary shadow-lg" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
+                                                <div className="flex gap-3 pt-2">
+                                                    <Button variant="ghost" className="flex-1 rounded-xl" onClick={handleCancelEdit}>キャンセル</Button>
+                                                    <Button className="flex-1 gradient-primary shadow-lg rounded-xl" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
                                                         <Save className="w-4 h-4 mr-2" />{isSaving ? '保存中...' : '保存'}
                                                     </Button>
                                                 </div>
-                                            </CardContent>
-                                        </Card>
+                                            </div>
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
 
-                        {/* Settings Sections */}
+                        {/* Settings Sections - Magazine Style Grid */}
                         <div className="space-y-8">
                             {/* Pets Section */}
-                            <section className="space-y-3">
-                                <h2 className="text-lg font-semibold px-1 flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-primary" />
+                            <section className="space-y-4">
+                                <h2 className="text-lg font-black px-1 flex items-center gap-2 text-foreground/80">
+                                    <Sparkles className="w-5 h-5 text-primary" />
                                     マイファミリー
                                 </h2>
-                                <div className="grid gap-3 sm:grid-cols-2">
+                                <div className="grid gap-4 sm:grid-cols-2">
                                     {pets.map((pet) => (
                                         <Link key={pet.id} href={`/pets/settings?id=${pet.id}`}>
-                                            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 group">
-                                                <Avatar className="w-12 h-12 border-2 border-background group-hover:scale-105 transition-transform duration-300">
+                                            <div className="flex items-center gap-4 p-4 rounded-2xl glass border-white/20 hover:bg-white/40 hover:scale-[1.02] transition-all duration-300 group shadow-sm">
+                                                <Avatar className="w-14 h-14 border-2 border-white/50 shadow-md group-hover:scale-105 transition-transform duration-300">
                                                     <AvatarImage src={pet.avatarUrl} alt={pet.name} className="object-cover" />
                                                     <AvatarFallback className="bg-orange-100 text-orange-500"><PawPrint className="w-6 h-6" /></AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-bold text-sm truncate group-hover:text-primary transition-colors">{pet.name}</p>
-                                                    <p className="text-xs text-muted-foreground truncate">{pet.breed || '犬種未設定'}</p>
+                                                    <p className="font-bold text-base truncate group-hover:text-primary transition-colors">{pet.name}</p>
+                                                    <p className="text-xs font-bold text-muted-foreground truncate">{pet.breed || '犬種未設定'}</p>
                                                 </div>
-                                                <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary/50 group-hover:translate-x-1 transition-all" />
+                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                                    <ChevronRight className="w-4 h-4 text-muted-foreground/60 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                                                </div>
                                             </div>
                                         </Link>
                                     ))}
                                     <Link href="/pets/new">
-                                        <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed hover:bg-muted/50 hover:border-primary/30 transition-all duration-300 cursor-pointer h-full justify-center group">
-                                            <div className="w-8 h-8 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
-                                                <PawPrint className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                        <div className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-dashed border-white/20 hover:bg-white/20 hover:border-primary/30 transition-all duration-300 cursor-pointer h-full group bg-white/5">
+                                            <div className="w-10 h-10 rounded-full bg-white/10 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                                                <PawPrint className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                                             </div>
-                                            <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">新しい家族を迎える</span>
+                                            <span className="text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors">新しい家族を迎える</span>
                                         </div>
                                     </Link>
                                 </div>
                             </section>
 
                             {/* App Settings */}
-                            <section className="space-y-3">
-                                <h2 className="text-lg font-semibold px-1 flex items-center gap-2">
-                                    <Settings className="w-4 h-4 text-primary" />
+                            <section className="space-y-4">
+                                <h2 className="text-lg font-black px-1 flex items-center gap-2 text-foreground/80">
+                                    <Settings className="w-5 h-5 text-primary" />
                                     アプリ設定
                                 </h2>
                                 <div className="space-y-3">
@@ -421,7 +412,7 @@ export default function ProfilePage() {
                                         subLabel={timeFormat}
                                         action={
                                             <Select value={timeFormat} onValueChange={(v) => handleUpdateSettings('timeFormat', v)}>
-                                                <SelectTrigger className="w-[100px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                                                <SelectTrigger className="w-[100px] h-9 text-xs bg-transparent border-white/20 rounded-lg"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="HH:mm">24時間</SelectItem>
                                                     <SelectItem value="h:mm aa">12時間</SelectItem>
@@ -435,7 +426,7 @@ export default function ProfilePage() {
                                         subLabel="トースト通知の表示場所"
                                         action={
                                             <Select value={toastPosition} onValueChange={(v) => handleUpdateSettings('toastPosition', v)}>
-                                                <SelectTrigger className="w-[100px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                                                <SelectTrigger className="w-[100px] h-9 text-xs bg-transparent border-white/20 rounded-lg"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="top-right">右上</SelectItem>
                                                     <SelectItem value="top-center">上部中央</SelectItem>
@@ -449,9 +440,9 @@ export default function ProfilePage() {
                             </section>
 
                             {/* Other Links */}
-                            <section className="space-y-3">
-                                <h2 className="text-lg font-semibold px-1 flex items-center gap-2">
-                                    <span className="w-4 h-4" /> {/* Spacer for alignment */}
+                            <section className="space-y-4">
+                                <h2 className="text-lg font-black px-1 flex items-center gap-2 text-foreground/80">
+                                    <span className="w-5 h-5" />
                                     その他
                                 </h2>
                                 <a href="https://aina-life-dev.web.app" target="_blank" rel="noopener noreferrer">

@@ -155,11 +155,15 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
 
     return (
 
+
         <div className="relative min-h-screen pt-4 pb-40 px-4">
+            {/* Global Header Gradient */}
+            <div className="absolute top-0 left-0 right-0 h-[40vh] bg-gradient-to-b from-primary/20 via-primary/5 to-transparent -z-10 rounded-b-[4rem]" />
+
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full w-10 h-10 hover:bg-white/10">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full w-10 h-10 hover:bg-white/10 backdrop-blur-md">
                         <ArrowLeft className="w-6 h-6" />
                     </Button>
                     <h1 className="text-lg font-bold tracking-wider uppercase text-muted-foreground/50">{pageTitle}</h1>
@@ -168,13 +172,13 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
 
                 <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto">
                     {/* Type Switcher */}
-                    <div className="glass-capsule p-1.5 flex shadow-lg">
+                    <div className="glass-capsule p-1.5 flex shadow-lg bg-white/30 dark:bg-black/30 backdrop-blur-xl border border-white/10">
                         <button
                             type="button"
                             onClick={() => setType('diary')}
                             className={cn(
                                 "flex-1 py-3 rounded-full text-sm font-bold transition-all duration-300",
-                                type === 'diary' ? "bg-white dark:bg-zinc-800 text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
+                                type === 'diary' ? "bg-primary text-white shadow-lg shadow-primary/30" : "text-muted-foreground hover:text-foreground hover:bg-white/10"
                             )}
                         >
                             日記
@@ -184,7 +188,7 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                             onClick={() => setType('schedule')}
                             className={cn(
                                 "flex-1 py-3 rounded-full text-sm font-bold transition-all duration-300",
-                                type === 'schedule' ? "bg-white dark:bg-zinc-800 text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
+                                type === 'schedule' ? "bg-primary text-white shadow-lg shadow-primary/30" : "text-muted-foreground hover:text-foreground hover:bg-white/10"
                             )}
                         >
                             予定
