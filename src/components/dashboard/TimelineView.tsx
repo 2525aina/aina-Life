@@ -25,8 +25,18 @@ export function TimelineView() {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const todayEntries = entries.filter((entry) => {
-        const entryDate = entry.date.toDate();
-        return entryDate >= today && entryDate < tomorrow;
+        const entryStart = entry.date.toDate();
+        const entryEnd = entry.timeType === 'range' && entry.endDate
+            ? entry.endDate.toDate()
+            : entryStart;
+
+        // Show entry if:
+        // 1. Entry starts today, OR
+        // 2. Today falls within entry's date range (entry spans from past to today or beyond)
+        const startsToday = entryStart >= today && entryStart < tomorrow;
+        const todayInRange = entryStart < tomorrow && entryEnd >= today;
+
+        return startsToday || todayInRange;
     }).sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime());
 
     const handleToggleComplete = async (e: React.MouseEvent, entryId: string, isCompleted: boolean) => {
