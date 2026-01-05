@@ -9,6 +9,7 @@ import imageCompression from 'browser-image-compression';
 interface UploadOptions {
     maxSizeMB?: number;
     maxWidthOrHeight?: number;
+    fileType?: string;
 }
 
 export function useImageUpload() {
@@ -17,18 +18,30 @@ export function useImageUpload() {
     const [progress, setProgress] = useState(0);
 
     const compressImage = async (file: File, options: UploadOptions = {}) => {
-        const { maxSizeMB = 1, maxWidthOrHeight = 1920 } = options;
+        const {
+            maxSizeMB = 1,
+            maxWidthOrHeight = 1920,
+            fileType = 'image/webp'
+        } = options;
+
+        // すでにターゲット形式(WebP)であり、かつサイズが指定以下(100KB)なら
+        // 圧縮・変換をスキップしてそのまま返す（再変換による劣化・肥大化防止）
+        if (file.type === fileType && file.size < 100 * 1024) {
+            return file;
+        }
 
         try {
             const compressedFile = await imageCompression(file, {
                 maxSizeMB,
                 maxWidthOrHeight,
                 useWebWorker: true,
+                fileType,
             });
             return compressedFile;
         } catch (error) {
-            console.error('画像圧縮エラー:', error);
-            return file; // 圧縮に失敗した場合は元のファイルを使用
+            console.error('画像圧縮エラー (using original file):', error);
+            // DNGなどの非対応フォーマットや圧縮エラー時は元のファイルを返す
+            return file;
         }
     };
 
@@ -43,21 +56,37 @@ export function useImageUpload() {
         setProgress(0);
 
         try {
-            // 画像を圧縮
+            // 画像を圧縮 (失敗時は元のファイルが返る)
             setProgress(10);
-            const compressedFile = await compressImage(file, options);
+            const processedFile = await compressImage(file, options);
+
+            // ファイルタイプに基づいて拡張子を決定
+            // 変換成功(=image/webp)なら .webp, 失敗(=元のまま)なら元の拡張子
+            let extension = file.name.split('.').pop() || 'jpg';
+            if (processedFile.type === 'image/webp') {
+                extension = 'webp';
+            } else if (processedFile.type === 'image/png') {
+                extension = 'png';
+            } else if (processedFile.type === 'image/jpeg') {
+                extension = 'jpg';
+            }
+
+
 
             // ユニークなファイル名を生成
             const timestamp = Date.now();
-            const extension = file.name.split('.').pop() || 'jpg';
             const fileName = `${timestamp}.${extension}`;
             const fullPath = `${path}/${fileName}`;
+
+
 
             setProgress(30);
 
             // Firebase Storage にアップロード
             const storageRef = ref(storage, fullPath);
-            await uploadBytes(storageRef, compressedFile);
+            await uploadBytes(storageRef, processedFile, {
+                contentType: processedFile.type
+            });
 
             setProgress(80);
 
