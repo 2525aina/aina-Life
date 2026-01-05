@@ -15,17 +15,18 @@ function EditEntryContent() {
     const searchParams = useSearchParams();
     const entryId = searchParams.get('id');
 
-    const { selectedPet } = usePetContext();
+    const { selectedPet, isPetLoading } = usePetContext();
     const { canEdit, loading: membersLoading } = useMembers(selectedPet?.id || null);
     const { entries, updateEntry, loading } = useEntries(selectedPet?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
+        if (isPetLoading) return; // Wait for pet selection
         if (!membersLoading && !canEdit) {
             toast.error('編集権限がありません');
             router.push('/dashboard');
         }
-    }, [canEdit, membersLoading, router]);
+    }, [canEdit, membersLoading, router, isPetLoading]);
 
     const entry = entries.find((e) => e.id === entryId);
 
@@ -58,7 +59,7 @@ function EditEntryContent() {
         }
     };
 
-    if (loading) {
+    if (loading || isPetLoading) {
         return (
             <AppLayout>
                 <div className="p-4">
