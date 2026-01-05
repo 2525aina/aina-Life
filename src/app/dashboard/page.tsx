@@ -23,7 +23,7 @@ export default function DashboardPage() {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="text-center py-12 w-full max-w-sm bg-white/50 backdrop-blur-xl rounded-3xl border border-white/20 shadow-xl p-8"
+                        className="text-center py-12 w-full max-w-sm bg-white/50 dark:bg-black/20 backdrop-blur-xl rounded-3xl border border-white/20 shadow-xl p-8"
                     >
                         <div className="w-28 h-28 mx-auto rounded-full overflow-hidden mb-6 ring-4 ring-primary/20 shadow-lg">
                             <Image src="/ogp.webp" alt="Welcome" width={112} height={112} className="w-full h-full object-cover" priority />

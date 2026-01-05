@@ -319,7 +319,7 @@ export default function ProfilePage() {
                                                         value={introduction}
                                                         onChange={(e) => setIntroduction(e.target.value)}
                                                         rows={2}
-                                                        className="w-full rounded-xl border border-white/20 bg-white/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus:bg-background transition-colors resize-none"
+                                                        className="w-full rounded-xl border border-white/20 bg-white/50 dark:bg-white/5 dark:border-white/10 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus:bg-background transition-colors resize-none"
                                                         placeholder="ひとこと..."
                                                     />
                                                 </div>
@@ -329,7 +329,7 @@ export default function ProfilePage() {
                                         {/* Sticky buttons */}
                                         <div className="sticky bottom-24 z-20 pt-4">
                                             <div className="flex gap-3">
-                                                <Button variant="ghost" className="flex-1 rounded-full h-12 bg-white/50 backdrop-blur-md shadow-lg" onClick={handleCancelEdit}>キャンセル</Button>
+                                                <Button variant="ghost" className="flex-1 rounded-full h-12 bg-white/50 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md shadow-lg" onClick={handleCancelEdit}>キャンセル</Button>
                                                 <Button className="flex-1 gradient-primary shadow-2xl rounded-full h-12" onClick={handleSaveProfile} disabled={isSaving || !displayName.trim()}>
                                                     <Save className="w-4 h-4 mr-2" />{isSaving ? '保存中...' : '保存'}
                                                 </Button>

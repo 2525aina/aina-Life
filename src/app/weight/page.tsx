@@ -44,7 +44,7 @@ export default function WeightPage() {
             .sort((a, b) => {
                 const dateDiff = a.date.toMillis() - b.date.toMillis();
                 if (dateDiff !== 0) return dateDiff;
-                return a.createdAt.toMillis() - b.createdAt.toMillis();
+                return (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0);
             })
             .map((w) => ({
                 date: format(w.date.toDate(), 'M/d'),
