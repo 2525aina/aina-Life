@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calendar, Plus, BarChart3, User } from 'lucide-react';
+import { Home, Calendar, Plus, BarChart3, User, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { usePetContext } from '@/contexts/PetContext';
@@ -13,6 +13,7 @@ const navItems = [
     { href: '/calendar', icon: Calendar, label: 'カレンダー' },
     { href: '/entry/new', icon: Plus, label: '記録', isAction: true },
     { href: '/weight', icon: BarChart3, label: '体重' },
+    { href: '/friends', icon: Users, label: '友達' },
     { href: '/profile', icon: User, label: 'プロフィール' },
 ];
 
@@ -23,7 +24,7 @@ export function BottomNav() {
 
     return (
         <nav className="fixed bottom-6 left-0 right-0 z-50 pointer-events-none flex justify-center safe-area-bottom">
-            <div className="glass-capsule pointer-events-auto flex items-center justify-around w-[90%] max-w-[360px] h-16 px-1 backdrop-blur-2xl">
+            <div className="glass-capsule pointer-events-auto flex items-center justify-around w-[95%] max-w-[420px] h-16 px-1 backdrop-blur-2xl">
                 {navItems.map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     const Icon = item.icon;

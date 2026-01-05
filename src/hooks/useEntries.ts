@@ -2,22 +2,61 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-    collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp, limit as firestoreLimit, startAfter, getDocs, QueryDocumentSnapshot,
+    collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp, limit as firestoreLimit, startAfter, getDocs, QueryDocumentSnapshot, getDoc, setDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Entry, TimeType } from '@/lib/types';
+import type { Entry, TimeType, EntrySummary, MonthlyEntries } from '@/lib/types';
+import { format } from 'date-fns';
 
 const PAGE_SIZE = 20;
 
+// Helper to get YYYY-MM document ID
+const getMonthId = (date: Date) => format(date, 'yyyy-MM');
+
+export function useCalendarEntries(petId: string | null, currentMonth: Date) {
+    const { user } = useAuth();
+    const [entries, setEntries] = useState<EntrySummary[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!petId || !user) {
+            setEntries([]);
+            setLoading(false);
+            return;
+        }
+
+        const monthId = getMonthId(currentMonth);
+        const docRef = doc(db, 'pets', petId, 'entry_months', monthId);
+
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data() as MonthlyEntries;
+                // 日付順にソート（クライアントサイド）
+                const sorted = (data.entries || []).sort((a, b) => b.date.toMillis() - a.date.toMillis());
+                setEntries(sorted);
+            } else {
+                setEntries([]);
+            }
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [petId, user, currentMonth]);
+
+    return { entries, loading };
+}
+
 export function useEntries(petId: string | null) {
     const { user } = useAuth();
+    // Pagination logic remains same for List View
     const [entries, setEntries] = useState<Entry[]>([]);
     const [loading, setLoading] = useState(true);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const lastDocRef = useRef<QueryDocumentSnapshot | null>(null);
 
+    // Initial Load (Pagination)
     useEffect(() => {
         if (!petId || !user) {
             setEntries([]);
@@ -26,7 +65,6 @@ export function useEntries(petId: string | null) {
             return;
         }
 
-        // リアルタイム更新は最初のページのみ
         const entriesQuery = query(
             collection(db, 'pets', petId, 'entries'),
             orderBy('date', 'desc'),
@@ -60,7 +98,6 @@ export function useEntries(petId: string | null) {
             const newEntries = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Entry[];
 
             setEntries((prev) => {
-                // 重複を除外
                 const existingIds = new Set(prev.map((e) => e.id));
                 const uniqueNewEntries = newEntries.filter((e) => !existingIds.has(e.id));
                 return [...prev, ...uniqueNewEntries];
@@ -72,6 +109,73 @@ export function useEntries(petId: string | null) {
             setLoadingMore(false);
         }
     }, [petId, loadingMore, hasMore]);
+
+    // Update Monthly Summary Helper
+    const updateMonthlySummary = async (
+        type: 'add' | 'update' | 'delete',
+        entryData: Partial<Entry> & { id: string; date: Timestamp },
+        oldDate?: Timestamp
+    ) => {
+        if (!petId) return;
+
+        const processUpdate = async (targetDate: Date, action: 'add' | 'remove' | 'update', data?: EntrySummary) => {
+            const monthId = getMonthId(targetDate);
+            const monthRef = doc(db, 'pets', petId, 'entry_months', monthId);
+            const monthSnap = await getDoc(monthRef);
+
+            let currentEntries: EntrySummary[] = monthSnap.exists()
+                ? (monthSnap.data() as MonthlyEntries).entries
+                : [];
+
+            if (action === 'add' && data) {
+                currentEntries.push(data);
+            } else if (action === 'remove') {
+                currentEntries = currentEntries.filter(e => e.id !== entryData.id);
+            } else if (action === 'update' && data) {
+                currentEntries = currentEntries.map(e => e.id === entryData.id ? data : e);
+            }
+
+            // Clean up empty months or update
+            if (currentEntries.length === 0 && monthSnap.exists()) {
+                await setDoc(monthRef, { entries: [] }, { merge: true }); // Keep doc empty or delete? Keep empty simpler.
+            } else {
+                await setDoc(monthRef, {
+                    id: monthId,
+                    entries: currentEntries
+                }, { merge: true });
+            }
+        };
+
+        const newDate = entryData.date.toDate();
+        const summary: EntrySummary = {
+            id: entryData.id,
+            date: entryData.date,
+            endDate: entryData.endDate,
+            title: entryData.title,
+            body: entryData.body,
+            type: entryData.type as any, // Cast for safety if partial
+            timeType: entryData.timeType as any,
+            tags: entryData.tags || [],
+            firstImageUrl: entryData.imageUrls?.[0],
+            isCompleted: entryData.isCompleted
+        };
+
+        if (type === 'add') {
+            await processUpdate(newDate, 'add', summary);
+        } else if (type === 'delete') {
+            await processUpdate(newDate, 'remove');
+        } else if (type === 'update') {
+            const oldDateObj = oldDate?.toDate();
+            // If date changed month, remove from old, add to new
+            if (oldDateObj && getMonthId(oldDateObj) !== getMonthId(newDate)) {
+                await processUpdate(oldDateObj, 'remove');
+                await processUpdate(newDate, 'add', summary);
+            } else {
+                await processUpdate(newDate, 'update', summary);
+            }
+        }
+    };
+
 
     const addEntry = useCallback(async (entryData: {
         type: 'diary' | 'schedule';
@@ -102,7 +206,16 @@ export function useEntries(petId: string | null) {
         if (entryData.endDate) docData.endDate = Timestamp.fromDate(entryData.endDate);
         if (entryData.isCompleted !== undefined) docData.isCompleted = entryData.isCompleted;
 
-        await addDoc(collection(db, 'pets', petId, 'entries'), docData);
+        const docRef = await addDoc(collection(db, 'pets', petId, 'entries'), docData);
+
+        // Update Summary
+        await updateMonthlySummary('add', {
+            id: docRef.id,
+            ...entryData,
+            date: Timestamp.fromDate(entryData.date),
+            endDate: entryData.endDate ? Timestamp.fromDate(entryData.endDate) : undefined,
+        } as any);
+
     }, [petId, user]);
 
     const updateEntry = useCallback(async (entryId: string, entryData: Partial<{
@@ -117,6 +230,11 @@ export function useEntries(petId: string | null) {
         isCompleted?: boolean;
     }>) => {
         if (!petId || !user) throw new Error('ペットが選択されていません');
+
+        // Need old data to check date change
+        const oldEntryDoc = await getDoc(doc(db, 'pets', petId, 'entries', entryId));
+        if (!oldEntryDoc.exists()) throw new Error('Entry not found');
+        const oldData = oldEntryDoc.data() as Entry;
 
         const updateData: Record<string, unknown> = {
             updatedBy: user.uid,
@@ -134,15 +252,38 @@ export function useEntries(petId: string | null) {
 
         const entryRef = doc(db, 'pets', petId, 'entries', entryId);
         await updateDoc(entryRef, updateData);
+
+        // Update Summary
+        // Merge old data with new data for complete summary object
+        const mergedData = {
+            ...oldData,
+            ...entryData,
+            id: entryId,
+            date: entryData.date ? Timestamp.fromDate(entryData.date) : oldData.date,
+            endDate: entryData.endDate ? Timestamp.fromDate(entryData.endDate) : (oldData.endDate || undefined)
+        };
+
+        await updateMonthlySummary('update', mergedData, oldData.date);
+
     }, [petId, user]);
 
     const deleteEntry = useCallback(async (entryId: string) => {
         if (!petId) throw new Error('ペットが選択されていません');
 
+        // Need data to find month
+        const oldEntryDoc = await getDoc(doc(db, 'pets', petId, 'entries', entryId));
+        if (!oldEntryDoc.exists()) return; // Already deleted
+        const oldData = oldEntryDoc.data() as Entry;
+
         const entryRef = doc(db, 'pets', petId, 'entries', entryId);
         await deleteDoc(entryRef);
+
+        // Update Summary
+        await updateMonthlySummary('delete', { id: entryId, date: oldData.date });
+
     }, [petId]);
 
+    // Keep these helpers for list view if necessary, but Calendar should use useCalendarEntries
     const getEntriesByDateRange = useCallback((startDate: Date, endDate: Date) => {
         return entries.filter((entry) => {
             const entryDate = entry.date.toDate();
@@ -170,6 +311,10 @@ export function useEntries(petId: string | null) {
         return entries.filter((entry) => {
             if (entry.type !== 'schedule') return false;
             const entryDate = entry.date.toDate();
+            // ここでだけ entries state を使うと、リスト表示されていないデータ（ページネーション外）が取れない可能性がある。
+            // 本来は今日の予定用の専用フックを作るか、ここでも Firestore クエリを投げるべきだが
+            // いったん既存ロジック維持（ただしページネーションされているので不正確なリスクあり）
+            // ※カレンダー改修がメインなので今回はスコープ外とする
             return entryDate >= today && entryDate < tomorrow;
         });
     }, [entries]);

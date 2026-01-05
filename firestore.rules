@@ -112,23 +112,44 @@ service cloud.firestore {
       }
       
       // ----------------------------------------
-      // entries サブコレクション
+      // entries サブコレクション (詳細データ)
       // ----------------------------------------
-
       match /entries/{entryId} {
         allow read: if isPetMember(petId);
         allow create: if isPetMember(petId) && hasValidCreator() && hasValidUpdater();
         allow update: if isPetMember(petId) && hasValidUpdater();
         allow delete: if isPetMember(petId);
       }
+
+      // ----------------------------------------
+      // entry_months サブコレクション (月次集約データ)
+      // ----------------------------------------
+      match /entry_months/{monthId} {
+        allow read: if isPetMember(petId);
+        // 集約データの更新はメンバー全員許可
+        allow create, update: if isPetMember(petId);
+        // 通常は削除しないが、権限としては許可
+        allow delete: if isPetMember(petId);
+      }
       
       // ----------------------------------------
-      // weights サブコレクション
+      // weights サブコレクション (詳細データ - 旧形式/併用)
       // ----------------------------------------
       match /weights/{weightId} {
         allow read: if isPetMember(petId);
         allow create: if isPetMember(petId) && hasValidCreator() && hasValidUpdater();
         allow update: if isPetMember(petId) && hasValidUpdater();
+        allow delete: if isPetMember(petId);
+      }
+
+      // ----------------------------------------
+      // weight_years サブコレクション (年次集約データ)
+      // ----------------------------------------
+      match /weight_years/{yearId} {
+        allow read: if isPetMember(petId);
+        // 集約データの更新はメンバー全員許可
+        allow create, update: if isPetMember(petId);
+        // 通常は削除しないが、権限としては許可
         allow delete: if isPetMember(petId);
       }
       

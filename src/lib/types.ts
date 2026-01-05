@@ -101,6 +101,8 @@ export const MEMBER_ROLES: { value: MemberRole; label: string; description: stri
 export type EntryType = 'diary' | 'schedule';
 export type TimeType = 'point' | 'range';
 
+// 日記詳細（個別ドキュメント: pets/{petId}/entries/{entryId}）
+// 閲覧時のみ取得
 export interface Entry extends AuditDocument {
     id: string;
     type: EntryType;
@@ -112,6 +114,26 @@ export interface Entry extends AuditDocument {
     tags: string[];
     imageUrls: string[];
     isCompleted?: boolean;
+}
+
+// 月次集約日記（pets/{petId}/entry_months/{YYYY-MM}）
+// カレンダー表示用
+export interface EntrySummary {
+    id: string;
+    date: Timestamp; // 日付比較用
+    endDate?: Timestamp;
+    title?: string;
+    body?: string; // カレンダー下部リスト表示用
+    type: EntryType;
+    timeType: TimeType;
+    tags: string[];
+    firstImageUrl?: string; // サムネイル用（1枚目のみ）
+    isCompleted?: boolean;
+}
+
+export interface MonthlyEntries {
+    id: string; // YYYY-MM
+    entries: EntrySummary[];
 }
 
 export type EntryTag =
@@ -134,6 +156,23 @@ export const ENTRY_TAGS: { value: EntryTag; label: string; emoji: string }[] = [
 // ============================================
 // 体重記録
 // ============================================
+// 年次集約体重（pets/{petId}/weight_years/{YYYY}）
+// グラフ表示用
+export interface WeightItem {
+    id: string; // UUID or Timestamp string
+    value: number;
+    unit: 'kg' | 'g';
+    date: Timestamp;
+    createdAt?: Timestamp; // ソート・監査用
+}
+
+export interface YearlyWeights extends AuditDocument {
+    id: string; // YYYY
+    year: number;
+    weights: WeightItem[];
+}
+
+// 旧・個別ドキュメント型（移行期間または詳細編集用）
 export interface Weight extends AuditDocument {
     id: string;
     value: number;
@@ -154,17 +193,33 @@ export interface CustomTask extends AuditDocument {
 // ============================================
 // お散歩友達
 // ============================================
-export interface Friend extends BaseDocument {
+export interface Friend extends AuditDocument {
     id: string;
     name: string;
-    breed?: string;
-    avatarUrl?: string;
-    note?: string;
-    firstMetAt: Timestamp;
+    nickname?: string;
+    species: string; // e.g. "Canis lupus familiaris"
+    breed?: string;  // e.g. "柴犬"
+    gender?: 'male' | 'female' | 'unknown';
+    color?: string;  // e.g. "赤柴" or Color ID
+    birthday?: Timestamp;
+    weight?: number;
+    weightUnit?: 'kg' | 'g';
+    ageOrBirthday?: string; // deprecated in favor of birthday
+    features?: string;
+    location?: string;
+    ownerName?: string;
+    ownerDetails?: string;
+    contact?: string;
+    address?: string;
+    images: string[];
+    metAt: Timestamp;
 }
 
+export type FriendSortOption = 'metAt_desc' | 'metAt_asc' | 'name_asc';
+
 // ============================================
-// 遭遇記録
+// 遭遇記録 (deprecated in favor of Friends metAt or separate Encounter logs if needed)
+// Phase 2ではFriendに集約
 // ============================================
 export interface Encounter {
     id: string;

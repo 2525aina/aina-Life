@@ -4,12 +4,12 @@ import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
 import { useMembers } from '@/hooks/useMembers';
-import { useEntries } from '@/hooks/useEntries';
+import { useCalendarEntries } from '@/hooks/useEntries';
 import { Button } from '@/components/ui/button';
 import { ENTRY_TAGS } from '@/lib/types';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfDay } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -21,11 +21,11 @@ type ViewMode = 'month' | 'week' | 'day';
 export default function CalendarPage() {
     const { selectedPet } = usePetContext();
     const { canEdit } = useMembers(selectedPet?.id || null);
-    const { entries, loading } = useEntries(selectedPet?.id || null);
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const { entries, loading } = useCalendarEntries(selectedPet?.id || null, currentDate);
     const { tasks } = useCustomTasks(selectedPet?.id || null);
     const { formatTime } = useTimeFormat();
     const [viewMode, setViewMode] = useState<ViewMode>('month');
-    const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     // Group entries by date, including multi-day entries on all spanned days
@@ -293,9 +293,10 @@ export default function CalendarPage() {
                                                         {entry.body && <p className="text-xs text-muted-foreground line-clamp-1">{entry.body}</p>}
                                                     </div>
 
-                                                    {entry.imageUrls.length > 0 && (
+                                                    {/* Changed image check to firstImageUrl */}
+                                                    {entry.firstImageUrl && (
                                                         <div className="w-10 h-10 rounded-lg overflow-hidden ring-1 ring-white/50 flex-shrink-0">
-                                                            <img src={entry.imageUrls[0]} alt="" className="w-full h-full object-cover" />
+                                                            <img src={entry.firstImageUrl} alt="" className="w-full h-full object-cover" />
                                                         </div>
                                                     )}
                                                 </motion.div>
