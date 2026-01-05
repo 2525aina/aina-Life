@@ -18,6 +18,7 @@ import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, Save, User, MessageS
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePets } from '@/hooks/usePets';
+import { StyledInput, GenderSelect } from '@/components/ui/styled-form-fields';
 import { format, parse } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -240,30 +241,30 @@ export default function ProfilePage() {
                                     </motion.div>
                                 ) : (
                                     <motion.div key="edit" className="w-full max-w-md mt-4 relative z-20" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+
+                                        // ... (in JSX)
+
                                         <div className="glass rounded-[2rem] p-4 sm:p-6 shadow-xl border-white/20">
                                             <div className="space-y-4">
                                                 <div className="grid gap-3 sm:gap-4">
                                                     <div>
                                                         <Label className="text-xs font-bold text-muted-foreground ml-1">表示名</Label>
-                                                        <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-white/50 border-white/20 rounded-xl h-11" placeholder="お名前" />
+                                                        <StyledInput value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="お名前" />
                                                     </div>
                                                     <div>
                                                         <Label className="text-xs font-bold text-muted-foreground ml-1">ニックネーム</Label>
-                                                        <Input value={nickname} onChange={(e) => setNickname(e.target.value)} className="bg-white/50 border-white/20 rounded-xl h-11" placeholder="ニックネーム" />
+                                                        <StyledInput value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="ニックネーム" />
                                                     </div>
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                                     <div>
                                                         <Label className="text-xs font-bold text-muted-foreground ml-1">性別</Label>
-                                                        <Select value={gender} onValueChange={(v) => setGender(v as any)}>
-                                                            <SelectTrigger className="bg-white/50 border-white/20 rounded-xl h-11"><SelectValue placeholder="選択" /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="male">男性</SelectItem>
-                                                                <SelectItem value="female">女性</SelectItem>
-                                                                <SelectItem value="other">その他</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
+                                                        <GenderSelect
+                                                            value={gender}
+                                                            onChange={(v) => setGender(v as any)}
+                                                            type="human"
+                                                        />
                                                     </div>
                                                     <DatePickerDropdown
                                                         date={birthday}
@@ -277,7 +278,7 @@ export default function ProfilePage() {
                                                         value={introduction}
                                                         onChange={(e) => setIntroduction(e.target.value)}
                                                         rows={2}
-                                                        className="w-full rounded-xl border border-white/20 bg-white/50 dark:bg-white/5 dark:border-white/10 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus:bg-background transition-colors resize-none"
+                                                        className="w-full rounded-xl border border-white/20 bg-white/50 dark:bg-black/20 dark:border-white/20 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus:bg-background transition-colors resize-none"
                                                         placeholder="ひとこと..."
                                                     />
                                                 </div>

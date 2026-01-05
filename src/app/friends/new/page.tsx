@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { SPECIES_DATA } from '@/lib/constants/species';
 import { PET_COLORS } from '@/lib/constants/colors';
+import { StyledInput, SpeciesBreedSelector, GenderSelect, ColorSelect } from '@/components/ui/styled-form-fields';
 import { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -203,156 +204,119 @@ export default function NewFriendPage() {
                         <section className="space-y-4">
                             <h2 className="text-sm font-bold text-muted-foreground border-b pb-1">基本情報</h2>
                             <div className="space-y-2">
-                                <Label htmlFor="name">お名前 <span className="text-red-500">*</span></Label>
-                                <Input
-                                    id="name"
-                                    value={name}
-                                    onChange={e => setName(e.target.value)}
-                                    placeholder="ポチ"
-                                    className="bg-background/50 h-12 text-lg font-bold"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label>種類</Label>
-                                    <Select value={species} onValueChange={setSpecies}>
-                                        <SelectTrigger className="bg-background/50"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            {speciesOptions.map(opt => (
-                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Label htmlFor="name">お名前 <span className="text-red-500">*</span></Label>
+                                    <StyledInput
+                                        id="name"
+                                        value={name}
+                                        onChange={e => setName(e.target.value)}
+                                        placeholder="ポチ"
+                                        className="h-12 text-lg font-bold"
+                                    />
+                                </div>
+
+                                <SpeciesBreedSelector
+                                    species={species}
+                                    breed={breed}
+                                    onChangeSpecies={(val) => {
+                                        setSpecies(val);
+                                        setBreed('');
+                                    }}
+                                    onChangeBreed={setBreed}
+                                />
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>性別</Label>
+                                        <GenderSelect value={gender} onChange={(v) => setGender(v as any)} type="friend" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>毛色</Label>
+                                        <ColorSelect value={color} onChange={setColor} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <Label>年齢・誕生日</Label>
+                                    <div className="space-y-4">
+                                        <div className="flex bg-muted/50 p-1 rounded-lg">
+                                            <button
+                                                type="button"
+                                                className={`flex-1 py-1.5 text-sm rounded-md transition-all ${birthdayMode === 'birthday' ? 'bg-background shadow-sm font-bold text-primary' : 'text-muted-foreground'}`}
+                                                onClick={() => setBirthdayMode('birthday')}
+                                            >
+                                                誕生日を指定
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`flex-1 py-1.5 text-sm rounded-md transition-all ${birthdayMode === 'age' ? 'bg-background shadow-sm font-bold text-primary' : 'text-muted-foreground'}`}
+                                                onClick={() => setBirthdayMode('age')}
+                                            >
+                                                年齢から計算
+                                            </button>
+                                        </div>
+
+                                        {birthdayMode === 'birthday' ? (
+                                            <DatePickerDropdown
+                                                date={birthday}
+                                                setDate={setBirthday}
+                                                label="誕生日"
+                                                toDate={new Date()}
+                                            />
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs">何歳？</Label>
+                                                    <div className="relative">
+                                                        <StyledInput
+                                                            type="number"
+                                                            min="0"
+                                                            value={ageYears}
+                                                            onChange={e => setAgeYears(e.target.value)}
+                                                            className="pr-8"
+                                                        />
+                                                        <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">歳</span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs">何ヶ月？</Label>
+                                                    <div className="relative">
+                                                        <StyledInput
+                                                            type="number"
+                                                            min="0"
+                                                            max="11"
+                                                            value={ageMonths}
+                                                            onChange={e => setAgeMonths(e.target.value)}
+                                                            className="pr-8"
+                                                        />
+                                                        <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">ヶ月</span>
+                                                    </div>
+                                                </div>
+                                                <p className="col-span-2 text-xs text-muted-foreground text-center">
+                                                    推定誕生日: {calculatedBirthday ? format(calculatedBirthday, 'yyyy/M/d') : '---'}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>犬種/猫種</Label>
-                                    {!isOtherSpecies && breedOptions.length > 0 ? (
-                                        <Select value={breed} onValueChange={setBreed}>
-                                            <SelectTrigger className="bg-background/50"><SelectValue placeholder="選択" /></SelectTrigger>
-                                            <SelectContent className="max-h-[200px]">
-                                                {breedOptions.map(b => (
-                                                    <SelectItem key={b} value={b}>{b}</SelectItem>
-                                                ))}
+                                    <Label>体重</Label>
+                                    <div className="flex gap-2">
+                                        <StyledInput
+                                            type="number"
+                                            step="0.1"
+                                            value={weight}
+                                            onChange={e => setWeight(e.target.value)}
+                                            placeholder="0.0"
+                                        />
+                                        <Select value={weightUnit} onValueChange={(v: any) => setWeightUnit(v)}>
+                                            <SelectTrigger className="w-20 bg-background/50 border-white/20 rounded-xl h-12"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="kg">kg</SelectItem>
+                                                <SelectItem value="g">g</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                    ) : (
-                                        <Input value={breed} onChange={e => setBreed(e.target.value)} placeholder="種類を入力" className="bg-background/50" />
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>性別</Label>
-                                    <Select value={gender} onValueChange={(v: any) => setGender(v)}>
-                                        <SelectTrigger className="bg-background/50"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="male">男の子 (♂)</SelectItem>
-                                            <SelectItem value="female">女の子 (♀)</SelectItem>
-                                            <SelectItem value="unknown">不明</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>毛色</Label>
-                                    <Select value={color} onValueChange={setColor}>
-                                        <SelectTrigger className="bg-background/50"><SelectValue placeholder="選択" /></SelectTrigger>
-                                        <SelectContent className="max-h-[200px]">
-                                            {PET_COLORS.map(c => (
-                                                <SelectItem key={c.id} value={c.name}>
-                                                    <span className="flex items-center gap-2">
-                                                        <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: c.hex }} />
-                                                        {c.name}
-                                                    </span>
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <Label>年齢・誕生日</Label>
-                                <div className="space-y-4">
-                                    <div className="flex bg-muted/50 p-1 rounded-lg">
-                                        <button
-                                            type="button"
-                                            className={`flex-1 py-1.5 text-sm rounded-md transition-all ${birthdayMode === 'birthday' ? 'bg-background shadow-sm font-bold text-primary' : 'text-muted-foreground'}`}
-                                            onClick={() => setBirthdayMode('birthday')}
-                                        >
-                                            誕生日を指定
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={`flex-1 py-1.5 text-sm rounded-md transition-all ${birthdayMode === 'age' ? 'bg-background shadow-sm font-bold text-primary' : 'text-muted-foreground'}`}
-                                            onClick={() => setBirthdayMode('age')}
-                                        >
-                                            年齢から計算
-                                        </button>
                                     </div>
-
-                                    {birthdayMode === 'birthday' ? (
-                                        <DatePickerDropdown
-                                            date={birthday}
-                                            setDate={setBirthday}
-                                            label="誕生日"
-                                            toDate={new Date()}
-                                        />
-                                    ) : (
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">何歳？</Label>
-                                                <div className="relative">
-                                                    <Input
-                                                        type="number"
-                                                        min="0"
-                                                        value={ageYears}
-                                                        onChange={e => setAgeYears(e.target.value)}
-                                                        className="bg-background/50 pr-8"
-                                                    />
-                                                    <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">歳</span>
-                                                </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">何ヶ月？</Label>
-                                                <div className="relative">
-                                                    <Input
-                                                        type="number"
-                                                        min="0"
-                                                        max="11"
-                                                        value={ageMonths}
-                                                        onChange={e => setAgeMonths(e.target.value)}
-                                                        className="bg-background/50 pr-8"
-                                                    />
-                                                    <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">ヶ月</span>
-                                                </div>
-                                            </div>
-                                            <p className="col-span-2 text-xs text-muted-foreground text-center">
-                                                推定誕生日: {calculatedBirthday ? format(calculatedBirthday, 'yyyy/M/d') : '---'}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>体重</Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        type="number"
-                                        step="0.1"
-                                        value={weight}
-                                        onChange={e => setWeight(e.target.value)}
-                                        placeholder="0.0"
-                                        className="bg-background/50"
-                                    />
-                                    <Select value={weightUnit} onValueChange={(v: any) => setWeightUnit(v)}>
-                                        <SelectTrigger className="w-20 bg-background/50"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="kg">kg</SelectItem>
-                                            <SelectItem value="g">g</SelectItem>
-                                        </SelectContent>
-                                    </Select>
                                 </div>
                             </div>
                         </section>
@@ -365,24 +329,24 @@ export default function NewFriendPage() {
                             </h2>
                             <div className="space-y-2">
                                 <Label>飼い主名</Label>
-                                <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} className="bg-background/50" placeholder="○○さん" />
+                                <StyledInput value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="○○さん" />
                             </div>
                             <div className="space-y-2">
                                 <Label>飼い主の特徴</Label>
-                                <Input value={ownerDetails} onChange={e => setOwnerDetails(e.target.value)} className="bg-background/50" placeholder="いつも帽子を被っている、など" />
+                                <StyledInput value={ownerDetails} onChange={e => setOwnerDetails(e.target.value)} placeholder="いつも帽子を被っている、など" />
                             </div>
                             <div className="space-y-2">
                                 <Label>連絡先</Label>
                                 <div className="relative">
-                                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input value={contact} onChange={e => setContact(e.target.value)} className="pl-9 bg-background/50" placeholder="電話番号やLINEなど（任意）" />
+                                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                                    <StyledInput value={contact} onChange={e => setContact(e.target.value)} className="pl-9" placeholder="電話番号やLINEなど（任意）" />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>住所・地域</Label>
                                 <div className="relative">
-                                    <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input value={address} onChange={e => setAddress(e.target.value)} className="pl-9 bg-background/50" placeholder="○○区○○町" />
+                                    <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                                    <StyledInput value={address} onChange={e => setAddress(e.target.value)} className="pl-9" placeholder="○○区○○町" />
                                 </div>
                             </div>
                         </section>
@@ -401,12 +365,12 @@ export default function NewFriendPage() {
                                 <div className="space-y-2">
                                     <Label>出会った場所</Label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                        <Input
+                                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                                        <StyledInput
                                             value={location}
                                             onChange={e => setLocation(e.target.value)}
                                             placeholder="公園、ドッグランなど"
-                                            className="pl-9 bg-background/50"
+                                            className="pl-9"
                                         />
                                     </div>
                                 </div>

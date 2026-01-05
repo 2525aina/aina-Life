@@ -13,6 +13,7 @@ import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { PetAvatarEditor } from '@/components/features/pet-avatar-editor';
 import { SPECIES_DATA } from '@/lib/constants/species';
 import { PET_COLORS } from '@/lib/constants/colors';
+import { StyledInput, SpeciesBreedSelector, GenderSelect, ColorSelect } from '@/components/ui/styled-form-fields';
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -80,37 +81,6 @@ function EditFriendContent() {
     // Image State
     const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-    // Dynamic Species Logic (Flattened for selection but grouped by category if we had better UI, here simple mapping)
-    const speciesOptions = useMemo(() => {
-        // Build options from constants
-        return [
-            // 犬・猫
-            { label: SPECIES_DATA.mammals.categories.dogs.label, value: SPECIES_DATA.mammals.categories.dogs.species, breeds: SPECIES_DATA.mammals.categories.dogs.breeds },
-            { label: SPECIES_DATA.mammals.categories.cats.label, value: SPECIES_DATA.mammals.categories.cats.species, breeds: SPECIES_DATA.mammals.categories.cats.breeds },
-            // 小動物
-            ...Object.values(SPECIES_DATA.mammals.categories.small_mammals.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
-            // 鳥類
-            ...Object.values(SPECIES_DATA.birds.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
-            // 爬虫類
-            ...Object.values(SPECIES_DATA.reptiles.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
-            // 両生類
-            ...Object.values(SPECIES_DATA.amphibians.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
-            // 魚類
-            ...Object.values(SPECIES_DATA.fish.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
-            // 無脊椎動物
-            ...Object.values(SPECIES_DATA.invertebrates.categories).map(c => ({ label: c.label, value: c.label, breeds: c.breeds })),
-            // その他
-            { label: 'その他', value: 'other', breeds: [] }
-        ];
-    }, []);
-
-    const breedOptions = useMemo(() => {
-        const found = speciesOptions.find(opt => opt.value === species);
-        return found?.breeds || [];
-    }, [species, speciesOptions]);
-
-    const isOtherSpecies = species === 'other';
 
     const handleImageChange = (file: File) => {
         setPendingImageFile(file);
@@ -241,71 +211,33 @@ function EditFriendContent() {
                             <h2 className="text-sm font-bold text-muted-foreground border-b pb-1">基本情報</h2>
                             <div className="space-y-2">
                                 <Label htmlFor="name">お名前 <span className="text-red-500">*</span></Label>
-                                <Input
+                                <StyledInput
                                     id="name"
                                     value={name}
                                     onChange={e => setName(e.target.value)}
                                     placeholder="ポチ"
-                                    className="bg-background/50 h-12 text-lg font-bold"
+                                    className="h-12 text-lg font-bold"
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>種類</Label>
-                                    <Select value={species} onValueChange={setSpecies}>
-                                        <SelectTrigger className="bg-background/50"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            {speciesOptions.map(opt => (
-                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>犬種/猫種</Label>
-                                    {!isOtherSpecies && breedOptions.length > 0 ? (
-                                        <Select value={breed} onValueChange={setBreed}>
-                                            <SelectTrigger className="bg-background/50"><SelectValue placeholder="選択" /></SelectTrigger>
-                                            <SelectContent className="max-h-[200px]">
-                                                {breedOptions.map(b => (
-                                                    <SelectItem key={b} value={b}>{b}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : (
-                                        <Input value={breed} onChange={e => setBreed(e.target.value)} placeholder="種類を入力" className="bg-background/50" />
-                                    )}
-                                </div>
-                            </div>
+                            <SpeciesBreedSelector
+                                species={species}
+                                breed={breed}
+                                onChangeSpecies={(val) => {
+                                    setSpecies(val);
+                                    setBreed('');
+                                }}
+                                onChangeBreed={setBreed}
+                            />
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>性別</Label>
-                                    <Select value={gender} onValueChange={(v: any) => setGender(v)}>
-                                        <SelectTrigger className="bg-background/50"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="male">男の子 (♂)</SelectItem>
-                                            <SelectItem value="female">女の子 (♀)</SelectItem>
-                                            <SelectItem value="unknown">不明</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <GenderSelect value={gender} onChange={(v) => setGender(v as any)} type="friend" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>毛色</Label>
-                                    <Select value={color} onValueChange={setColor}>
-                                        <SelectTrigger className="bg-background/50"><SelectValue placeholder="選択" /></SelectTrigger>
-                                        <SelectContent className="max-h-[200px]">
-                                            {PET_COLORS.map(c => (
-                                                <SelectItem key={c.id} value={c.name}>
-                                                    <span className="flex items-center gap-2">
-                                                        <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: c.hex }} />
-                                                        {c.name}
-                                                    </span>
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <ColorSelect value={color} onChange={setColor} />
                                 </div>
                             </div>
 
@@ -341,12 +273,12 @@ function EditFriendContent() {
                                             <div className="space-y-2">
                                                 <Label className="text-xs">何歳？</Label>
                                                 <div className="relative">
-                                                    <Input
+                                                    <StyledInput
                                                         type="number"
                                                         min="0"
                                                         value={ageYears}
                                                         onChange={e => setAgeYears(e.target.value)}
-                                                        className="bg-background/50 pr-8"
+                                                        className="pr-8"
                                                     />
                                                     <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">歳</span>
                                                 </div>
@@ -354,13 +286,13 @@ function EditFriendContent() {
                                             <div className="space-y-2">
                                                 <Label className="text-xs">何ヶ月？</Label>
                                                 <div className="relative">
-                                                    <Input
+                                                    <StyledInput
                                                         type="number"
                                                         min="0"
                                                         max="11"
                                                         value={ageMonths}
                                                         onChange={e => setAgeMonths(e.target.value)}
-                                                        className="bg-background/50 pr-8"
+                                                        className="pr-8"
                                                     />
                                                     <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">ヶ月</span>
                                                 </div>
@@ -375,16 +307,15 @@ function EditFriendContent() {
                             <div className="space-y-2">
                                 <Label>体重</Label>
                                 <div className="flex gap-2">
-                                    <Input
+                                    <StyledInput
                                         type="number"
                                         step="0.1"
                                         value={weight}
                                         onChange={e => setWeight(e.target.value)}
                                         placeholder="0.0"
-                                        className="bg-background/50"
                                     />
                                     <Select value={weightUnit} onValueChange={(v: any) => setWeightUnit(v)}>
-                                        <SelectTrigger className="w-20 bg-background/50"><SelectValue /></SelectTrigger>
+                                        <SelectTrigger className="w-20 bg-background/50 border-white/20 rounded-xl h-12"><SelectValue /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="kg">kg</SelectItem>
                                             <SelectItem value="g">g</SelectItem>
@@ -402,24 +333,24 @@ function EditFriendContent() {
                             </h2>
                             <div className="space-y-2">
                                 <Label>飼い主名</Label>
-                                <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} className="bg-background/50" placeholder="○○さん" />
+                                <StyledInput value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="○○さん" />
                             </div>
                             <div className="space-y-2">
                                 <Label>飼い主の特徴</Label>
-                                <Input value={ownerDetails} onChange={e => setOwnerDetails(e.target.value)} className="bg-background/50" placeholder="いつも帽子を被っている、など" />
+                                <StyledInput value={ownerDetails} onChange={e => setOwnerDetails(e.target.value)} placeholder="いつも帽子を被っている、など" />
                             </div>
                             <div className="space-y-2">
                                 <Label>連絡先</Label>
                                 <div className="relative">
-                                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input value={contact} onChange={e => setContact(e.target.value)} className="pl-9 bg-background/50" placeholder="電話番号やLINEなど（任意）" />
+                                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                                    <StyledInput value={contact} onChange={e => setContact(e.target.value)} className="pl-9" placeholder="電話番号やLINEなど（任意）" />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>住所・地域</Label>
                                 <div className="relative">
-                                    <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input value={address} onChange={e => setAddress(e.target.value)} className="pl-9 bg-background/50" placeholder="○○区○○町" />
+                                    <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                                    <StyledInput value={address} onChange={e => setAddress(e.target.value)} className="pl-9" placeholder="○○区○○町" />
                                 </div>
                             </div>
                         </section>
@@ -438,12 +369,12 @@ function EditFriendContent() {
                                 <div className="space-y-2">
                                     <Label>出会った場所</Label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                        <Input
+                                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                                        <StyledInput
                                             value={location}
                                             onChange={e => setLocation(e.target.value)}
                                             placeholder="公園、ドッグランなど"
-                                            className="pl-9 bg-background/50"
+                                            className="pl-9"
                                         />
                                     </div>
                                 </div>
