@@ -237,16 +237,42 @@ export default function CalendarPage() {
                                                             : "glass border-white/40 dark:border-white/10"
                                                     )}
                                                 >
-                                                    <div className="flex flex-col items-center flex-shrink-0 w-14">
-                                                        {entry.timeType === 'range' && entry.endDate ? (
-                                                            <div className="flex flex-col items-center text-[10px] font-bold text-muted-foreground leading-tight">
-                                                                <span>{format(entry.date.toDate(), 'H:mm')}</span>
-                                                                <ArrowRight className="w-3 h-3 my-0.5 opacity-50" />
-                                                                <span>{format(entry.endDate.toDate(), 'H:mm')}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-xs font-bold text-muted-foreground">{format(entry.date.toDate(), 'H:mm')}</span>
-                                                        )}
+                                                    <div className="flex flex-col items-center flex-shrink-0 w-20">
+                                                        {(() => {
+                                                            const startDate = entry.date.toDate();
+                                                            const startOnSelectedDay = isSameDay(startDate, selectedDate);
+
+                                                            if (entry.timeType === 'range' && entry.endDate) {
+                                                                const endDate = entry.endDate.toDate();
+                                                                const isSameDayRange = isSameDay(startDate, endDate);
+
+                                                                if (isSameDayRange) {
+                                                                    // Same day range: "10:00 ~ 12:00"
+                                                                    return (
+                                                                        <span className="text-[10px] font-bold text-muted-foreground">
+                                                                            {format(startDate, 'H:mm')} ~ {format(endDate, 'H:mm')}
+                                                                        </span>
+                                                                    );
+                                                                } else {
+                                                                    // Multi-day range: show both dates
+                                                                    return (
+                                                                        <div className="flex flex-col items-center text-[9px] font-bold text-muted-foreground leading-tight">
+                                                                            <span>{format(startDate, 'M/d H:mm')}</span>
+                                                                            <span className="text-primary/50">~</span>
+                                                                            <span>{format(endDate, 'M/d H:mm')}</span>
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                            } else {
+                                                                // Point time: show date if different, else just time
+                                                                return (
+                                                                    <span className="text-xs font-bold text-muted-foreground">
+                                                                        {!startOnSelectedDay && <span className="text-[9px] opacity-60">{format(startDate, 'M/d')} </span>}
+                                                                        {format(startDate, 'H:mm')}
+                                                                    </span>
+                                                                );
+                                                            }
+                                                        })()}
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">

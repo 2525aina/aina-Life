@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
@@ -21,17 +21,6 @@ function EditEntryContent() {
     const { canEdit, loading: membersLoading } = useMembers(selectedPet?.id || null);
     const { entries, updateEntry, loading } = useEntries(selectedPet?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    useEffect(() => {
-        // Wait for all loading states to complete before checking permissions
-        if (isPetLoading || authLoading || membersLoading || loading) return;
-
-        // Only redirect if we're certain user doesn't have edit permission
-        if (!canEdit) {
-            toast.error('編集権限がありません');
-            router.push('/dashboard');
-        }
-    }, [canEdit, membersLoading, router, isPetLoading, authLoading, loading]);
 
     const entry = entries.find((e) => e.id === entryId);
 
@@ -70,6 +59,23 @@ function EditEntryContent() {
                 <div className="p-4">
                     <div className="h-8 w-32 bg-muted animate-pulse rounded mb-4" />
                     <div className="h-48 bg-muted animate-pulse rounded" />
+                </div>
+            </AppLayout>
+        );
+    }
+
+    // Permission check (after loading complete) - show message instead of redirect
+    if (!membersLoading && !canEdit) {
+        return (
+            <AppLayout>
+                <div className="p-4 text-center py-12 space-y-4">
+                    <p className="text-red-500 font-bold">編集権限がありません</p>
+                    <p className="text-muted-foreground text-sm">
+                        このペットの日記を編集するには、オーナーまたは編集者の権限が必要です。
+                    </p>
+                    <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                        ダッシュボードに戻る
+                    </Button>
                 </div>
             </AppLayout>
         );
