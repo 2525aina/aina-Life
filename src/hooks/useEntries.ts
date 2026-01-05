@@ -184,6 +184,7 @@ export function useEntries(petId: string | null) {
         body?: string;
         tags: string[];
         imageUrls: string[];
+        friendIds?: string[];
         date: Date;
         endDate?: Date;
         isCompleted?: boolean;
@@ -203,6 +204,7 @@ export function useEntries(petId: string | null) {
         };
         if (entryData.title) docData.title = entryData.title;
         if (entryData.body) docData.body = entryData.body;
+        if (entryData.friendIds) docData.friendIds = entryData.friendIds;
         if (entryData.endDate) docData.endDate = Timestamp.fromDate(entryData.endDate);
         if (entryData.isCompleted !== undefined) docData.isCompleted = entryData.isCompleted;
 
@@ -225,6 +227,7 @@ export function useEntries(petId: string | null) {
         body?: string;
         tags: string[];
         imageUrls: string[];
+        friendIds?: string[];
         date: Date;
         endDate?: Date;
         isCompleted?: boolean;
@@ -246,6 +249,7 @@ export function useEntries(petId: string | null) {
         if (entryData.body !== undefined) updateData.body = entryData.body;
         if (entryData.tags !== undefined) updateData.tags = entryData.tags;
         if (entryData.imageUrls !== undefined) updateData.imageUrls = entryData.imageUrls;
+        if (entryData.friendIds !== undefined) updateData.friendIds = entryData.friendIds;
         if (entryData.date !== undefined) updateData.date = Timestamp.fromDate(entryData.date);
         if (entryData.endDate !== undefined) updateData.endDate = Timestamp.fromDate(entryData.endDate);
         if (entryData.isCompleted !== undefined) updateData.isCompleted = entryData.isCompleted;

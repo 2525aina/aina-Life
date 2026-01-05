@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { usePetContext } from '@/contexts/PetContext';
 import { useEntries } from '@/hooks/useEntries';
+import { useFriends } from '@/hooks/useFriends';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
 import { ENTRY_TAGS, Entry } from '@/lib/types';
 import Link from 'next/link';
@@ -68,12 +69,14 @@ function SectionHeader({
 function EntryCard({
     entry,
     tasks,
+    friends,
     formatTime,
     onToggleComplete,
     isCompact = false
 }: {
     entry: Entry;
     tasks: any[];
+    friends: any[];
     formatTime: (date: Date) => string;
     onToggleComplete: (e: React.MouseEvent, entryId: string, isCompleted: boolean) => void;
     isCompact?: boolean;
@@ -193,6 +196,25 @@ function EntryCard({
                         </div>
                     )}
 
+                    {/* Friends */}
+                    {entry.friendIds && entry.friendIds.length > 0 && (
+                        <div className="flex -space-x-1.5 flex-shrink-0 ml-1">
+                            {entry.friendIds.slice(0, 3).map((fid) => {
+                                const friend = friends.find(f => f.id === fid);
+                                if (!friend) return null;
+                                return (
+                                    <div key={fid} className="w-6 h-6 rounded-full ring-1 ring-background overflow-hidden" title={friend.name}>
+                                        {friend.images?.[0] ? (
+                                            <img src={friend.images[0]} alt={friend.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-muted flex items-center justify-center text-[8px]">🐕</div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     {/* Complete toggle */}
                     {isSchedule && (
                         <button
@@ -214,6 +236,7 @@ function EntryCard({
 export function TimelineView() {
     const { selectedPet } = usePetContext();
     const { entries, loading, updateEntry } = useEntries(selectedPet?.id || null);
+    const { friends } = useFriends(selectedPet?.id || null);
     const { tasks } = useCustomTasks(selectedPet?.id || null);
     const { formatTime } = useTimeFormat();
 
@@ -338,6 +361,7 @@ export function TimelineView() {
                                         key={entry.id}
                                         entry={entry}
                                         tasks={tasks}
+                                        friends={friends}
                                         formatTime={formatTime}
                                         onToggleComplete={handleToggleComplete}
                                     />
@@ -377,6 +401,7 @@ export function TimelineView() {
                                         key={entry.id}
                                         entry={entry}
                                         tasks={tasks}
+                                        friends={friends}
                                         formatTime={formatTime}
                                         onToggleComplete={handleToggleComplete}
                                     />
@@ -417,6 +442,7 @@ export function TimelineView() {
                                         key={entry.id}
                                         entry={entry}
                                         tasks={tasks}
+                                        friends={friends}
                                         formatTime={formatTime}
                                         onToggleComplete={handleToggleComplete}
                                         isCompact

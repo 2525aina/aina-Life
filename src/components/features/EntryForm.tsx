@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usePetContext } from '@/contexts/PetContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
+import { useFriends } from '@/hooks/useFriends';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +42,9 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
     const [date, setDate] = useState<Date>(new Date());
     const [time, setTime] = useState(format(new Date(), 'HH:mm'));
     const [imageUrls, setImageUrls] = useState<string[]>([]);
+    const [friendIds, setFriendIds] = useState<string[]>([]);
+
+    const { friends } = useFriends(selectedPet?.id || null);
 
     // 範囲日時対応
     const [timeType, setTimeType] = useState<TimeType>('point');
@@ -70,8 +74,16 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
 
             setTimeType(initialData.timeType || 'point');
             setImageUrls(initialData.imageUrls || []);
+            setFriendIds(initialData.friendIds || []);
         }
     }, [initialData]);
+
+    const toggleFriend = (friendId: string) => {
+        setFriendIds(prev => prev.includes(friendId)
+            ? prev.filter(id => id !== friendId)
+            : [...prev, friendId]
+        );
+    };
 
     const toggleTag = (tag: EntryTag) => setTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
 
@@ -142,6 +154,7 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
             body: body.trim() || undefined,
             tags,
             imageUrls,
+            friendIds,
             date: entryDate,
             endDate: entryEndDate,
             isCompleted: initialData?.isCompleted, // 既存の完了状態を維持
@@ -274,6 +287,48 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                             })}
                         </div>
                     </div>
+
+                    {/* Friends (Only for Diary) */}
+                    {type === 'diary' && friends.length > 0 && (
+                        <div className="glass rounded-[2rem] p-6 shadow-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                                <span className="text-xs font-bold tracking-wider">WALKING FRIENDS</span>
+                            </div>
+                            <div className="flex overflow-x-auto pb-2 gap-3 no-scrollbar">
+                                {friends.map((friend) => {
+                                    const isSelected = friendIds.includes(friend.id);
+                                    return (
+                                        <button
+                                            key={friend.id}
+                                            type="button"
+                                            onClick={() => toggleFriend(friend.id)}
+                                            className={cn(
+                                                "flex flex-col items-center gap-2 min-w-[4rem] transition-all duration-300",
+                                                isSelected ? "scale-105" : "opacity-60 grayscale hover:opacity-100 hover:grayscale-0"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-14 h-14 rounded-full overflow-hidden border-2 transition-colors",
+                                                isSelected ? "border-primary shadow-lg shadow-primary/25" : "border-transparent"
+                                            )}>
+                                                {friend.images?.[0] ? (
+                                                    <img src={friend.images[0]} alt={friend.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full bg-muted flex items-center justify-center text-xl">🐕</div>
+                                                )}
+                                            </div>
+                                            <span className={cn(
+                                                "text-xs font-bold truncate w-full text-center",
+                                                isSelected ? "text-primary" : "text-muted-foreground"
+                                            )}>
+                                                {friend.name}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Content */}
                     <div className="glass rounded-[2rem] p-6 space-y-6 shadow-sm">

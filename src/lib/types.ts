@@ -114,6 +114,7 @@ export interface Entry extends AuditDocument {
     tags: string[];
     imageUrls: string[];
     isCompleted?: boolean;
+    friendIds?: string[];
 }
 
 // 月次集約日記（pets/{petId}/entry_months/{YYYY-MM}）

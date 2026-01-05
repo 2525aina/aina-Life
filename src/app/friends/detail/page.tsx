@@ -61,13 +61,23 @@ function FriendDetailContent() {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
-                <div className="absolute top-6 left-4 z-10">
+                <div className="absolute top-6 left-4 z-10 flex items-center gap-2">
                     <Link href="/friends">
                         <Button variant="ghost" size="icon" className="rounded-full bg-black/20 text-white hover:bg-black/40 backdrop-blur-md">
                             <ArrowLeft className="w-6 h-6" />
                         </Button>
                     </Link>
                 </div>
+
+                {canEdit && (
+                    <div className="absolute top-6 right-4 z-10">
+                        <Link href={`/friends/edit?id=${id}`}>
+                            <Button variant="ghost" size="icon" className="rounded-full bg-black/20 text-white hover:bg-black/40 backdrop-blur-md">
+                                <Edit className="w-5 h-5" />
+                            </Button>
+                        </Link>
+                    </div>
+                )}
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

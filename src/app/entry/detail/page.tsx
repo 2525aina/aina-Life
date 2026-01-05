@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
 import { useMembers } from '@/hooks/useMembers';
 import { useEntry } from '@/hooks/useEntry';
+import { useFriends } from '@/hooks/useFriends';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
 
 function EntryDetailContent() {
@@ -27,6 +28,7 @@ function EntryDetailContent() {
     const { selectedPet } = usePetContext();
     const { deleteEntry } = useEntries(selectedPet?.id || null); // Keep for delete
     const { entry, loading } = useEntry(selectedPet?.id || null, entryId); // Use for data
+    const { friends } = useFriends(selectedPet?.id || null);
     const { tasks } = useCustomTasks(selectedPet?.id || null);
     const { formatTime } = useTimeFormat();
 
@@ -128,6 +130,30 @@ function EntryDetailContent() {
                                 )}
                             </div>
                         </div>
+
+                        {/* Friends */}
+                        {entry.friendIds && entry.friendIds.length > 0 && (
+                            <div className="flex justify-center -mt-2">
+                                <div className="glass-capsule px-3 py-1.5 flex items-center gap-3 bg-white/30 dark:bg-black/30 backdrop-blur-md border border-white/10">
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">With</span>
+                                    <div className="flex items-center -space-x-2">
+                                        {entry.friendIds.map(fid => {
+                                            const friend = friends.find(f => f.id === fid);
+                                            if (!friend) return null;
+                                            return (
+                                                <div key={fid} className="relative w-8 h-8 rounded-full border-2 border-background overflow-hidden" title={friend.name}>
+                                                    {friend.images?.[0] ? (
+                                                        <img src={friend.images[0]} alt={friend.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-muted flex items-center justify-center text-xs">🐕</div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Main Content Glass Panel */}
                         <div className="glass rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden group">
