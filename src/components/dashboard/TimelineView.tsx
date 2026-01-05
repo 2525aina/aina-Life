@@ -102,7 +102,7 @@ export function TimelineView() {
                             {/* Content Column */}
                             <Link href={`/entry/detail?id=${entry.id}`} className="flex-1 min-w-0 pt-1">
                                 <div className={cn(
-                                    "relative p-5 rounded-2xl border transition-all duration-300",
+                                    "relative p-4 rounded-2xl border transition-all duration-300",
                                     isSchedule
                                         ? "bg-blue-50/80 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/50 hover:shadow-lg hover:shadow-blue-500/5"
                                         : "bg-white/60 dark:bg-zinc-900/60 border-white/20 dark:border-white/5 backdrop-blur-xl shadow-sm hover:shadow-lg hover:shadow-primary/5"
@@ -110,7 +110,7 @@ export function TimelineView() {
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="space-y-1.5 flex-1 min-w-0">
                                             {/* Tags (if more than 1) + Title */}
-                                            <div className="flex flex-wrap items-center gap-2">
+                                            <div className="flex flex-wrap items-center gap-2 pr-6"> {/* Added padding-right to avoid overlap with schedule badge */}
                                                 {entry.tags.length > 1 && (
                                                     <div className="flex -space-x-1.5 opacity-80">
                                                         {entry.tags.slice(1).map(tag => {
@@ -149,7 +149,7 @@ export function TimelineView() {
                                         {isSchedule && (
                                             <button
                                                 onClick={(e) => handleToggleComplete(e, entry.id, entry.isCompleted || false)}
-                                                className="flex-shrink-0 mt-0.5 text-muted-foreground hover:text-green-500 transition-colors"
+                                                className="flex-shrink-0 mt-0.5 ml-1 text-muted-foreground hover:text-green-500 transition-colors z-20"
                                             >
                                                 {entry.isCompleted
                                                     ? <CheckCircle2 className="w-6 h-6 text-green-500" />
@@ -161,7 +161,7 @@ export function TimelineView() {
 
                                     {/* Decoration for 'Schedule' type */}
                                     {isSchedule && (
-                                        <div className="absolute top-4 right-4 text-[10px] font-bold tracking-wider text-blue-500/40 dark:text-blue-400/30 uppercase pointer-events-none">
+                                        <div className="absolute top-3 right-3 text-[10px] font-bold tracking-wider text-blue-500/40 dark:text-blue-400/30 uppercase pointer-events-none">
                                             Schedule
                                         </div>
                                     )}

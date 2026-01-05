@@ -29,7 +29,7 @@ export function BottomNav() {
                     const Icon = item.icon;
 
                     if (item.isAction) {
-                        if (!canEdit) return <div key={item.href} className="w-14" />; // Placeholder to keep spacing
+                        if (!canEdit) return null; // Remove item completely to balance remaining items
                         return (
                             <Link key={item.href} href={item.href} className="relative -top-6">
                                 <motion.div
