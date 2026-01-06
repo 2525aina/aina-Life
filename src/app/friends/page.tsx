@@ -155,7 +155,7 @@ export default function FriendsPage() {
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="flex items-center gap-2 px-8 h-14 rounded-full bg-gradient-to-r from-primary to-orange-500 hover:from-orange-500 hover:to-primary shadow-xl shadow-primary/30 text-white font-bold transition-all duration-300"
+                                className="flex items-center gap-2 px-8 h-14 rounded-full bg-gradient-to-r from-primary to-orange-500 shadow-xl shadow-primary/30 text-white font-bold transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/50 hover:brightness-110"
                             >
                                 <Plus className="w-5 h-5" />
                                 <span>友達を追加</span>
