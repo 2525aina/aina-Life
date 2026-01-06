@@ -91,17 +91,19 @@ export default function DashboardPage() {
                     <TimelineView />
                 </div>
 
-                {/* FAB */}
+                {/* FAB - sticky above footer */}
                 {canEdit && (
-                    <Link href="/entry/new" className="fixed bottom-28 right-6 z-40">
-                        <motion.div
-                            whileTap={{ scale: 0.9 }}
-                            whileHover={{ scale: 1.05 }}
-                            className="flex items-center justify-center w-14 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30"
-                        >
-                            <Plus className="w-7 h-7 text-white" />
-                        </motion.div>
-                    </Link>
+                    <div className="sticky bottom-24 z-20 flex justify-end px-4 pt-6">
+                        <Link href="/entry/new">
+                            <motion.div
+                                whileTap={{ scale: 0.9 }}
+                                whileHover={{ scale: 1.05 }}
+                                className="flex items-center justify-center w-14 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30"
+                            >
+                                <Plus className="w-7 h-7 text-white" />
+                            </motion.div>
+                        </Link>
+                    </div>
                 )}
             </div>
         </AppLayout>

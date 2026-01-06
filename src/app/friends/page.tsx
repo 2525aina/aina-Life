@@ -148,9 +148,9 @@ export default function FriendsPage() {
                     )}
                 </div>
 
-                {/* FAB */}
+                {/* FAB - sticky above footer */}
                 {canEdit && (
-                    <div className="fixed bottom-24 right-4 z-50">
+                    <div className="sticky bottom-24 z-20 flex justify-end px-4 pt-6">
                         <Link href="/friends/new">
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
