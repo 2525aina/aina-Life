@@ -3,6 +3,7 @@
 import { AppLayout } from '@/components/features/AppLayout';
 import { PendingInvitations } from '@/components/features/PendingInvitations';
 import { usePetContext } from '@/contexts/PetContext';
+import { useMembers } from '@/hooks/useMembers';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar as CalendarIcon, Settings } from 'lucide-react';
 import Link from 'next/link';
@@ -14,6 +15,7 @@ import Image from 'next/image';
 
 export default function DashboardPage() {
     const { selectedPet } = usePetContext();
+    const { canEdit } = useMembers(selectedPet?.id || null);
 
     if (!selectedPet) {
         return (
@@ -90,6 +92,17 @@ export default function DashboardPage() {
                 </div>
 
                 {/* FAB */}
+                {canEdit && (
+                    <Link href="/entry/new" className="fixed bottom-28 right-6 z-40">
+                        <motion.div
+                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.05 }}
+                            className="flex items-center justify-center w-14 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30"
+                        >
+                            <Plus className="w-7 h-7 text-white" />
+                        </motion.div>
+                    </Link>
+                )}
             </div>
         </AppLayout>
     );

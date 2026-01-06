@@ -206,4 +206,16 @@ Private
 - `src/lib/cache.ts` (新規)
 - `src/hooks/useFriends.ts`
 
+**Phase 4: UX/ナビゲーション改善**
+
+- フッターから中央の `+` ボタンを削除（5 アイテム構成に）
+- ダッシュボードに FAB を追加（記録作成用）
+- 権限チェック付き（canEdit 時のみ表示）
+
+**対象ファイル:**
+
+- `src/components/features/BottomNav.tsx`
+- `src/app/dashboard/page.tsx`
+
+
 
