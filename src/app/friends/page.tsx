@@ -9,9 +9,9 @@ import { Plus, MapPin, Calendar, Search } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
-import { ja } from 'date-fns/locale';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
+import Image from 'next/image';
 
 export default function FriendsPage() {
     const { selectedPet } = usePetContext();
@@ -88,14 +88,15 @@ export default function FriendsPage() {
                                         {/* Image */}
                                         <div className="absolute inset-0 bg-muted">
                                             {friend.images?.[0] ? (
-                                                <img
+                                                <Image
                                                     src={friend.images[0]}
                                                     alt={friend.name}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    fill
+                                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-primary/5">
-                                                    <img src="/ogp.webp" alt="No image" className="w-1/2 h-1/2 object-contain opacity-20 grayscale" />
+                                                    <Image src="/ogp.webp" alt="No image" width={64} height={64} className="opacity-20 grayscale" />
                                                 </div>
                                             )}
                                         </div>

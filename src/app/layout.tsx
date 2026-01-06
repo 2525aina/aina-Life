@@ -3,7 +3,6 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PetProvider } from "@/contexts/PetContext";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
 import { ClientToaster } from "@/components/features/ClientToaster";
 
 export const metadata: Metadata = {

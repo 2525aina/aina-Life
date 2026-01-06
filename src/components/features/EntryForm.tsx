@@ -19,6 +19,7 @@ import { Clock, ImagePlus, X, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { handleError } from '@/lib/errorHandler';
 import { ImageCropper } from '@/components/ui/image-cropper';
 
 interface EntryFormProps {
@@ -117,8 +118,7 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
             setImageUrls((prev) => [...prev, url]);
             toast.success('画像を追加しました');
         } catch (error) {
-            console.error(error);
-            toast.error('画像のアップロードに失敗しました');
+            handleError(error, { context: 'EntryForm.imageUpload', fallbackMessage: '画像のアップロードに失敗しました' });
         } finally {
             setOriginalImageSrc(null);
         }

@@ -88,6 +88,7 @@ export default function NewPetPage() {
                 ...petData,
                 avatarUrl: finalAvatarUrl,
                 memberUids: user ? [user.uid] : [],
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 createdBy: '', updatedBy: '', createdAt: null as any, updatedAt: null as any
             });
             router.push('/dashboard');

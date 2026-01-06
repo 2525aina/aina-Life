@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PawPrint, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { handleError } from '@/lib/errorHandler';
 import { useState } from 'react';
 
 export function PendingInvitations() {
@@ -66,7 +67,7 @@ function InvitationItem({
             await acceptInvitation(invitation.member.id);
             toast.success(`${invitation.pet.name}のチームに参加しました！`);
         } catch (error) {
-            toast.error('エラーが発生しました');
+            handleError(error, { context: 'Invitation.accept', fallbackMessage: '招待の承認に失敗しました' });
         } finally {
             setProcessingId(null);
         }
@@ -78,7 +79,7 @@ function InvitationItem({
             await declineInvitation(invitation.member.id);
             toast.success('招待を辞退しました');
         } catch (error) {
-            toast.error('エラーが発生しました');
+            handleError(error, { context: 'Invitation.decline', fallbackMessage: '招待の辞退に失敗しました' });
         } finally {
             setProcessingId(null);
         }

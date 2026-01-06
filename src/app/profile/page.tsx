@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/features/AppLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
-import { Card, CardContent } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
@@ -14,13 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
-import { LogOut, Moon, Sun, PawPrint, ExternalLink, Camera, Save, User, MessageSquare, Clock, ArrowLeft, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
+import { LogOut, Moon, Sun, PawPrint, ExternalLink, Save, MessageSquare, Clock, ArrowLeft, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePets } from '@/hooks/usePets';
 import { StyledInput, GenderSelect } from '@/components/ui/styled-form-fields';
 import { format, parse } from 'date-fns';
-import { ja } from 'date-fns/locale';
+
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { doc, updateDoc, serverTimestamp, deleteField } from 'firebase/firestore';
@@ -70,7 +70,7 @@ export default function ProfilePage() {
         }
     }, [userProfile]);
 
-    const handleUpdateSettings = async (key: string, value: any) => {
+    const handleUpdateSettings = async (key: string, value: string) => {
         if (!user) return;
 
         // Optimistic update
@@ -110,7 +110,7 @@ export default function ProfilePage() {
         if (!user) return;
         setIsSaving(true);
         try {
-            let avatarUrl: any = userProfile?.avatarUrl;
+            let avatarUrl: string | ReturnType<typeof deleteField> | undefined = userProfile?.avatarUrl;
             if (removeAvatar) {
                 avatarUrl = deleteField();
             } else if (pendingAvatarFile) {
@@ -156,7 +156,7 @@ export default function ProfilePage() {
     const displayAvatar = avatarPreview || (removeAvatar ? undefined : userProfile?.avatarUrl);
 
     // Common List Item Component (Glass Style)
-    const ListItem = ({ icon: Icon, label, subLabel, action, className }: any) => (
+    const ListItem = ({ icon: Icon, label, subLabel, action, className }: { icon: React.ComponentType<{ className?: string }>; label: string; subLabel?: string; action?: React.ReactNode; className?: string }) => (
         <div className={cn("flex items-center justify-between p-4 rounded-2xl glass border-white/20 hover:bg-white/40 transition-all duration-300 group", className)}>
             <div className="flex items-center gap-4">
                 <div className="p-2.5 rounded-full bg-white/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300 shadow-sm">
@@ -242,8 +242,6 @@ export default function ProfilePage() {
                                 ) : (
                                     <motion.div key="edit" className="w-full max-w-md mt-4 relative z-20" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
 
-                                        // ... (in JSX)
-
                                         <div className="glass rounded-[2rem] p-4 sm:p-6 shadow-xl border-white/20">
                                             <div className="space-y-4">
                                                 <div className="grid gap-3 sm:gap-4">
@@ -262,7 +260,7 @@ export default function ProfilePage() {
                                                         <Label className="text-xs font-bold text-muted-foreground ml-1">性別</Label>
                                                         <GenderSelect
                                                             value={gender}
-                                                            onChange={(v) => setGender(v as any)}
+                                                            onChange={(v) => setGender(v as 'male' | 'female' | 'other' | '')}
                                                             type="human"
                                                         />
                                                     </div>

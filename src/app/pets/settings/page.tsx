@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/features/AppLayout';
 import { useMembers } from '@/hooks/useMembers';
@@ -19,8 +19,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, UserPlus, Crown, Trash2, Mail, Clock, Eye, Edit, Plus, X, PawPrint, Settings, Users, AlertTriangle, ListTodo, Shield } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 import { toast } from 'sonner';
+import { handleError } from '@/lib/errorHandler';
 import { MEMBER_ROLES, type MemberRole, type VetInfo } from '@/lib/types';
 import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -106,6 +107,7 @@ function PetSettingsContent() {
             return;
         }
         try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let avatarUrl: any = pet?.avatarUrl;
 
             if (removeAvatar) {
@@ -133,8 +135,8 @@ function PetSettingsContent() {
             setRemoveAvatar(false);
 
             toast.success('更新しました');
-        } catch {
-            toast.error('エラーが発生しました');
+        } catch (error) {
+            handleError(error, { context: 'PetSettings.update', fallbackMessage: 'ペット情報の更新に失敗しました' });
         }
     };
 
@@ -152,7 +154,7 @@ function PetSettingsContent() {
             setInviteRole('editor');
             setIsInviteDialogOpen(false);
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+            handleError(error, { context: 'PetSettings.invite', fallbackMessage: '招待の送信に失敗しました' });
         } finally {
             setIsSubmitting(false);
         }
@@ -163,7 +165,7 @@ function PetSettingsContent() {
             await updateMemberRole(memberId, newRole);
             toast.success('権限を変更しました');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+            handleError(error, { context: 'PetSettings.roleChange', fallbackMessage: '権限の変更に失敗しました' });
         }
     };
 
@@ -172,7 +174,7 @@ function PetSettingsContent() {
             await removeMember(memberId);
             toast.success(`${memberName}さんを削除しました`);
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+            handleError(error, { context: 'PetSettings.removeMember', fallbackMessage: 'メンバーの削除に失敗しました' });
         }
     };
 
@@ -182,7 +184,7 @@ function PetSettingsContent() {
             toast.success('チームから脱退しました');
             router.push('/dashboard');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+            handleError(error, { context: 'PetSettings.leaveTeam', fallbackMessage: 'チームからの脱退に失敗しました' });
         }
     };
 
@@ -192,8 +194,8 @@ function PetSettingsContent() {
             await deletePet(petId);
             toast.success('ペットを削除しました');
             router.push('/dashboard');
-        } catch {
-            toast.error('エラーが発生しました');
+        } catch (error) {
+            handleError(error, { context: 'PetSettings.deletePet', fallbackMessage: 'ペットの削除に失敗しました' });
         }
     };
 

@@ -6,13 +6,11 @@ import { useMembers } from '@/hooks/useMembers';
 import { useFriends, useFriend } from '@/hooks/useFriends';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { PetAvatarEditor } from '@/components/features/pet-avatar-editor';
-import { SPECIES_DATA } from '@/lib/constants/species';
-import { PET_COLORS } from '@/lib/constants/colors';
 import { StyledInput, SpeciesBreedSelector, GenderSelect, ColorSelect } from '@/components/ui/styled-form-fields';
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -21,7 +19,7 @@ import { ArrowLeft, Loader2, MapPin, User, Phone, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+
 
 function EditFriendContent() {
     const { selectedPet } = usePetContext();
@@ -139,7 +137,7 @@ function EditFriendContent() {
                 });
             }
 
-            const updateData: any = {
+            const updateData: Record<string, unknown> = {
                 name,
                 species,
                 breed,
@@ -233,7 +231,7 @@ function EditFriendContent() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>性別</Label>
-                                    <GenderSelect value={gender} onChange={(v) => setGender(v as any)} type="friend" />
+                                    <GenderSelect value={gender} onChange={(v) => setGender(v as 'male' | 'female' | 'unknown')} type="friend" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>毛色</Label>
@@ -314,7 +312,7 @@ function EditFriendContent() {
                                         onChange={e => setWeight(e.target.value)}
                                         placeholder="0.0"
                                     />
-                                    <Select value={weightUnit} onValueChange={(v: any) => setWeightUnit(v)}>
+                                    <Select value={weightUnit} onValueChange={(v: 'kg' | 'g') => setWeightUnit(v)}>
                                         <SelectTrigger className="w-20 bg-background/50 border-white/20 rounded-xl h-12"><SelectValue /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="kg">kg</SelectItem>

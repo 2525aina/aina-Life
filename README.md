@@ -156,3 +156,41 @@ aina-life/
 ## ライセンス
 
 Private
+
+## 更新履歴
+
+### 2026-01-06
+
+**Phase 1: コード品質改善**
+
+- ESLint エラー修正：`no-explicit-any` エラーを適切な型定義に置き換え
+- 未使用 import の削除：`Toaster`, `Card`, `CardContent`, `Input`, `Camera`, `User`, `ja` など
+- `<img>` → `next/image` への変換：`friends/page.tsx` の画像を最適化
+- JSX 内のコメント構文エラーを修正
+
+**対象ファイル:**
+
+- `src/app/layout.tsx`
+- `src/app/profile/page.tsx`
+- `src/app/friends/page.tsx`
+- `src/app/friends/new/page.tsx`
+- `src/app/friends/edit/page.tsx`
+- `src/app/pets/settings/page.tsx`
+- `src/app/pets/new/page.tsx`
+
+**Phase 2: エラーハンドリング共通化**
+
+- 共通エラーハンドラー `lib/errorHandler.ts` を作成
+- `handleError()` 関数で一貫したエラー処理を実現
+  - 開発者向けコンソールログ
+  - ユーザー向け具体的なエラーメッセージ
+- 4 コンポーネントに適用（計 14 箇所）
+
+**対象ファイル:**
+
+- `src/lib/errorHandler.ts` (新規)
+- `src/app/pets/settings/page.tsx`
+- `src/components/features/EntryForm.tsx`
+- `src/components/features/CustomTaskEditor.tsx`
+- `src/components/features/PendingInvitations.tsx`
+

@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Trash2, GripVertical, Edit2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Reorder } from 'framer-motion';
 import { toast } from 'sonner';
+import { handleError } from '@/lib/errorHandler';
 import type { CustomTask } from '@/lib/types';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
 import { cn } from '@/lib/utils';
@@ -113,8 +114,8 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
             setTaskName('');
             setTaskEmoji('📝');
             setIsAddDialogOpen(false);
-        } catch {
-            toast.error('エラーが発生しました');
+        } catch (error) {
+            handleError(error, { context: 'CustomTask.add', fallbackMessage: 'タスクの追加に失敗しました' });
         } finally {
             setIsSubmitting(false);
         }
@@ -130,8 +131,8 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
             setEditingTask(null);
             setTaskName('');
             setTaskEmoji('📝');
-        } catch {
-            toast.error('エラーが発生しました');
+        } catch (error) {
+            handleError(error, { context: 'CustomTask.update', fallbackMessage: 'タスクの更新に失敗しました' });
         } finally {
             setIsSubmitting(false);
         }
@@ -141,8 +142,8 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
         try {
             await deleteTask(taskId);
             toast.success('タスクを削除しました');
-        } catch {
-            toast.error('エラーが発生しました');
+        } catch (error) {
+            handleError(error, { context: 'CustomTask.delete', fallbackMessage: 'タスクの削除に失敗しました' });
         }
     };
 
@@ -150,8 +151,8 @@ export function CustomTaskEditor({ petId, canEdit }: CustomTaskEditorProps) {
         // Optimistic update handled by Reorder.Group, but we invoke hook to persist
         try {
             await reorderTasks(newOrder);
-        } catch {
-            toast.error('並び替えに失敗しました');
+        } catch (error) {
+            handleError(error, { context: 'CustomTask.reorder', fallbackMessage: '並び替えに失敗しました' });
         }
     };
 

@@ -6,22 +6,22 @@ import { useMembers } from '@/hooks/useMembers';
 import { useFriends } from '@/hooks/useFriends';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { SPECIES_DATA } from '@/lib/constants/species';
-import { PET_COLORS } from '@/lib/constants/colors';
+
 import { StyledInput, SpeciesBreedSelector, GenderSelect, ColorSelect } from '@/components/ui/styled-form-fields';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Camera, Loader2, MapPin, User, Phone, Home, X } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, User, Phone, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { PetAvatarEditor } from '@/components/features/pet-avatar-editor';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+
 
 export default function NewFriendPage() {
     const { selectedPet } = usePetContext();
@@ -112,13 +112,6 @@ export default function NewFriendPage() {
             { label: 'その他', value: 'other', breeds: [] }
         ];
     }, []);
-
-    const breedOptions = useMemo(() => {
-        const found = speciesOptions.find(opt => opt.value === species);
-        return found?.breeds || [];
-    }, [species, speciesOptions]);
-
-    const isOtherSpecies = species === 'other';
 
 
 
@@ -228,7 +221,7 @@ export default function NewFriendPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label>性別</Label>
-                                        <GenderSelect value={gender} onChange={(v) => setGender(v as any)} type="friend" />
+                                        <GenderSelect value={gender} onChange={(v) => setGender(v as 'male' | 'female' | 'unknown')} type="friend" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label>毛色</Label>
@@ -309,7 +302,7 @@ export default function NewFriendPage() {
                                             onChange={e => setWeight(e.target.value)}
                                             placeholder="0.0"
                                         />
-                                        <Select value={weightUnit} onValueChange={(v: any) => setWeightUnit(v)}>
+                                        <Select value={weightUnit} onValueChange={(v: 'kg' | 'g') => setWeightUnit(v)}>
                                             <SelectTrigger className="w-20 bg-background/50 border-white/20 rounded-xl h-12"><SelectValue /></SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="kg">kg</SelectItem>
