@@ -271,17 +271,18 @@ export function TimelineView() {
             return;
         }
 
+        // Index-free query: Filter by date only, then filter type in memory
         const overdueQuery = query(
             collection(db, 'pets', selectedPet.id, 'entries'),
-            where('type', '==', 'schedule'),
             where('date', '<', Timestamp.fromDate(today)),
             orderBy('date', 'desc')
+            // limit(50) // Optional: restrict fetch size
         );
 
         const unsubscribe = onSnapshot(overdueQuery, (snapshot) => {
             const overdue = snapshot.docs
                 .map((doc) => ({ id: doc.id, ...doc.data() } as Entry))
-                .filter(entry => !entry.isCompleted); // Filter incomplete only
+                .filter(entry => entry.type === 'schedule' && !entry.isCompleted);
             setOverdueSchedules(overdue);
         });
 
@@ -352,7 +353,7 @@ export function TimelineView() {
         );
     }
 
-    if (todayEntries.length === 0) {
+    if (todayEntries.length === 0 && overdueSchedules.length === 0) {
         return (
             <motion.div
                 initial={{ opacity: 0 }}
