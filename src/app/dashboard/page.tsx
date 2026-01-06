@@ -96,11 +96,12 @@ export default function DashboardPage() {
                     <div className="sticky bottom-24 z-20 flex justify-end px-4 pt-6">
                         <Link href="/entry/new">
                             <motion.div
-                                whileTap={{ scale: 0.9 }}
-                                whileHover={{ scale: 1.05 }}
-                                className="flex items-center justify-center w-14 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30"
+                                whileTap={{ scale: 0.95 }}
+                                whileHover={{ scale: 1.02 }}
+                                className="flex items-center gap-2 px-6 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30 text-white font-bold"
                             >
-                                <Plus className="w-7 h-7 text-white" />
+                                <Plus className="w-5 h-5" />
+                                <span>記録する</span>
                             </motion.div>
                         </Link>
                     </div>

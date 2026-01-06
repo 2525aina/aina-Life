@@ -306,11 +306,12 @@ export default function CalendarPage() {
                     <div className="sticky bottom-24 z-20 flex justify-end px-4 pt-6">
                         <Link href={`/entry/new?date=${format(selectedDate, 'yyyy-MM-dd')}`}>
                             <motion.button
-                                whileHover={{ scale: 1.05 }}
+                                whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="w-14 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30 flex items-center justify-center text-white"
+                                className="flex items-center gap-2 px-6 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30 text-white font-bold"
                             >
-                                <Plus className="w-7 h-7" />
+                                <Plus className="w-5 h-5" />
+                                <span>記録する</span>
                             </motion.button>
                         </Link>
                     </div>

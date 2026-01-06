@@ -306,11 +306,12 @@ export default function WeightPage() {
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
                                 <motion.button
-                                    whileHover={{ scale: 1.05 }}
+                                    whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.95 }}
-                                    className="w-14 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30 flex items-center justify-center text-white"
+                                    className="flex items-center gap-2 px-6 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30 text-white font-bold"
                                 >
-                                    <Plus className="w-7 h-7" />
+                                    <Plus className="w-5 h-5" />
+                                    <span>体重を記録</span>
                                 </motion.button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-md rounded-[2rem] border-white/20 glass">
