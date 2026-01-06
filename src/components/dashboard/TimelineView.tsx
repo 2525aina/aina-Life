@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { usePetContext } from '@/contexts/PetContext';
@@ -9,10 +9,12 @@ import { useFriends } from '@/hooks/useFriends';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
 import { ENTRY_TAGS, Entry } from '@/lib/types';
 import Link from 'next/link';
-import { CheckCircle2, Circle, Clock, ChevronDown, Sparkles, CalendarCheck, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, ChevronDown, Sparkles, CalendarCheck, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
+import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 // Section Header Component
 function SectionHeader({
@@ -27,7 +29,7 @@ function SectionHeader({
     icon: React.ReactNode;
     title: string;
     count: number;
-    color?: 'primary' | 'blue' | 'green';
+    color?: 'primary' | 'blue' | 'green' | 'amber';
     isCollapsible?: boolean;
     isOpen?: boolean;
     onToggle?: () => void;
@@ -36,6 +38,7 @@ function SectionHeader({
         primary: 'from-primary/20 to-primary/5 text-primary',
         blue: 'from-blue-500/20 to-blue-500/5 text-blue-500',
         green: 'from-green-500/20 to-green-500/5 text-green-500',
+        amber: 'from-amber-500/20 to-amber-500/5 text-amber-600',
     };
 
     return (
@@ -72,7 +75,8 @@ function EntryCard({
     friends,
     formatTime,
     onToggleComplete,
-    isCompact = false
+    isCompact = false,
+    isOverdue = false
 }: {
     entry: Entry;
     tasks: any[];
@@ -80,6 +84,7 @@ function EntryCard({
     formatTime: (date: Date) => string;
     onToggleComplete: (e: React.MouseEvent, entryId: string, isCompleted: boolean) => void;
     isCompact?: boolean;
+    isOverdue?: boolean;
 }) {
     const isSchedule = entry.type === 'schedule';
     const firstTag = entry.tags[0];
@@ -130,11 +135,13 @@ function EntryCard({
                 <div className={cn(
                     "flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300",
                     "hover:scale-[1.02] active:scale-[0.98]",
-                    isSchedule && !entry.isCompleted
-                        ? "bg-blue-50/80 dark:bg-blue-950/40 border-blue-200/50 dark:border-blue-800/30"
-                        : entry.isCompleted
-                            ? "bg-muted/30 border-muted/20 opacity-60"
-                            : "bg-white/60 dark:bg-zinc-900/60 border-white/30 dark:border-white/5 backdrop-blur-xl"
+                    isOverdue
+                        ? "bg-amber-50/80 dark:bg-amber-950/40 border-amber-300/50 dark:border-amber-800/30"
+                        : isSchedule && !entry.isCompleted
+                            ? "bg-blue-50/80 dark:bg-blue-950/40 border-blue-200/50 dark:border-blue-800/30"
+                            : entry.isCompleted
+                                ? "bg-muted/30 border-muted/20 opacity-60"
+                                : "bg-white/60 dark:bg-zinc-900/60 border-white/30 dark:border-white/5 backdrop-blur-xl"
                 )}>
                     {/* Time */}
                     <div className="w-14 sm:w-16 flex-shrink-0 text-right">
@@ -243,15 +250,43 @@ export function TimelineView() {
     const { formatTime } = useTimeFormat();
 
     // Collapsible section states
+    const [showOverdue, setShowOverdue] = useState(true);
     const [showSchedules, setShowSchedules] = useState(true);
     const [showRecords, setShowRecords] = useState(true);
     const [showCompleted, setShowCompleted] = useState(false);
+
+    // Overdue schedules (past incomplete)
+    const [overdueSchedules, setOverdueSchedules] = useState<Entry[]>([]);
 
     const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Fetch overdue schedules (past incomplete)
+    useEffect(() => {
+        if (!selectedPet?.id) {
+            setOverdueSchedules([]);
+            return;
+        }
+
+        const overdueQuery = query(
+            collection(db, 'pets', selectedPet.id, 'entries'),
+            where('type', '==', 'schedule'),
+            where('date', '<', Timestamp.fromDate(today)),
+            orderBy('date', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(overdueQuery, (snapshot) => {
+            const overdue = snapshot.docs
+                .map((doc) => ({ id: doc.id, ...doc.data() } as Entry))
+                .filter(entry => !entry.isCompleted); // Filter incomplete only
+            setOverdueSchedules(overdue);
+        });
+
+        return () => unsubscribe();
+    }, [selectedPet?.id, today]);
 
     // Filter today's entries
     const todayEntries = useMemo(() => entries.filter((entry) => {
@@ -335,6 +370,46 @@ export function TimelineView() {
 
     return (
         <div className="px-4 py-6 space-y-6">
+            {/* Overdue Schedules */}
+            {overdueSchedules.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-3"
+                >
+                    <SectionHeader
+                        icon={<AlertTriangle className="w-4 h-4" />}
+                        title="期限切れの予定"
+                        count={overdueSchedules.length}
+                        color="amber"
+                        isOpen={showOverdue}
+                        onToggle={() => setShowOverdue(!showOverdue)}
+                    />
+                    <AnimatePresence>
+                        {showOverdue && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="space-y-2 pl-2 overflow-hidden"
+                            >
+                                {overdueSchedules.map(entry => (
+                                    <EntryCard
+                                        key={entry.id}
+                                        entry={entry}
+                                        tasks={tasks}
+                                        friends={friends}
+                                        formatTime={formatTime}
+                                        onToggleComplete={handleToggleComplete}
+                                        isOverdue
+                                    />
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+            )}
+
             {/* Upcoming Schedules */}
             {upcomingSchedules.length > 0 && (
                 <motion.div
