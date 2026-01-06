@@ -85,7 +85,7 @@ export default function WeightPage() {
                 <div className="absolute inset-0 h-[40vh] bg-gradient-to-b from-primary/20 via-primary/5 to-transparent -z-10 rounded-b-[4rem]" />
 
                 <div className="px-4 pt-6 space-y-8">
-                    {/* Header & Add Action */}
+                    {/* Header */}
                     <div className="flex items-center justify-between z-10 relative">
                         <div>
                             <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 tracking-tight">
@@ -93,57 +93,6 @@ export default function WeightPage() {
                             </h1>
                             <p className="text-xs font-bold text-muted-foreground ml-1">{selectedPet.name}の成長記録</p>
                         </div>
-                        {canEdit && (
-                            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button className="rounded-full gradient-primary shadow-xl hover:shadow-primary/25 h-12 px-6 transition-all hover:scale-105 active:scale-95 text-base font-bold">
-                                        <Plus className="w-5 h-5 mr-2" /> 記録
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md rounded-[2rem] border-white/20 glass">
-                                    <DialogHeader>
-                                        <DialogTitle>体重を記録</DialogTitle>
-                                    </DialogHeader>
-                                    <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                                        <div className="flex gap-4">
-                                            <div className="flex-1 space-y-2">
-                                                <Label htmlFor="weight" className="text-xs font-medium text-muted-foreground ml-1">体重</Label>
-                                                <Input
-                                                    id="weight"
-                                                    type="number"
-                                                    step="0.01"
-                                                    value={newWeight}
-                                                    onChange={(e) => setNewWeight(e.target.value)}
-                                                    placeholder="0.00"
-                                                    className="h-12 rounded-xl bg-white/50 border-white/20 text-lg font-bold"
-                                                />
-                                            </div>
-                                            <div className="w-24 space-y-2">
-                                                <Label className="text-xs font-medium text-muted-foreground ml-1">単位</Label>
-                                                <Select value={newUnit} onValueChange={(v) => setNewUnit(v as 'kg' | 'g')}>
-                                                    <SelectTrigger className="h-12 rounded-xl bg-white/50 border-white/20">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="kg">kg</SelectItem>
-                                                        <SelectItem value="g">g</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </div>
-                                        <DatePickerDropdown
-                                            date={newDate}
-                                            setDate={(d) => d && setNewDate(d)}
-                                            label="日付"
-                                            toDate={new Date()}
-                                        />
-                                        <Button type="submit" disabled={isSubmitting} className="w-full h-12 rounded-xl gradient-primary text-base font-bold shadow-lg">
-                                            {isSubmitting ? '保存中...' : '保存する'}
-                                        </Button>
-                                    </form>
-                                </DialogContent>
-                            </Dialog>
-                        )}
                     </div>
 
                     {/* Hero Stat Card */}

@@ -195,14 +195,6 @@ export default function CalendarPage() {
                                     {format(selectedDate, 'M月d日 (E)', { locale: ja })}
                                 </h3>
                             </div>
-                            {canEdit && (
-                                <Link href={`/entry/new?date=${format(selectedDate, 'yyyy-MM-dd')}`}>
-                                    <Button size="sm" className="rounded-full gradient-primary shadow-lg hover:shadow-primary/25 h-9 px-4">
-                                        <Plus className="w-4 h-4 mr-1" />
-                                        記録
-                                    </Button>
-                                </Link>
-                            )}
                         </div>
 
                         <AnimatePresence mode="wait">
