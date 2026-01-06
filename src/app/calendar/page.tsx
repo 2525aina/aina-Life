@@ -303,15 +303,15 @@ export default function CalendarPage() {
 
                 {/* Sticky FAB */}
                 {canEdit && (
-                    <div className="sticky bottom-24 z-20 flex justify-end px-4 pt-6">
+                    <div className="sticky bottom-24 z-20 flex justify-center px-4 pt-6">
                         <Link href={`/entry/new?date=${format(selectedDate, 'yyyy-MM-dd')}`}>
                             <motion.button
-                                whileHover={{ scale: 1.02 }}
+                                whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="flex items-center gap-2 px-6 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30 text-white font-bold"
+                                className="flex items-center gap-2 px-8 h-14 rounded-full bg-gradient-to-r from-primary to-orange-500 hover:from-orange-500 hover:to-primary shadow-xl shadow-primary/30 text-white font-bold transition-all duration-300"
                             >
                                 <Plus className="w-5 h-5" />
-                                <span>記録する</span>
+                                <span>日記を記録</span>
                             </motion.button>
                         </Link>
                     </div>
