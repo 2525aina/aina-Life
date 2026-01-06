@@ -12,6 +12,17 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
+import { Timestamp } from 'firebase/firestore';
+
+// キャッシュから復元されたTimestampを安全にDateに変換
+function toDate(ts: Timestamp | { seconds: number; nanoseconds: number } | undefined): Date | null {
+    if (!ts) return null;
+    if (ts instanceof Timestamp) return ts.toDate();
+    if (typeof ts === 'object' && 'seconds' in ts) {
+        return new Date(ts.seconds * 1000);
+    }
+    return null;
+}
 
 export default function FriendsPage() {
     const { selectedPet } = usePetContext();
@@ -116,10 +127,10 @@ export default function FriendsPage() {
                                             </h3>
 
                                             <div className="flex items-center gap-2 mt-2 text-[10px] font-medium text-white/60">
-                                                {friend.metAt && (
+                                                {toDate(friend.metAt) && (
                                                     <span className="flex items-center gap-0.5 bg-black/20 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
                                                         <Calendar className="w-3 h-3" />
-                                                        {format(friend.metAt.toDate(), 'M/d')}
+                                                        {format(toDate(friend.metAt)!, 'M/d')}
                                                     </span>
                                                 )}
                                                 {friend.location && (

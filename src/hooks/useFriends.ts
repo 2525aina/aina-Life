@@ -42,12 +42,19 @@ export function useFriends(petId: string | null) {
         return () => unsubscribe();
     }, [petId, user]);
 
+    // Helper to get timestamp in milliseconds (handles both Timestamp and serialized object)
+    const getMillis = (ts: Timestamp | { seconds: number; nanoseconds: number }) => {
+        if (ts instanceof Timestamp) return ts.toMillis();
+        if (typeof ts === 'object' && 'seconds' in ts) return ts.seconds * 1000;
+        return 0;
+    };
+
     // Client-side sorting because we might want dynamic sorting without re-fetching
     const sortedFriends = [...friends].sort((a, b) => {
         if (sortOption === 'metAt_desc') {
-            return b.metAt.toMillis() - a.metAt.toMillis();
+            return getMillis(b.metAt) - getMillis(a.metAt);
         } else if (sortOption === 'metAt_asc') {
-            return a.metAt.toMillis() - b.metAt.toMillis();
+            return getMillis(a.metAt) - getMillis(b.metAt);
         } else if (sortOption === 'name_asc') {
             return a.name.localeCompare(b.name, 'ja');
         }
