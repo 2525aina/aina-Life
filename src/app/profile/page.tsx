@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
-import { LogOut, Moon, Sun, PawPrint, ExternalLink, Save, MessageSquare, Clock, ArrowLeft, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
+import { LogOut, Moon, Sun, PawPrint, ExternalLink, Save, MessageSquare, Clock, Mail, ChevronRight, Settings, Edit3, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePets } from '@/hooks/usePets';
@@ -181,17 +181,10 @@ export default function ProfilePage() {
 
                     <div className="md:container max-w-2xl mx-auto px-4 pt-8">
                         {/* Header Navigation */}
-                        <div className="flex items-center justify-between mb-8 relative z-10">
-                            <Link href="/dashboard">
-                                <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/20 backdrop-blur-md">
-                                    <ArrowLeft className="w-6 h-6" />
-                                </Button>
-                            </Link>
-                            <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive backdrop-blur-md" onClick={signOut}>
-                                    <LogOut className="w-5 h-5" />
-                                </Button>
-                            </div>
+                        <div className="flex items-center justify-end mb-8 relative z-10">
+                            <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive backdrop-blur-md" onClick={signOut}>
+                                <LogOut className="w-5 h-5" />
+                            </Button>
                         </div>
 
                         {/* Profile Header Card */}
