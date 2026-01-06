@@ -350,6 +350,65 @@ export default function WeightPage() {
                         )}
                     </motion.div>
                 </div>
+
+                {/* Sticky FAB */}
+                {canEdit && (
+                    <div className="sticky bottom-24 z-20 flex justify-end px-4 pt-6">
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger asChild>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="w-14 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30 flex items-center justify-center text-white"
+                                >
+                                    <Plus className="w-7 h-7" />
+                                </motion.button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md rounded-[2rem] border-white/20 glass">
+                                <DialogHeader>
+                                    <DialogTitle>体重を記録</DialogTitle>
+                                </DialogHeader>
+                                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                                    <div className="flex gap-4">
+                                        <div className="flex-1 space-y-2">
+                                            <Label htmlFor="weight2" className="text-xs font-medium text-muted-foreground ml-1">体重</Label>
+                                            <Input
+                                                id="weight2"
+                                                type="number"
+                                                step="0.01"
+                                                value={newWeight}
+                                                onChange={(e) => setNewWeight(e.target.value)}
+                                                placeholder="0.00"
+                                                className="h-12 rounded-xl bg-white/50 border-white/20 text-lg font-bold"
+                                            />
+                                        </div>
+                                        <div className="w-24 space-y-2">
+                                            <Label className="text-xs font-medium text-muted-foreground ml-1">単位</Label>
+                                            <Select value={newUnit} onValueChange={(v) => setNewUnit(v as 'kg' | 'g')}>
+                                                <SelectTrigger className="h-12 rounded-xl bg-white/50 border-white/20">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="kg">kg</SelectItem>
+                                                    <SelectItem value="g">g</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <DatePickerDropdown
+                                        date={newDate}
+                                        setDate={(d) => d && setNewDate(d)}
+                                        label="日付"
+                                        toDate={new Date()}
+                                    />
+                                    <Button type="submit" disabled={isSubmitting} className="w-full h-12 rounded-xl gradient-primary text-base font-bold shadow-lg">
+                                        {isSubmitting ? '保存中...' : '保存する'}
+                                    </Button>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

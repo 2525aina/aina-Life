@@ -308,6 +308,21 @@ export default function CalendarPage() {
                         </AnimatePresence>
                     </div>
                 </div>
+
+                {/* Sticky FAB */}
+                {canEdit && (
+                    <div className="sticky bottom-24 z-20 flex justify-end px-4 pt-6">
+                        <Link href={`/entry/new?date=${format(selectedDate, 'yyyy-MM-dd')}`}>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="w-14 h-14 rounded-full gradient-primary shadow-xl shadow-primary/30 flex items-center justify-center text-white"
+                            >
+                                <Plus className="w-7 h-7" />
+                            </motion.button>
+                        </Link>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );
