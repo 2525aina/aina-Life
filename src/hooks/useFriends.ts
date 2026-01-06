@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-    collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp
+    collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Friend, FriendSortOption } from '@/lib/types';
+import { getCache, setCache, cacheKeys, invalidateCachePattern } from '@/lib/cache';
 
 export function useFriends(petId: string | null) {
     const { user } = useAuth();
@@ -21,11 +22,20 @@ export function useFriends(petId: string | null) {
             return;
         }
 
+        // キャッシュから初期データをロード
+        const cacheKey = cacheKeys.friends(petId);
+        const cached = getCache<Friend[]>(cacheKey);
+        if (cached) {
+            setFriends(cached);
+            setLoading(false);
+        }
+
         const friendsQuery = query(collection(db, 'pets', petId, 'friends'));
 
         const unsubscribe = onSnapshot(friendsQuery, (snapshot) => {
             const friendsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Friend[];
             setFriends(friendsData);
+            setCache(cacheKey, friendsData);
             setLoading(false);
         });
 
@@ -57,6 +67,7 @@ export function useFriends(petId: string | null) {
         };
 
         await addDoc(collection(db, 'pets', petId, 'friends'), docData);
+        invalidateCachePattern(cacheKeys.friends(petId));
     }, [petId, user]);
 
     const updateFriend = useCallback(async (friendId: string, friendData: Partial<Omit<Friend, 'metAt'>> & { metAt?: Date }) => {

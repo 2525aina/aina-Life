@@ -194,3 +194,16 @@ Private
 - `src/components/features/CustomTaskEditor.tsx`
 - `src/components/features/PendingInvitations.tsx`
 
+**Phase 3: 通信コスト削減（キャッシュ）**
+
+- セッションキャッシュ `lib/cache.ts` を作成
+- sessionStorage ベースでタブを閉じると自動クリア
+- `useFriends` フックに適用（初期ロード高速化）
+- onSnapshot によるリアルタイム更新は維持
+
+**対象ファイル:**
+
+- `src/lib/cache.ts` (新規)
+- `src/hooks/useFriends.ts`
+
+
