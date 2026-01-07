@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/features/AppLayout';
 import { usePetContext } from '@/contexts/PetContext';
 import { useMembers } from '@/hooks/useMembers';
@@ -27,6 +27,7 @@ export default function WeightPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [newWeight, setNewWeight] = useState('');
     const [newUnit, setNewUnit] = useState<'kg' | 'g'>('kg');
+    const unitUserOverridden = useRef(false);
     const [newDate, setNewDate] = useState<Date>(new Date());
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [range, setRange] = useState<'1m' | '3m' | 'all'>('3m');
@@ -59,6 +60,13 @@ export default function WeightPage() {
     const latestWeight = weights[0];
     const previousWeight = weights[1];
     const weightChange = latestWeight && previousWeight ? (latestWeight.unit === 'g' ? latestWeight.value / 1000 : latestWeight.value) - (previousWeight.unit === 'g' ? previousWeight.value / 1000 : previousWeight.value) : null;
+
+    // 前回の体重単位をデフォルトに設定（ユーザーが手動で変更していない場合）
+    useEffect(() => {
+        if (latestWeight && !unitUserOverridden.current) {
+            setNewUnit(latestWeight.unit);
+        }
+    }, [latestWeight]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -342,7 +350,7 @@ export default function WeightPage() {
                                         </div>
                                         <div className="w-24 space-y-2">
                                             <Label className="text-xs font-medium text-muted-foreground ml-1">単位</Label>
-                                            <Select value={newUnit} onValueChange={(v) => setNewUnit(v as 'kg' | 'g')}>
+                                            <Select value={newUnit} onValueChange={(v) => { unitUserOverridden.current = true; setNewUnit(v as 'kg' | 'g'); }}>
                                                 <SelectTrigger className="h-12 rounded-xl bg-white/50 border-white/20">
                                                     <SelectValue />
                                                 </SelectTrigger>

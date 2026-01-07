@@ -55,6 +55,7 @@ export default function ProfilePage() {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [removeAvatar, setRemoveAvatar] = useState(false);
     const [confirmDeleteAvatarOpen, setConfirmDeleteAvatarOpen] = useState(false);
+    const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
     useEffect(() => {
         if (userProfile) {
@@ -139,7 +140,28 @@ export default function ProfilePage() {
         }
     };
 
+    // 変更があるかどうかを判定
+    const hasChanges = () => {
+        if (pendingAvatarFile || removeAvatar) return true;
+        if (displayName !== (userProfile?.displayName || '')) return true;
+        if (nickname !== (userProfile?.nickname || '')) return true;
+        if (gender !== (userProfile?.gender || '')) return true;
+        if (introduction !== (userProfile?.introduction || '')) return true;
+        const currentBirthday = birthday ? format(birthday, 'yyyy-MM-dd') : null;
+        const profileBirthday = userProfile?.birthday || null;
+        if (currentBirthday !== profileBirthday) return true;
+        return false;
+    };
+
     const handleCancelEdit = () => {
+        if (hasChanges()) {
+            setConfirmCancelOpen(true);
+            return;
+        }
+        resetForm();
+    };
+
+    const resetForm = () => {
         setIsEditing(false);
         if (userProfile) {
             setDisplayName(userProfile.displayName || '');
@@ -151,6 +173,7 @@ export default function ProfilePage() {
         setPendingAvatarFile(null);
         setAvatarPreview(null);
         setRemoveAvatar(false);
+        setConfirmCancelOpen(false);
     };
 
     const displayAvatar = avatarPreview || (removeAvatar ? undefined : userProfile?.avatarUrl);
@@ -405,6 +428,20 @@ export default function ProfilePage() {
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setConfirmDeleteAvatarOpen(false)}>キャンセル</Button>
                             <Button variant="destructive" onClick={handleRemoveAvatar}>削除する</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* 編集キャンセル確認ダイアログ */}
+                <Dialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>編集を中止しますか？</DialogTitle>
+                            <DialogDescription>入力した内容は保存されません。</DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setConfirmCancelOpen(false)}>編集を続ける</Button>
+                            <Button variant="destructive" onClick={resetForm}>中止する</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

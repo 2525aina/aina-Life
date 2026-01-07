@@ -56,16 +56,18 @@ export default function FriendsPage() {
                         </div>
                     </div>
 
-                    {/* Search */}
-                    <div className="relative">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="名前、犬種、飼い主名で検索..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 h-10 bg-white/50 backdrop-blur-sm border-white/20 shadow-sm rounded-xl focus:bg-white transition-all"
-                        />
-                    </div>
+                    {/* Search - 友達が5人以上の場合のみ表示 */}
+                    {friends.length >= 5 && (
+                        <div className="relative">
+                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="名前、犬種、飼い主名で検索..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-9 h-10 bg-white/50 backdrop-blur-sm border-white/20 shadow-sm rounded-xl focus:bg-white transition-all"
+                            />
+                        </div>
+                    )}
 
                     {/* Friends Grid */}
                     {loading ? (

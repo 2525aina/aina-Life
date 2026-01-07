@@ -49,7 +49,7 @@ export function DatePickerDropdown({
                             {date ? format(date, 'yyyy/MM/dd', { locale: ja }) : placeholder}
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
+                    <PopoverContent className="w-auto p-0 rounded-2xl" align="center">
                         <Calendar
                             mode="single"
                             selected={date}

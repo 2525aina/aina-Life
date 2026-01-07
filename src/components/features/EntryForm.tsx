@@ -205,6 +205,9 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
                             予定
                         </button>
                     </div>
+                    <p className="text-xs text-muted-foreground text-center -mt-2 mb-2">
+                        {type === 'diary' ? '過去の出来事を記録' : 'これからの予定を登録'}
+                    </p>
 
                     {/* Date & Time */}
                     <div className="glass rounded-[2rem] p-4 sm:p-6 space-y-4 shadow-sm">

@@ -100,7 +100,7 @@ export default function CalendarPage() {
                                     key={mode}
                                     onClick={() => setViewMode(mode)}
                                     className={cn(
-                                        "px-4 py-2 rounded-full text-xs font-bold transition-all duration-300",
+                                        "px-5 py-2.5 min-h-[44px] rounded-full text-sm font-bold transition-all duration-300",
                                         viewMode === mode
                                             ? "bg-primary text-white shadow-md shadow-primary/30"
                                             : "text-muted-foreground hover:text-foreground hover:bg-white/10"
