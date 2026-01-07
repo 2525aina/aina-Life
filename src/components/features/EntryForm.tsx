@@ -393,6 +393,11 @@ export function EntryForm({ initialData, onSubmit, isSubmitting, title: pageTitl
 
                     {/* Sticky Save Button */}
                     <div className="sticky bottom-24 z-20 pt-4 mx-auto max-w-sm">
+                        {tags.length === 0 && (
+                            <p className="text-xs text-destructive text-center mb-2">
+                                カテゴリを選択してください
+                            </p>
+                        )}
                         <Button
                             type="submit"
                             disabled={isSubmitting || tags.length === 0 || uploading}
