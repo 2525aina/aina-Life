@@ -3,9 +3,9 @@
 import { usePets } from '@/hooks/usePets';
 import { usePetContext } from '@/contexts/PetContext';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronDown, Plus, PawPrint } from 'lucide-react';
+import { ChevronDown, Plus, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
@@ -82,6 +82,15 @@ export function PetSwitcher() {
                         </div>
                     </DropdownMenuItem>
                 ))}
+                <DropdownMenuSeparator />
+                {selectedPet && (
+                    <DropdownMenuItem asChild>
+                        <Link href={`/pets/settings?id=${selectedPet.id}`} className="gap-3 cursor-pointer">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><Settings className="w-4 h-4" /></div>
+                            <span>{selectedPet.name}の設定</span>
+                        </Link>
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
                     <Link href="/pets/new" className="gap-3 cursor-pointer">
                         <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><Plus className="w-4 h-4" /></div>
