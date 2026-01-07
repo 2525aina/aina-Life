@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/features/Header';
 import { BottomNav } from '@/components/features/BottomNav';
+import { SideNav } from '@/components/features/SideNav';
 import { PawPrint } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -40,7 +41,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
 
             <Header />
-            <main className="relative z-10 pb-32 max-w-2xl mx-auto px-4">{children}</main>
+            <SideNav />
+            <main className="relative z-10 pb-32 max-w-2xl mx-auto px-4 md:ml-56">{children}</main>
             <BottomNav />
         </div>
     );

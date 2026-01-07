@@ -18,7 +18,7 @@ export function Header() {
             <div className="flex items-center justify-between h-14 px-4 max-w-2xl mx-auto">
                 <PetSwitcher />
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-9 h-9">
+                    <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-9 h-9" title={theme === 'dark' ? 'ライトモードに切り替え' : 'ダークモードに切り替え'}>
                         <Sun className="w-4 h-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                         <Moon className="absolute w-4 h-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                     </Button>

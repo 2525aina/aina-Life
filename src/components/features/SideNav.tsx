@@ -13,12 +13,12 @@ const navItems = [
     { href: '/profile', icon: User, label: 'プロフィール' },
 ];
 
-export function BottomNav() {
+export function SideNav() {
     const pathname = usePathname();
 
     return (
-        <nav className="fixed bottom-6 left-0 right-0 z-50 pointer-events-none flex justify-center safe-area-bottom md:hidden">
-            <div className="glass-capsule pointer-events-auto flex items-center justify-around w-[95%] max-w-[420px] h-[68px] px-2 backdrop-blur-2xl">
+        <nav className="hidden md:flex flex-col fixed left-0 top-14 bottom-0 w-56 bg-background/80 backdrop-blur-xl border-r border-white/10 p-4 z-40">
+            <div className="space-y-1">
                 {navItems.map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     const Icon = item.icon;
@@ -28,19 +28,14 @@ export function BottomNav() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                'relative flex flex-col items-center justify-center w-14 min-h-[44px] py-1.5 transition-all duration-300 rounded-2xl hover:bg-white/10',
+                                'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',
                                 isActive
-                                    ? 'text-primary'
-                                    : 'text-muted-foreground/60 hover:text-muted-foreground'
+                                    ? 'bg-primary/10 text-primary font-bold'
+                                    : 'text-muted-foreground hover:bg-white/10 hover:text-foreground'
                             )}
                         >
-                            <Icon className={cn("w-5 h-5 transition-transform", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 2} />
-                            <span className={cn(
-                                "text-[9px] font-medium mt-0.5 transition-colors truncate max-w-full",
-                                isActive ? "text-primary" : "text-muted-foreground/60"
-                            )}>
-                                {item.label}
-                            </span>
+                            <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
+                            <span className="text-sm">{item.label}</span>
                         </Link>
                     );
                 })}
