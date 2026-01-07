@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePickerDropdown } from '@/components/ui/date-picker-dropdown';
 import { format, subMonths, isAfter, startOfDay } from 'date-fns';
@@ -29,6 +30,7 @@ export default function WeightPage() {
     const [newDate, setNewDate] = useState<Date>(new Date());
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [range, setRange] = useState<'1m' | '3m' | 'all'>('3m');
+    const [deletingWeightId, setDeletingWeightId] = useState<string | null>(null);
 
     const chartData = useMemo(() => {
         let filtered = [...weights];
@@ -69,10 +71,16 @@ export default function WeightPage() {
         finally { setIsSubmitting(false); }
     };
 
-    const handleDelete = async (weightId: string) => {
-        if (!canEdit) return;
-        if (!confirm('この記録を削除しますか？')) return;
-        try { await deleteWeight(weightId); toast.success('削除しました'); } catch { toast.error('エラーが発生しました'); }
+    const handleDelete = async () => {
+        if (!canEdit || !deletingWeightId) return;
+        try {
+            await deleteWeight(deletingWeightId);
+            toast.success('削除しました');
+        } catch {
+            toast.error('エラーが発生しました');
+        } finally {
+            setDeletingWeightId(null);
+        }
     };
 
     if (!selectedPet) return <AppLayout><div className="p-4 text-center py-12"><p className="text-muted-foreground">ペットを選択してください</p></div></AppLayout>;
@@ -287,7 +295,7 @@ export default function WeightPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => handleDelete(w.id)}
+                                                onClick={() => setDeletingWeightId(w.id)}
                                                 className="text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-full w-8 h-8"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -360,6 +368,23 @@ export default function WeightPage() {
                     </div>
                 )}
             </div>
+            {/* 削除確認ダイアログ */}
+            <AlertDialog open={!!deletingWeightId} onOpenChange={(open) => !open && setDeletingWeightId(null)}>
+                <AlertDialogContent className="glass border-white/20">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>体重記録を削除</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            この記録を削除しますか？この操作は取り消せません。
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="rounded-full">キャンセル</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90">
+                            削除
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AppLayout>
     );
 }
