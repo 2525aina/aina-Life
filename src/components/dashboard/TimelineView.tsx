@@ -7,14 +7,16 @@ import { usePetContext } from '@/contexts/PetContext';
 import { useEntries } from '@/hooks/useEntries';
 import { useFriends } from '@/hooks/useFriends';
 import { useCustomTasks } from '@/hooks/useCustomTasks';
+import { useMembers } from '@/hooks/useMembers';
 import { ENTRY_TAGS, Entry } from '@/lib/types';
-import Link from 'next/link';
 import { CheckCircle2, Circle, Clock, ChevronDown, Sparkles, CalendarCheck, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useTimeFormat } from '@/hooks/useTimeFormat';
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { EntryDetailSheet } from '@/components/features/EntryDetailSheet';
+import { EntryEditSheet } from '@/components/features/EntryEditSheet';
 
 // Section Header Component
 function SectionHeader({
@@ -75,6 +77,7 @@ function EntryCard({
     friends,
     formatTime,
     onToggleComplete,
+    onClick,
     isCompact = false,
     isOverdue = false
 }: {
@@ -83,6 +86,7 @@ function EntryCard({
     friends: any[];
     formatTime: (date: Date) => string;
     onToggleComplete: (e: React.MouseEvent, entryId: string, isCompleted: boolean) => void;
+    onClick: () => void;
     isCompact?: boolean;
     isOverdue?: boolean;
 }) {
@@ -131,7 +135,7 @@ function EntryCard({
             exit={{ opacity: 0, y: -10 }}
             className="group"
         >
-            <Link href={`/entry/detail?id=${entry.id}`}>
+            <div onClick={onClick} className="cursor-pointer">
                 <div className={cn(
                     "flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300",
                     "hover:scale-[1.02] active:scale-[0.98]",
@@ -237,23 +241,29 @@ function EntryCard({
                         </button>
                     )}
                 </div>
-            </Link>
+            </div>
         </motion.div>
     );
 }
 
 export function TimelineView() {
     const { selectedPet } = usePetContext();
-    const { entries, loading, updateEntry } = useEntries(selectedPet?.id || null);
+    const { entries, loading, updateEntry, deleteEntry } = useEntries(selectedPet?.id || null);
     const { friends } = useFriends(selectedPet?.id || null);
     const { tasks } = useCustomTasks(selectedPet?.id || null);
     const { formatTime } = useTimeFormat();
+    const { canEdit } = useMembers(selectedPet?.id || null);
 
     // Collapsible section states
     const [showOverdue, setShowOverdue] = useState(true);
     const [showSchedules, setShowSchedules] = useState(true);
     const [showRecords, setShowRecords] = useState(true);
     const [showCompleted, setShowCompleted] = useState(false);
+
+    // Sheet states
+    const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
+    const [sheetMode, setSheetMode] = useState<'detail' | 'edit' | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Overdue schedules (past incomplete)
     const [overdueSchedules, setOverdueSchedules] = useState<Entry[]>([]);
@@ -370,167 +380,202 @@ export function TimelineView() {
     }
 
     return (
-        <div className="px-4 py-6 space-y-6">
-            {/* Overdue Schedules */}
-            {overdueSchedules.length > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-3"
-                >
-                    <SectionHeader
-                        icon={<AlertTriangle className="w-4 h-4" />}
-                        title="期限切れの予定"
-                        count={overdueSchedules.length}
-                        color="amber"
-                        isOpen={showOverdue}
-                        onToggle={() => setShowOverdue(!showOverdue)}
-                    />
-                    <AnimatePresence>
-                        {showOverdue && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="space-y-2 pl-2 overflow-hidden"
-                            >
-                                {overdueSchedules.map(entry => (
-                                    <EntryCard
-                                        key={entry.id}
-                                        entry={entry}
-                                        tasks={tasks}
-                                        friends={friends}
-                                        formatTime={formatTime}
-                                        onToggleComplete={handleToggleComplete}
-                                        isOverdue
-                                    />
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            )}
+        <>
+            <div className="px-4 py-6 space-y-6">
+                {/* Overdue Schedules */}
+                {overdueSchedules.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-3"
+                    >
+                        <SectionHeader
+                            icon={<AlertTriangle className="w-4 h-4" />}
+                            title="期限切れの予定"
+                            count={overdueSchedules.length}
+                            color="amber"
+                            isOpen={showOverdue}
+                            onToggle={() => setShowOverdue(!showOverdue)}
+                        />
+                        <AnimatePresence>
+                            {showOverdue && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-2 pl-2 overflow-hidden"
+                                >
+                                    {overdueSchedules.map(entry => (
+                                        <EntryCard
+                                            key={entry.id}
+                                            entry={entry}
+                                            tasks={tasks}
+                                            friends={friends}
+                                            formatTime={formatTime}
+                                            onToggleComplete={handleToggleComplete}
+                                            onClick={() => { setSelectedEntry(entry); setSheetMode('detail'); }}
+                                            isOverdue
+                                        />
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                )}
 
-            {/* Upcoming Schedules */}
-            {upcomingSchedules.length > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-3"
-                >
-                    <SectionHeader
-                        icon={<Clock className="w-4 h-4" />}
-                        title="今日の予定"
-                        count={upcomingSchedules.length}
-                        color="blue"
-                        isOpen={showSchedules}
-                        onToggle={() => setShowSchedules(!showSchedules)}
-                    />
-                    <AnimatePresence>
-                        {showSchedules && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="space-y-2 pl-2 overflow-hidden"
-                            >
-                                {upcomingSchedules.map(entry => (
-                                    <EntryCard
-                                        key={entry.id}
-                                        entry={entry}
-                                        tasks={tasks}
-                                        friends={friends}
-                                        formatTime={formatTime}
-                                        onToggleComplete={handleToggleComplete}
-                                    />
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            )}
+                {/* Upcoming Schedules */}
+                {upcomingSchedules.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-3"
+                    >
+                        <SectionHeader
+                            icon={<Clock className="w-4 h-4" />}
+                            title="今日の予定"
+                            count={upcomingSchedules.length}
+                            color="blue"
+                            isOpen={showSchedules}
+                            onToggle={() => setShowSchedules(!showSchedules)}
+                        />
+                        <AnimatePresence>
+                            {showSchedules && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-2 pl-2 overflow-hidden"
+                                >
+                                    {upcomingSchedules.map(entry => (
+                                        <EntryCard
+                                            key={entry.id}
+                                            entry={entry}
+                                            tasks={tasks}
+                                            friends={friends}
+                                            formatTime={formatTime}
+                                            onToggleComplete={handleToggleComplete}
+                                            onClick={() => { setSelectedEntry(entry); setSheetMode('detail'); }}
+                                        />
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                )}
 
-            {/* Today's Records */}
-            {pastRecords.length > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="space-y-3"
-                >
-                    <SectionHeader
-                        icon={<Sparkles className="w-4 h-4" />}
-                        title="今日の記録"
-                        count={pastRecords.length}
-                        color="primary"
-                        isOpen={showRecords}
-                        onToggle={() => setShowRecords(!showRecords)}
-                    />
-                    <AnimatePresence>
-                        {showRecords && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="space-y-2 pl-2 overflow-hidden"
-                            >
-                                {pastRecords.map(entry => (
-                                    <EntryCard
-                                        key={entry.id}
-                                        entry={entry}
-                                        tasks={tasks}
-                                        friends={friends}
-                                        formatTime={formatTime}
-                                        onToggleComplete={handleToggleComplete}
-                                    />
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            )}
+                {/* Today's Records */}
+                {pastRecords.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="space-y-3"
+                    >
+                        <SectionHeader
+                            icon={<Sparkles className="w-4 h-4" />}
+                            title="今日の記録"
+                            count={pastRecords.length}
+                            color="primary"
+                            isOpen={showRecords}
+                            onToggle={() => setShowRecords(!showRecords)}
+                        />
+                        <AnimatePresence>
+                            {showRecords && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-2 pl-2 overflow-hidden"
+                                >
+                                    {pastRecords.map(entry => (
+                                        <EntryCard
+                                            key={entry.id}
+                                            entry={entry}
+                                            tasks={tasks}
+                                            friends={friends}
+                                            formatTime={formatTime}
+                                            onToggleComplete={handleToggleComplete}
+                                            onClick={() => { setSelectedEntry(entry); setSheetMode('detail'); }}
+                                        />
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                )}
 
-            {/* Completed */}
-            {completedItems.length > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="space-y-3"
-                >
-                    <SectionHeader
-                        icon={<CalendarCheck className="w-4 h-4" />}
-                        title="完了済み"
-                        count={completedItems.length}
-                        color="green"
-                        isCollapsible
-                        isOpen={showCompleted}
-                        onToggle={() => setShowCompleted(!showCompleted)}
-                    />
-                    <AnimatePresence>
-                        {showCompleted && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="space-y-2 pl-2 overflow-hidden"
-                            >
-                                {completedItems.map(entry => (
-                                    <EntryCard
-                                        key={entry.id}
-                                        entry={entry}
-                                        tasks={tasks}
-                                        friends={friends}
-                                        formatTime={formatTime}
-                                        onToggleComplete={handleToggleComplete}
-                                        isCompact
-                                    />
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            )}
-        </div>
+                {/* Completed */}
+                {completedItems.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="space-y-3"
+                    >
+                        <SectionHeader
+                            icon={<CalendarCheck className="w-4 h-4" />}
+                            title="完了済み"
+                            count={completedItems.length}
+                            color="green"
+                            isCollapsible
+                            isOpen={showCompleted}
+                            onToggle={() => setShowCompleted(!showCompleted)}
+                        />
+                        <AnimatePresence>
+                            {showCompleted && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-2 pl-2 overflow-hidden"
+                                >
+                                    {completedItems.map(entry => (
+                                        <EntryCard
+                                            key={entry.id}
+                                            entry={entry}
+                                            tasks={tasks}
+                                            friends={friends}
+                                            formatTime={formatTime}
+                                            onToggleComplete={handleToggleComplete}
+                                            onClick={() => { setSelectedEntry(entry); setSheetMode('detail'); }}
+                                            isCompact
+                                        />
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                )}
+            </div>
+
+            {/* Detail Sheet */}
+            <EntryDetailSheet
+                entry={selectedEntry}
+                open={sheetMode === 'detail'}
+                onClose={() => { setSelectedEntry(null); setSheetMode(null); }}
+                onEdit={() => setSheetMode('edit')}
+                onDelete={async (id) => { await deleteEntry(id); }}
+                tasks={tasks}
+                friends={friends}
+                canEdit={canEdit}
+            />
+
+            {/* Edit Sheet */}
+            <EntryEditSheet
+                entry={selectedEntry}
+                open={sheetMode === 'edit'}
+                onClose={() => { setSelectedEntry(null); setSheetMode(null); }}
+                onSave={async (id, data) => {
+                    setIsSubmitting(true);
+                    try {
+                        await updateEntry(id, data);
+                        toast.success('保存しました');
+                    } finally {
+                        setIsSubmitting(false);
+                    }
+                }}
+                isSubmitting={isSubmitting}
+            />
+        </>
     );
 }
